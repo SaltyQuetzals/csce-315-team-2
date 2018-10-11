@@ -4,7 +4,7 @@
   "description": "A real-time multiplayer game written in TypeScript and Socket.io.",
   "main": "src/server/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "",
     "check": "gts check",
     "clean": "gts clean",
     "compile": "tsc -p .",

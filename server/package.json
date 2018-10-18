@@ -4,7 +4,7 @@
   "description": "A real-time multiplayer game written in TypeScript and Socket.io.",
   "main": "src/server/app.js",
   "scripts": {
-    "test": "",
+    "test": "find ./build/test -name '*_tests.js' | xargs mocha -R spec",
     "check": "gts check",
     "clean": "gts clean",
     "compile": "tsc -p .",
@@ -30,15 +30,17 @@
   },
   "homepage": "https://github.com/SaltyQuetzals/multiplayer-game#readme",
   "dependencies": {
+    "chai": "^4.2.0",
     "express": "^4.16.4",
     "socket.io": "^2.1.1"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.6",
     "@types/express": "^4.16.0",
     "@types/mocha": "^5.2.5",
     "@types/socket.io": "^1.4.38",
-    "mocha": "^5.2.0",
     "gts": "^0.8.0",
+    "mocha": "^5.2.0",
     "typescript": "~2.8.0"
   }
 }

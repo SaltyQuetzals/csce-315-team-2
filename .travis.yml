@@ -4,5 +4,5 @@ node_js:
 
 before_script:
   - npm install -g typescript
-  - npm install
-script: npm test && npm run check
+  - cd server && npm install && cd ../
+script: cd server && npm test

@@ -6,7 +6,12 @@ export declare abstract class Gun {
     protected canFire: boolean;
     ammoRemaining: number;
     constructor(fireRateInMillis: number, damage: number, clipSize: number, ammoRemaining: number);
-    fire(firing?: Function): void;
+    fire(firingFunction?: Function): void;
+    private readonly canFillClip;
+    reload(): void;
+    readonly fireable: boolean;
+    readonly shotsRemaining: number;
+    addAmmo(amount: number): void;
 }
 export declare class SixShooter extends Gun {
     constructor(ammoRemaining?: number);

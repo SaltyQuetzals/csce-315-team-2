@@ -13,20 +13,65 @@ export abstract class Gun {
     this.damage = damage;
     this.clipSize = clipSize;
     this.canFire = true;
+    if (ammoRemaining < 0) {
+      throw RangeError('Ammo amount cannot be negative.');
+    }
     this.ammoRemaining = ammoRemaining;
+    if (this.ammoRemaining < this.clipSize) {
+      this.shotsInClip = this.ammoRemaining;
+      this.ammoRemaining = 0;
+    } else {
+      this.shotsInClip = this.clipSize;
+      this.ammoRemaining -= this.shotsInClip;
+    }
   }
 
-  fire(firing?: Function): void {
+  fire(firingFunction?: Function): void {
     if (this.canFire) {
-      if (firing) {
-        firing();
+      if (this.shotsInClip === 0) {
+        this.reload();
+      } else {
+        if (firingFunction) {
+          firingFunction();
+        }
+
+        this.canFire = false;
+        this.shotsInClip--;
+        setTimeout(() => {
+          this.canFire = true;
+        }, this.fireRateInMillis);
       }
-      this.canFire = false;
-      this.ammoRemaining--;
-      setTimeout(() => {
-        this.canFire = true;
-      }, this.fireRateInMillis);
     }
+  }
+
+  private get canFillClip(): boolean {
+    return this.shotsInClip < this.clipSize && this.ammoRemaining > 0;
+  }
+
+  reload(): void {
+    if (this.ammoRemaining > 0) {
+      this.canFire = false;
+      while (this.canFillClip) {
+        this.ammoRemaining--;
+        this.shotsInClip++;
+      }
+    }
+    this.canFire = true;
+  }
+
+  get fireable(): boolean {
+    return this.canFire;
+  }
+
+  get shotsRemaining(): number {
+    return this.shotsInClip;
+  }
+
+  addAmmo(amount: number): void {
+    if (amount < 0) {
+      throw RangeError(`Ammo amount cannot be negative, got: ${amount}`);
+    }
+    this.ammoRemaining += amount;
   }
 }
 

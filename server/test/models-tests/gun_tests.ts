@@ -4,10 +4,11 @@ import {expect} from 'chai';
 
 import {SixShooter} from '../../src/models/Guns';
 
-describe('Calling fire', () => {
+describe('Fire function', () => {
   it('Should not re-fire immediately.', () => {
     const sixShooter = new SixShooter();
     sixShooter.fire();
+    expect(sixShooter.fireable).to.equal(false);
     const currentAmmo = sixShooter.ammoRemaining;
     sixShooter.fire();
     expect(sixShooter.ammoRemaining).to.equal(currentAmmo);
@@ -22,5 +23,21 @@ describe('Calling fire', () => {
       sixShooter.fire();
       expect(sixShooter.ammoRemaining).to.equal(currentAmmo - 1);
     }, resetRate);
+  });
+});
+
+describe('Reload function', () => {
+  it('Should fill clip to clip size if possible', () => {
+    const sixShooter = new SixShooter();  // Initializes revolver with 2 shots
+    sixShooter.addAmmo(10);
+    sixShooter.reload();
+    expect(sixShooter.shotsRemaining).to.equal(6);
+  });
+
+  it('Should fill the clip to the maximum available', () => {
+    const sixShooter = new SixShooter();  // Initializes revolver with 2 shots.
+    sixShooter.addAmmo(1);
+    sixShooter.reload();
+    expect(sixShooter.shotsRemaining).to.equal(3);
   });
 });

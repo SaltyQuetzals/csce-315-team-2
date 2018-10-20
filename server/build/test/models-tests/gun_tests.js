@@ -40,5 +40,12 @@ describe('Reload function', () => {
             chai_1.expect(sixShooter.shotsRemaining).to.equal(3);
         }, sixShooter.reloadRateMillis);
     });
+    it('Shouldn\'t change shotsInClip if ammoRemaining = 0', () => {
+        const sixShooter = new Guns_1.SixShooter(); // Initializes revolver with 2 shots.
+        sixShooter.reload();
+        setTimeout(() => {
+            chai_1.expect(sixShooter.shotsRemaining).to.equal(2);
+        }, sixShooter.reloadRateMillis);
+    });
 });
 //# sourceMappingURL=gun_tests.js.map

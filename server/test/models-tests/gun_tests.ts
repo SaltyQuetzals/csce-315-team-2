@@ -44,4 +44,13 @@ describe('Reload function', () => {
       expect(sixShooter.shotsRemaining).to.equal(3);
     }, sixShooter.reloadRateMillis);
   });
+
+  it('Shouldn\'t change shotsInClip if ammoRemaining = 0', () => {
+    const sixShooter = new SixShooter();  // Initializes revolver with 2 shots.
+    sixShooter.reload();
+
+    setTimeout(() => {
+      expect(sixShooter.shotsRemaining).to.equal(2);
+    }, sixShooter.reloadRateMillis);
+  });
 });

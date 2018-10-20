@@ -22,6 +22,13 @@ export abstract class Gun {
     this.loadBullets();
   }
 
+  /**
+   * Attempts to fire the gun. If the gun cannot be fired because there
+   * aren't any shots in the clip, `reload` will be called. Otherwise, if `fireFunction` is
+   * provided, it will be called before `shotsInClip` is decremented, and the gun is locked
+   * for `fireRateMillis`.
+   * @param firingFunction The action to perform before locking the gun.
+   */
   fire(firingFunction?: Function): void {
     if (this.canFire) {
       if (this.shotsInClip === 0) {
@@ -40,10 +47,18 @@ export abstract class Gun {
     }
   }
 
+  /**
+   * Convenience function to determine whether the clip can be filled
+   * with more ammo.
+   */
   private get canFillClip(): boolean {
     return this.shotsInClip < this.clipSize && this.ammoRemaining > 0;
   }
 
+  /**
+   * Determines the number of bullets that can be loaded into the clip,
+   * subracts that amount from `ammoRemaining`, and adds it to `shotsInClip`.
+   */
   private loadBullets(): void {
     if (this.ammoRemaining < this.clipSize) {
       this.shotsInClip = this.ammoRemaining;
@@ -54,6 +69,10 @@ export abstract class Gun {
     }
   }
 
+  /**
+   * Prevents the gun from being fired for `reloadRateMillis` milliseconds,
+   * and then calls `loadBullets`.
+   */
   reload(): void {
     if (this.canFillClip) {
       this.canFire = false;
@@ -63,14 +82,25 @@ export abstract class Gun {
     }
   }
 
+  /**
+   * Getter function to check gun firing status.
+   */
   get fireable(): boolean {
     return this.canFire;
   }
 
+  /** 
+   * Getter function to check the number of shots left in the clip.
+   */
   get shotsRemaining(): number {
     return this.shotsInClip;
   }
 
+  /**
+   * Adds `amount` shots to `ammoRemaining`.
+   * @param amount Number of shots to add
+   * @throws {RangeError} if `amount` is < 0
+   */
   addAmmo(amount: number): void {
     if (amount < 0) {
       throw RangeError(`Ammo amount cannot be negative, got: ${amount}`);

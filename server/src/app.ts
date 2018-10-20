@@ -1,6 +1,5 @@
 import express = require('express');
 import bodyParser = require('body-parser');
-import {SixShooter} from './models/Guns';
 const app = express();
 
 app.listen(3000, () => {

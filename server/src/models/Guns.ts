@@ -8,15 +8,19 @@ export abstract class Gun {
   ammoRemaining!: number;
 
   constructor(
-    fireRateMillis: number, reloadRateMillis: number, damage: number,
-    clipSize: number, ammoRemaining: number) {
+    fireRateMillis: number,
+    reloadRateMillis: number,
+    damage: number,
+    clipSize: number,
+    ammoRemaining: number
+  ) {
     this.fireRateMillis = fireRateMillis;
     this.reloadRateMillis = reloadRateMillis;
     this.damage = damage;
     this.clipSize = clipSize;
     this.canFire = true;
     if (ammoRemaining < 0) {
-      throw RangeError('Ammo amount cannot be negative.');
+      throw RangeError("Ammo amount cannot be negative.");
     }
     this.ammoRemaining = ammoRemaining;
     this.loadBullets();
@@ -89,7 +93,7 @@ export abstract class Gun {
     return this.canFire;
   }
 
-  /** 
+  /**
    * Getter function to check the number of shots left in the clip.
    */
   get shotsRemaining(): number {
@@ -109,12 +113,34 @@ export abstract class Gun {
   }
 }
 
-export class SixShooter extends Gun {
+export class Revolver extends Gun {
   constructor(ammoRemaining = 2) {
-    const FIRE_RATE = 500;
+    const FIRE_RATE = 250;
     const DAMAGE = 1;
     const CLIP_SIZE = 6;
-    const RELOAD_RATE = 150;
+    const RELOAD_RATE = 300;
+    super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
+  }
+}
+
+export class SawnOffShotgun extends Gun {
+  constructor(ammoRemaining = 2) {
+    const FIRE_RATE = 500;
+    const DAMAGE = 7;
+    const CLIP_SIZE = 2;
+    const RELOAD_RATE = 1000;
+
+    super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
+  }
+}
+
+export class AutomaticRifle extends Gun {
+  constructor(ammoRemaining = 30) {
+    const FIRE_RATE = 50;
+    const DAMAGE = 4;
+    const CLIP_SIZE = 60;
+    const RELOAD_RATE = 500;
+
     super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
   }
 }

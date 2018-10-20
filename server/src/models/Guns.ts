@@ -8,8 +8,8 @@ export abstract class Gun {
   ammoRemaining!: number;
 
   constructor(
-      fireRateMillis: number, reloadRateMillis: number, damage: number,
-      clipSize: number, ammoRemaining: number) {
+    fireRateMillis: number, reloadRateMillis: number, damage: number,
+    clipSize: number, ammoRemaining: number) {
     this.fireRateMillis = fireRateMillis;
     this.reloadRateMillis = reloadRateMillis;
     this.damage = damage;

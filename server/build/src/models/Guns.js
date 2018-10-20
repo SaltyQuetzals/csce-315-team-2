@@ -33,6 +33,10 @@ class Gun {
     get canFillClip() {
         return this.shotsInClip < this.clipSize && this.ammoRemaining > 0;
     }
+    /**
+     * Determines the number of bullets that can be loaded into the clip,
+     * subracts that amount from `ammoRemaining`, and adds it to `shotsInClip`.
+     */
     loadBullets() {
         if (this.ammoRemaining < this.clipSize) {
             this.shotsInClip = this.ammoRemaining;
@@ -43,6 +47,10 @@ class Gun {
             this.ammoRemaining -= this.shotsInClip;
         }
     }
+    /**
+     * Prevents the gun from being fired for `reloadRateMillis` milliseconds,
+     * and then calls `loadBullets`.
+     */
     reload() {
         if (this.canFillClip) {
             this.canFire = false;

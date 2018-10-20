@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Gun {
-    constructor(fireRateInMillis, damage, clipSize, ammoRemaining) {
-        this.fireRateInMillis = fireRateInMillis;
+    constructor(fireRateMillis, reloadRateMillis, damage, clipSize, ammoRemaining) {
+        this.fireRateMillis = fireRateMillis;
+        this.reloadRateMillis = reloadRateMillis;
         this.damage = damage;
         this.clipSize = clipSize;
         this.canFire = true;
@@ -10,14 +11,7 @@ class Gun {
             throw RangeError('Ammo amount cannot be negative.');
         }
         this.ammoRemaining = ammoRemaining;
-        if (this.ammoRemaining < this.clipSize) {
-            this.shotsInClip = this.ammoRemaining;
-            this.ammoRemaining = 0;
-        }
-        else {
-            this.shotsInClip = this.clipSize;
-            this.ammoRemaining -= this.shotsInClip;
-        }
+        this.loadBullets();
     }
     fire(firingFunction) {
         if (this.canFire) {
@@ -32,22 +26,30 @@ class Gun {
                 this.shotsInClip--;
                 setTimeout(() => {
                     this.canFire = true;
-                }, this.fireRateInMillis);
+                }, this.fireRateMillis);
             }
         }
     }
     get canFillClip() {
         return this.shotsInClip < this.clipSize && this.ammoRemaining > 0;
     }
-    reload() {
-        if (this.ammoRemaining > 0) {
-            this.canFire = false;
-            while (this.canFillClip) {
-                this.ammoRemaining--;
-                this.shotsInClip++;
-            }
+    loadBullets() {
+        if (this.ammoRemaining < this.clipSize) {
+            this.shotsInClip = this.ammoRemaining;
+            this.ammoRemaining = 0;
         }
-        this.canFire = true;
+        else {
+            this.shotsInClip = this.clipSize;
+            this.ammoRemaining -= this.shotsInClip;
+        }
+    }
+    reload() {
+        if (this.canFillClip) {
+            this.canFire = false;
+            setTimeout(() => {
+                this.loadBullets();
+            }, this.reloadRateMillis);
+        }
     }
     get fireable() {
         return this.canFire;
@@ -68,7 +70,8 @@ class SixShooter extends Gun {
         const FIRE_RATE = 500;
         const DAMAGE = 1;
         const CLIP_SIZE = 6;
-        super(FIRE_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
+        const RELOAD_RATE = 150;
+        super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
     }
 }
 exports.SixShooter = SixShooter;

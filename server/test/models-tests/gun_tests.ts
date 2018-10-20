@@ -16,7 +16,7 @@ describe('Fire function', () => {
 
   it('Should be able to fire after cooling down', () => {
     const sixShooter = new SixShooter();
-    const resetRate = sixShooter.fireRateInMillis;
+    const resetRate = sixShooter.fireRateMillis;
     sixShooter.fire();
     const currentAmmo = sixShooter.ammoRemaining;
     setTimeout(() => {
@@ -31,13 +31,17 @@ describe('Reload function', () => {
     const sixShooter = new SixShooter();  // Initializes revolver with 2 shots
     sixShooter.addAmmo(10);
     sixShooter.reload();
-    expect(sixShooter.shotsRemaining).to.equal(6);
+    setTimeout(() => {
+      expect(sixShooter.shotsRemaining).to.equal(6);
+    }, sixShooter.reloadRateMillis);
   });
 
   it('Should fill the clip to the maximum available', () => {
     const sixShooter = new SixShooter();  // Initializes revolver with 2 shots.
     sixShooter.addAmmo(1);
     sixShooter.reload();
-    expect(sixShooter.shotsRemaining).to.equal(3);
+    setTimeout(() => {
+      expect(sixShooter.shotsRemaining).to.equal(3);
+    }, sixShooter.reloadRateMillis);
   });
 });

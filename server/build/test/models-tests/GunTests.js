@@ -13,7 +13,7 @@ describe('Calling fire', () => {
     });
     it('Should be able to fire after cooling down', () => {
         const sixShooter = new Guns_1.SixShooter();
-        const resetRate = sixShooter.fireRateInMillis;
+        const resetRate = sixShooter.fireRateMillis;
         sixShooter.fire(() => { });
         const currentAmmo = sixShooter.ammoRemaining;
         setTimeout(() => {

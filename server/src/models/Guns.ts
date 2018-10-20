@@ -1,5 +1,6 @@
 export abstract class Gun {
-  readonly fireRateInMillis!: number;
+  readonly fireRateMillis!: number;
+  readonly reloadRateMillis!: number;
   protected readonly damage!: number;
   protected readonly clipSize!: number;
   protected shotsInClip!: number;
@@ -7,9 +8,10 @@ export abstract class Gun {
   ammoRemaining!: number;
 
   constructor(
-      fireRateInMillis: number, damage: number, clipSize: number,
-      ammoRemaining: number) {
-    this.fireRateInMillis = fireRateInMillis;
+      fireRateMillis: number, reloadRateMillis: number, damage: number,
+      clipSize: number, ammoRemaining: number) {
+    this.fireRateMillis = fireRateMillis;
+    this.reloadRateMillis = reloadRateMillis;
     this.damage = damage;
     this.clipSize = clipSize;
     this.canFire = true;
@@ -17,13 +19,7 @@ export abstract class Gun {
       throw RangeError('Ammo amount cannot be negative.');
     }
     this.ammoRemaining = ammoRemaining;
-    if (this.ammoRemaining < this.clipSize) {
-      this.shotsInClip = this.ammoRemaining;
-      this.ammoRemaining = 0;
-    } else {
-      this.shotsInClip = this.clipSize;
-      this.ammoRemaining -= this.shotsInClip;
-    }
+    this.loadBullets();
   }
 
   fire(firingFunction?: Function): void {
@@ -39,7 +35,7 @@ export abstract class Gun {
         this.shotsInClip--;
         setTimeout(() => {
           this.canFire = true;
-        }, this.fireRateInMillis);
+        }, this.fireRateMillis);
       }
     }
   }
@@ -48,15 +44,23 @@ export abstract class Gun {
     return this.shotsInClip < this.clipSize && this.ammoRemaining > 0;
   }
 
-  reload(): void {
-    if (this.ammoRemaining > 0) {
-      this.canFire = false;
-      while (this.canFillClip) {
-        this.ammoRemaining--;
-        this.shotsInClip++;
-      }
+  private loadBullets(): void {
+    if (this.ammoRemaining < this.clipSize) {
+      this.shotsInClip = this.ammoRemaining;
+      this.ammoRemaining = 0;
+    } else {
+      this.shotsInClip = this.clipSize;
+      this.ammoRemaining -= this.shotsInClip;
     }
-    this.canFire = true;
+  }
+
+  reload(): void {
+    if (this.canFillClip) {
+      this.canFire = false;
+      setTimeout(() => {
+        this.loadBullets();
+      }, this.reloadRateMillis);
+    }
   }
 
   get fireable(): boolean {
@@ -80,6 +84,7 @@ export class SixShooter extends Gun {
     const FIRE_RATE = 500;
     const DAMAGE = 1;
     const CLIP_SIZE = 6;
-    super(FIRE_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
+    const RELOAD_RATE = 150;
+    super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
   }
 }

@@ -1,4 +1,4 @@
-export abstract class Gun {
+export abstract class Weapon {
   readonly fireRateMillis!: number;
   readonly reloadRateMillis!: number;
   protected readonly damage!: number;
@@ -8,19 +8,15 @@ export abstract class Gun {
   ammoRemaining!: number;
 
   constructor(
-    fireRateMillis: number,
-    reloadRateMillis: number,
-    damage: number,
-    clipSize: number,
-    ammoRemaining: number
-  ) {
+      fireRateMillis: number, reloadRateMillis: number, damage: number,
+      clipSize: number, ammoRemaining: number) {
     this.fireRateMillis = fireRateMillis;
     this.reloadRateMillis = reloadRateMillis;
     this.damage = damage;
     this.clipSize = clipSize;
     this.canFire = true;
     if (ammoRemaining < 0) {
-      throw RangeError("Ammo amount cannot be negative.");
+      throw RangeError('Ammo amount cannot be negative.');
     }
     this.ammoRemaining = ammoRemaining;
     this.loadBullets();
@@ -28,9 +24,9 @@ export abstract class Gun {
 
   /**
    * Attempts to fire the gun. If the gun cannot be fired because there
-   * aren't any shots in the clip, `reload` will be called. Otherwise, if `fireFunction` is
-   * provided, it will be called before `shotsInClip` is decremented, and the gun is locked
-   * for `fireRateMillis`.
+   * aren't any shots in the clip, `reload` will be called. Otherwise, if
+   * `fireFunction` is provided, it will be called before `shotsInClip` is
+   * decremented, and the gun is locked for `fireRateMillis`.
    * @param firingFunction The action to perform before locking the gun.
    */
   fire(firingFunction?: Function): void {
@@ -113,7 +109,7 @@ export abstract class Gun {
   }
 }
 
-export class Revolver extends Gun {
+export class Revolver extends Weapon {
   constructor(ammoRemaining = 2) {
     const FIRE_RATE = 250;
     const DAMAGE = 1;
@@ -123,7 +119,7 @@ export class Revolver extends Gun {
   }
 }
 
-export class SawnOffShotgun extends Gun {
+export class SawnOffShotgun extends Weapon {
   constructor(ammoRemaining = 2) {
     const FIRE_RATE = 500;
     const DAMAGE = 7;
@@ -134,7 +130,7 @@ export class SawnOffShotgun extends Gun {
   }
 }
 
-export class AutomaticRifle extends Gun {
+export class AutomaticRifle extends Weapon {
   constructor(ammoRemaining = 30) {
     const FIRE_RATE = 50;
     const DAMAGE = 4;

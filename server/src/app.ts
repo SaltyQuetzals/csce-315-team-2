@@ -1,5 +1,4 @@
 import express = require('express');
-import bodyParser = require('body-parser');
 const app = express();
 
 app.listen(3000, () => {

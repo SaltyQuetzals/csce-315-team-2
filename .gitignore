@@ -1,3 +1,6 @@
+# Ignore build dir
+build
+
 # Logs
 logs
 *.log

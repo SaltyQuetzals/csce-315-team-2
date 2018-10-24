@@ -11,7 +11,8 @@
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run fix && npm run compile",
-    "posttest": "npm run check"
+    "posttest": "npm run check",
+    "start": "node build/src/app.js"
   },
   "repository": {
     "type": "git",

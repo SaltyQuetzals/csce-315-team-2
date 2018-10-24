@@ -33,6 +33,7 @@
     "@microsoft/tsdoc": "^0.9.2",
     "chai": "^4.2.0",
     "express": "^4.16.4",
+    "phaser": "^3.15.1",
     "socket.io": "^2.1.1"
   },
   "devDependencies": {

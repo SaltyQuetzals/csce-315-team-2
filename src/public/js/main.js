@@ -102,25 +102,32 @@ function update() {
     if (cursors[DIR.LEFT].isDown)
     {
         this.zombie.x -= 2;
-        this.zombie.anims.play('left', true);
+        if (!(cursors[DIR.DOWN].isDown)) {
+            this.zombie.anims.play('left', true);
+        }
     }
     else if (cursors[DIR.RIGHT].isDown)
     {
         this.zombie.x += 2;
-        this.zombie.anims.play('right', true);
+        if (!(cursors[DIR.DOWN].isDown)) {
+            this.zombie.anims.play('right', true);
+        }
     }
 
     if (cursors[DIR.UP].isDown)
     {
         this.zombie.y -= 2;
-        this.zombie.anims.play('up', true);
+        if (!(cursors[DIR.LEFT].isDown || cursors[DIR.RIGHT].isDown)) {
+            this.zombie.anims.play('up', true);
+        }
     }
     else if (cursors[DIR.DOWN].isDown)
     {
         this.zombie.y += 2;
         this.zombie.anims.play('down', true);
     }
-    else if (wasd[DIR.UP].isDown)
+    
+    if (wasd[DIR.UP].isDown)
     {
         this.zombie.y -= 2;
     }
@@ -128,7 +135,8 @@ function update() {
     {
         this.zombie.y += 2;
     }
-    else if (wasd[DIR.RIGHT].isDown)
+    
+    if (wasd[DIR.RIGHT].isDown)
     {
         this.zombie.x += 2;
     }
@@ -136,7 +144,9 @@ function update() {
     {
         this.zombie.x -= 2;
     }
-    else if(cursors.reduce((a,c)=>a||c.isDown, false) + wasd.reduce((a,c)=>a||c.isDown, false)  == 0){
+    
+    if(cursors.reduce((a,c)=>a||c.isDown, false) + wasd.reduce((a,c)=>a||c.isDown, false)  == 0){
+        // No keys pressed - stop animations
         this.zombie.anims.stop();
         //this.zombie.anims.play('idle');
     }

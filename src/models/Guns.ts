@@ -1,25 +1,28 @@
+import {delay} from '../shared/functions';
+
 export abstract class Weapon {
   readonly fireRateMillis!: number;
   readonly reloadRateMillis!: number;
-  protected readonly damage!: number;
-  protected readonly clipSize!: number;
-  protected shotsInClip!: number;
-  protected canFire!: boolean;
-  ammoRemaining!: number;
+  protected readonly _damage!: number;
+  protected readonly _clipSize!: number;
+  protected _shotsInClip!: number;
+  protected _canFire!: boolean;
+  ammoNotLoaded!: number;
 
   constructor(
       fireRateMillis: number, reloadRateMillis: number, damage: number,
-      clipSize: number, ammoRemaining: number) {
+      clipSize: number, ammoNotLoaded: number) {
     this.fireRateMillis = fireRateMillis;
     this.reloadRateMillis = reloadRateMillis;
-    this.damage = damage;
-    this.clipSize = clipSize;
-    this.canFire = true;
-    if (ammoRemaining < 0) {
+    this._damage = damage;
+    this._clipSize = clipSize;
+    this._canFire = true;
+    if (ammoNotLoaded < 0) {
       throw RangeError('Ammo amount cannot be negative.');
     }
-    this.ammoRemaining = ammoRemaining;
-    this.loadBullets();
+    this.ammoNotLoaded = ammoNotLoaded;
+    this._shotsInClip = 0;
+    this._loadBullets();
   }
 
   /**
@@ -29,20 +32,19 @@ export abstract class Weapon {
    * decremented, and the gun is locked for `fireRateMillis`.
    * @param firingFunction The action to perform before locking the gun.
    */
-  fire(firingFunction?: Function): void {
-    if (this.canFire) {
-      if (this.shotsInClip === 0) {
+  async fire(firingFunction?: Function): Promise<void> {
+    if (this._canFire) {
+      if (this._shotsInClip === 0) {
         this.reload();
       } else {
         if (firingFunction) {
           firingFunction();
         }
 
-        this.canFire = false;
-        this.shotsInClip--;
-        setTimeout(() => {
-          this.canFire = true;
-        }, this.fireRateMillis);
+        this._canFire = false;
+        this._shotsInClip--;
+        await delay(this.fireRateMillis);
+        this._canFire = true;
       }
     }
   }
@@ -51,21 +53,18 @@ export abstract class Weapon {
    * Convenience function to determine whether the clip can be filled
    * with more ammo.
    */
-  private get canFillClip(): boolean {
-    return this.shotsInClip < this.clipSize && this.ammoRemaining > 0;
+  private get _canFillClip(): boolean {
+    return this._shotsInClip < this._clipSize && this.ammoNotLoaded > 0;
   }
 
   /**
    * Determines the number of bullets that can be loaded into the clip,
    * subracts that amount from `ammoRemaining`, and adds it to `shotsInClip`.
    */
-  private loadBullets(): void {
-    if (this.ammoRemaining < this.clipSize) {
-      this.shotsInClip = this.ammoRemaining;
-      this.ammoRemaining = 0;
-    } else {
-      this.shotsInClip = this.clipSize;
-      this.ammoRemaining -= this.shotsInClip;
+  private _loadBullets(): void {
+    while (this._canFillClip) {
+      this._shotsInClip++;
+      this.ammoNotLoaded--;
     }
   }
 
@@ -73,27 +72,26 @@ export abstract class Weapon {
    * Prevents the gun from being fired for `reloadRateMillis` milliseconds,
    * and then calls `loadBullets`.
    */
-  reload(): void {
-    if (this.canFillClip) {
-      this.canFire = false;
-      setTimeout(() => {
-        this.loadBullets();
-      }, this.reloadRateMillis);
+  async reload(): Promise<void> {
+    if (this._canFillClip) {
+      this._canFire = false;
+      await delay(this.reloadRateMillis);
+      this._loadBullets();
     }
   }
 
   /**
    * Getter function to check gun firing status.
    */
-  get fireable(): boolean {
-    return this.canFire;
+  get canFire(): boolean {
+    return this._canFire;
   }
 
   /**
-   * Getter function to check the number of shots left in the clip.
+   * Returns `shotsInClip`.
    */
-  get shotsRemaining(): number {
-    return this.shotsInClip;
+  get shotsInClip(): number {
+    return this._shotsInClip;
   }
 
   /**
@@ -105,13 +103,13 @@ export abstract class Weapon {
     if (amount < 0) {
       throw RangeError(`Ammo amount cannot be negative, got: ${amount}`);
     }
-    this.ammoRemaining += amount;
+    this.ammoNotLoaded += amount;
   }
 }
 
 export class Revolver extends Weapon {
   constructor(ammoRemaining = 2) {
-    const FIRE_RATE = 250;
+    const FIRE_RATE = 100;
     const DAMAGE = 1;
     const CLIP_SIZE = 6;
     const RELOAD_RATE = 300;

@@ -1,7 +1,9 @@
+const GAME_VIEW_WIDTH = 800;
+const GAME_VIEW_HEIGHT = 600;
 const config = {
     type: Phaser.AUTO,
-    width: $(window).width(),
-    height: $(window).height(),
+    width: GAME_VIEW_WIDTH,
+    height: GAME_VIEW_HEIGHT,
     physics: {
         default: 'arcade',
         arcade: {
@@ -20,8 +22,8 @@ const config = {
 const game = new Phaser.Game(config);
 
 function preload() {
-    this.load.image('zombieUp', 'assets/ZombieUp.png');
-    this.load.image('bg', 'assets/bg.png');
+    this.load.image('zombieUp', '/assets/ZombieUp.png');
+    this.load.image('bg', '/assets/bg.png');
 }
 
 var bg;
@@ -30,7 +32,7 @@ var cursors;
 var wasd;
 
 function create() {
-    bg = this.add.tileSprite($(window).width() / 2, $(window).height() / 2, $(window).width(), $(window).height(), 'bg');
+    bg = this.add.tileSprite(GAME_VIEW_WIDTH / 2, GAME_VIEW_HEIGHT / 2, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
     zombie = this.physics.add.sprite(100, 100, 'zombieUp');
     zombie.setCollideWorldBounds(true);
@@ -79,13 +81,13 @@ function render() {
     this.debug.spriteInfo(zombie, 20, 32);
 }
 
+const socket = io.connect('http://localhost:3000/');
 
-var socket = io.connect('http://localhost:3000/');
-const room = 'dumb';
-socket.on('connect', () => {
-    socket.emit('room', room);
-});
+const splitUrl = location.href.split('/');
+const roomCode = splitUrl[splitUrl.length - 1];
 
-socket.on('message', (data) => {
-    console.log(data);
-});
+socket.emit('join room', {room: roomCode});
+
+// socket.on('new player', () => {
+//     console.log('Another player has joined the room!');
+// })

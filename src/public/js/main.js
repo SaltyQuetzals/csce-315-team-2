@@ -19,8 +19,7 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-function preload ()
-{    
+function preload() {
     this.load.image('zombieUp', 'assets/ZombieUp.png');
     this.load.image('bg', 'assets/bg.png');
 }
@@ -30,9 +29,8 @@ var zombie;
 var cursors;
 var wasd;
 
-function create ()
-{
-    bg = this.add.tileSprite($(window).width()/2, $(window).height()/2, $(window).width(), $(window).height(), 'bg');
+function create() {
+    bg = this.add.tileSprite($(window).width() / 2, $(window).height() / 2, $(window).width(), $(window).height(), 'bg');
 
     zombie = this.physics.add.sprite(100, 100, 'zombieUp');
     zombie.setCollideWorldBounds(true);
@@ -49,37 +47,29 @@ function create ()
 
 
 function update() {
-    if (cursors.left.isDown)
-    {
+    if (cursors.left.isDown) {
         zombie.x -= 8;
     }
-    else if (cursors.right.isDown)
-    {
+    else if (cursors.right.isDown) {
         zombie.x += 8;
     }
 
-    if (cursors.up.isDown)
-    {
+    if (cursors.up.isDown) {
         zombie.y -= 8;
     }
-    else if (cursors.down.isDown)
-    {
+    else if (cursors.down.isDown) {
         zombie.y += 8;
     }
-    else if (wasd.up.isDown)
-    {
+    else if (wasd.up.isDown) {
         zombie.y -= 8;
     }
-    else if (wasd.down.isDown)
-    {
+    else if (wasd.down.isDown) {
         zombie.y += 8;
     }
-    else if (wasd.right.isDown)
-    {
+    else if (wasd.right.isDown) {
         zombie.x += 8;
     }
-    else if (wasd.left.isDown)
-    {
+    else if (wasd.left.isDown) {
         zombie.x -= 8;
     }
 
@@ -88,3 +78,14 @@ function update() {
 function render() {
     this.debug.spriteInfo(zombie, 20, 32);
 }
+
+
+var socket = io.connect('http://localhost:3000/');
+const room = 'dumb';
+socket.on('connect', () => {
+    socket.emit('room', room);
+});
+
+socket.on('message', (data) => {
+    console.log(data);
+});

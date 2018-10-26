@@ -5,52 +5,42 @@ import {expect} from 'chai';
 import {Revolver} from '../../src/models/Guns';
 
 describe('Fire function', () => {
-  it('Should not re-fire immediately.', () => {
+  it('Should not re-fire immediately.', async () => {
     const revolver = new Revolver();
     revolver.fire();
-    expect(revolver.fireable).to.equal(false);
-    const currentAmmo = revolver.ammoRemaining;
+    expect(revolver.canFire).to.equal(false);
+    const currentAmmo = revolver.ammoNotLoaded;
     revolver.fire();
-    expect(revolver.ammoRemaining).to.equal(currentAmmo);
+    expect(revolver.ammoNotLoaded).to.equal(currentAmmo);
   });
 
-  it('Should be able to fire after cooling down', () => {
+  it('Should be able to fire after cooling down', async () => {
     const revolver = new Revolver();
-    const resetRate = revolver.fireRateMillis;
-    revolver.fire();
-    const currentAmmo = revolver.ammoRemaining;
-    setTimeout(() => {
-      revolver.fire();
-      expect(revolver.ammoRemaining).to.equal(currentAmmo - 1);
-    }, resetRate);
+    await revolver.fire();
+    const currentAmmo = revolver.shotsInClip;
+    await revolver.fire();
+    expect(revolver.shotsInClip).to.equal(currentAmmo - 1);
   });
 });
 
 describe('Reload function', () => {
-  it('Should fill clip to clip size if possible', () => {
+  it('Should fill clip to clip size if possible', async () => {
     const revolver = new Revolver();  // Initializes revolver with 2 shots
     revolver.addAmmo(10);
-    revolver.reload();
-    setTimeout(() => {
-      expect(revolver.shotsRemaining).to.equal(6);
-    }, revolver.reloadRateMillis);
+    await revolver.reload();
+    expect(revolver.shotsInClip).to.equal(6);
   });
 
-  it('Should fill the clip to the maximum available', () => {
+  it('Should fill the clip to the maximum available', async () => {
     const revolver = new Revolver();  // Initializes revolver with 2 shots.
     revolver.addAmmo(1);
-    revolver.reload();
-    setTimeout(() => {
-      expect(revolver.shotsRemaining).to.equal(3);
-    }, revolver.reloadRateMillis);
+    await revolver.reload();
+    expect(revolver.shotsInClip).to.equal(3);
   });
 
-  it('Shouldn\'t change shotsInClip if ammoRemaining = 0', () => {
+  it('Shouldn\'t change shotsInClip if ammoRemaining = 0', async () => {
     const revolver = new Revolver();  // Initializes revolver with 2 shots.
-    revolver.reload();
-
-    setTimeout(() => {
-      expect(revolver.shotsRemaining).to.equal(2);
-    }, revolver.reloadRateMillis);
+    await revolver.reload();
+    expect(revolver.shotsInClip).to.equal(2);
   });
 });

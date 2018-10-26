@@ -47,32 +47,76 @@ function create() {
     };
 }
 
+const socket = io.connect('http://localhost:3000/');
+
+const splitUrl = location.href.split('/');
+const roomCode = splitUrl[splitUrl.length - 1];
+
+socket.emit('join room', {room: roomCode});
+
+socket.on('new player', () => {
+    console.log('Another player has joined the room!');
+});
+
+socket.on('err', ({message}) => {
+    console.error(message);
+});
+
+socket.on('room full', () => {
+    const errorDialog = document.getElementById('room-full-dialog');
+    console.log(errorDialog);
+    if (errorDialog) {
+        errorDialog.style.display = 'block';
+    }
+});
+
 
 function update() {
+    let moveDelta = {
+        x: 0,
+        y: 0
+    };
+    
     if (cursors.left.isDown) {
+        moveDelta.x -= 8;
         zombie.x -= 8;
+        socket.emit('move', moveDelta);
     }
     else if (cursors.right.isDown) {
         zombie.x += 8;
+        moveDelta.x += 8;
+        socket.emit('move', moveDelta);
     }
 
     if (cursors.up.isDown) {
         zombie.y -= 8;
+        moveDelta.y -= 8;
+        socket.emit('move', moveDelta);
     }
     else if (cursors.down.isDown) {
         zombie.y += 8;
+        moveDelta.y += 8;
+        socket.emit('move', moveDelta);
     }
     else if (wasd.up.isDown) {
         zombie.y -= 8;
+        moveDelta.y -= 8;
+        socket.emit('move', moveDelta);
     }
     else if (wasd.down.isDown) {
         zombie.y += 8;
+        moveDelta.y += 8;
+        socket.emit('move', moveDelta);
     }
     else if (wasd.right.isDown) {
         zombie.x += 8;
+        moveDelta.x += 8;
+        socket.emit('move', moveDelta);
     }
     else if (wasd.left.isDown) {
         zombie.x -= 8;
+        moveDelta.x -= 8;
+        socket.emit('move', moveDelta);
     }
 
 }
@@ -81,13 +125,3 @@ function render() {
     this.debug.spriteInfo(zombie, 20, 32);
 }
 
-const socket = io.connect('http://localhost:3000/');
-
-const splitUrl = location.href.split('/');
-const roomCode = splitUrl[splitUrl.length - 1];
-
-socket.emit('join room', {room: roomCode});
-
-// socket.on('new player', () => {
-//     console.log('Another player has joined the room!');
-// })

@@ -41,10 +41,9 @@ var wasd;
 
 function create ()
 {
+
     bg = this.add.tileSprite($(window).width()/2, $(window).height()/2, $(window).width(), $(window).height(), 'bg');
 
-    //zombie = this.physics.add.sprite(100, 100, 'zombieUp');
-    //zombie.setCollideWorldBounds(true);
     this.zombie = this.physics.add.sprite(100, 100, 'zombie_1');
     this.zombie.setCollideWorldBounds(true);
     

@@ -36,6 +36,7 @@
     "@microsoft/tsdoc": "^0.9.2",
     "@types/express-session": "^1.15.11",
     "body-parser": "^1.18.3",
+    "browserify": "^16.2.3",
     "chai": "^4.2.0",
     "express": "^4.16.4",
     "express-session": "^1.15.6",

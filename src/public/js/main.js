@@ -1,8 +1,12 @@
-// import {AutomaticRifle} from '../../models/Guns';
+const Revolver = require("../../models/Guns.ts")
+
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
 const ZOMBIE_SPEED = 4;
+// const ar = GUNS.AutomaticRifle;
+const revolver = Revolver;
+// const shotgun = GUNS.SawnOffShotgun;
 
 const DIR = {
     UP: 0,
@@ -39,7 +43,7 @@ var bg;
 var zombie;
 var cursors;
 var wasd;
-var assaultRifle;
+var gun;
 
 function create() {
 
@@ -101,13 +105,13 @@ function create() {
     ];
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-    assaultRifle = game.add.weapon(30, 'bullet');
-    assaultRifle.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    assaultRifle.bulletAngleOffset = 0;
-    assaultRifle.fireAngle = Phaser.ANGLE_RIGHT;
-    assaultRifle.bulletSpeed = 400;
-    assaultRifle.fireRate = 60;
-    assaultRifle.trackSprite(zombie, 14, 14);
+    gun = game.add.weapon(revolver.CLIP_SIZE, 'bullet');
+    gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    gun.bulletAngleOffset = 0;
+    gun.fireAngle = Phaser.ANGLE_RIGHT;
+    gun.bulletSpeed = 200;
+    gun.fireRate = revolver.FIRE_RATE;
+    gun.trackSprite(zombie, 14, 14);
 
 }
 
@@ -166,19 +170,35 @@ function update() {
     
     if (wasd[DIR.UP].isDown)
     {
-        assaultRifle.fireAngle = Phaser.ANGLE_UP;
+        if (wasd[DIR.RIGHT].isDown) {
+            gun.fireAngle = Phaser.ANGLE_NORTH_EAST;
+        }
+        else if (wasd[DIR.LEFT].isDown) {
+            gun.fireAngle = Phaser.ANGLE_NORTH_WEST;
+        }
+        else {
+            gun.fireAngle = Phaser.ANGLE_UP;
+        }
     }
     else if (wasd[DIR.DOWN].isDown)
     {
-        assaultRifle.fireAngle = Phaser.ANGLE_DOWN;
+        if (wasd[DIR.RIGHT].isDown) {
+            gun.fireAngle = Phaser.ANGLE_SOUTH_EAST;
+        }
+        else if (wasd[DIR.LEFT].isDown) {
+            gun.fireAngle = Phaser.ANGLE_SOUTH_WEST;
+        }
+        else {
+            gun.fireAngle = Phaser.ANGLE_DOWN;
+        }    
     }
     else if (wasd[DIR.RIGHT].isDown)
     {
-        assaultRifle.fireAngle = Phaser.ANGLE_RIGHT;
+        gun.fireAngle = Phaser.ANGLE_RIGHT;
     }
     else if (wasd[DIR.LEFT].isDown)
     {
-        assaultRifle.fireAngle = Phaser.ANGLE_LEFT;
+        gun.fireAngle = Phaser.ANGLE_LEFT;
     }
     
     if(cursors.reduce((a,c)=>a||c.isDown, false) + wasd.reduce((a,c)=>a||c.isDown, false)  == 0){
@@ -189,7 +209,7 @@ function update() {
     }
 
     if (spacebar.isDown) {
-        assaultRifle.fire();
+        gun.fire();
     }
 }
 

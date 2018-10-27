@@ -28,10 +28,10 @@ const game = new Phaser.Game(config);
 
 function preload ()
 {    
-    this.load.image('zombieUp', 'assets/ZombieUp.png');
-    this.load.image('bg', 'assets/bg.png');
+    this.load.image('zombieUp', '../assets/ZombieUp.png');
+    this.load.image('bg', '../assets/bg.png');
     this.load.spritesheet('zombie_1',
-        'assets/ZombieSpriteSheet.png',
+        '../assets/ZombieSpriteSheet.png',
         { frameWidth: 35, frameHeight: 36}
     );
 }

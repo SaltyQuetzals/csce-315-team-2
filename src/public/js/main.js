@@ -1,40 +1,37 @@
 // import {AutomaticRifle} from '../../models/Guns';
 
-
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
-const config = {
-    type: Phaser.AUTO,
-    width: GAME_VIEW_WIDTH,
-    height: GAME_VIEW_HEIGHT,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 0 },
-            debug: false
-        }
-    },
-    scene: {
-        preload,
-        create,
-        update,
-        render
-    }
-};
+const ZOMBIE_SPEED = 4;
+
 const DIR = {
     UP: 0,
     LEFT: 1,
     DOWN: 2,
     RIGHT: 3,
 }
-const game = new Phaser.Game(config);
+const game = new Phaser.Game(
+    GAME_VIEW_WIDTH,
+    GAME_VIEW_HEIGHT,
+    Phaser.AUTO,
+    '',
+    {
+        preload: preload,
+        create: create,
+        update: update,
+        render: render
+    }
+);
 
 function preload ()
 {    
-    this.load.image('bg', '../assets/bg.png');
-    this.load.spritesheet('zombie_1',
+    console.log("preloading");
+    game.load.image('bg', '../assets/bg.png');
+    game.load.image('bullet', '../assets/bullet.png');
+    game.load.spritesheet('zombie_1',
         '../assets/ZombieSpriteSheet.png',
-        { frameWidth: 35, frameHeight: 36}
+        35, // frame width
+        36, // frame height
     );
 }
 
@@ -45,44 +42,49 @@ var wasd;
 var assaultRifle;
 
 function create() {
-    bg = this.add.tileSprite(GAME_VIEW_WIDTH / 2, GAME_VIEW_HEIGHT / 2, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
-    this.zombie = this.physics.add.sprite(100, 100, 'zombie_1');
-    this.zombie.setCollideWorldBounds(true);
+    console.log("Creating");
+    game.physics.startSystem(Phaser.Physics.Arcade);
+    bg = game.add.tileSprite(0, 0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
+
+    zombie = game.add.sprite(100, 100, 'zombie_1');
+    zombie.frame = 1;
+    game.physics.arcade.enable(zombie);
+    zombie.body.collideWorldBounds = true;
     
     //Anims
-    this.anims.create({
-        key: 'down',
-        frames: this.anims.generateFrameNumbers('zombie_1', { start: 0, end: 2}),
-        frameRate: 10,
-        repeat: -1,
-    });
-    this.anims.create({
-        key: 'right',
-        frames: this.anims.generateFrameNumbers('zombie_1', { start: 3, end: 5}),
-        frameRate: 10,
-        repeat: -1,
-    });
-    this.anims.create({
-        key: 'up',
-        frames: this.anims.generateFrameNumbers('zombie_1', { start: 6, end: 8}),
-        frameRate: 10,
-        repeat: -1,
-    });
-    this.anims.create({
-        key: 'left',
-        frames: this.anims.generateFrameNumbers('zombie_1', { start: 9, end: 11}),
-        frameRate: 10,
-        repeat: -1,
-    });
-    this.anims.create({
-        key: 'idle',
-        frames: this.anims.generateFrameNumbers('zombie_1', { start: 12, end: 14}),
-        frameRate: 10,
-        repeat: -1,
-    });
+    zombie.animations.add(
+        'down', 
+        [0, 1, 2],
+        10,
+        false
+    );
+    zombie.animations.add(
+        'right',
+        [3, 4, 5],
+        10,
+        false
+    );
+    zombie.animations.add(
+        'up',
+        [6, 7, 8],
+        10,
+        false
+    );            
+    zombie.animations.add(
+        'left',
+        [9, 10, 11],
+        10,
+        false
+    );
+    zombie.animations.add(
+        'idle',
+        [12, 13, 14],
+        10,
+        false
+    );
 
-    cursors = this.input.keyboard.createCursorKeys();
+    cursors = game.input.keyboard.createCursorKeys();
     console.log(cursors);
     cursors = [
         cursors.up,
@@ -92,19 +94,20 @@ function create() {
     ];
     console.log(cursors);
     wasd = [
-        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+        game.input.keyboard.addKey(Phaser.Keyboard.W),
+        game.input.keyboard.addKey(Phaser.Keyboard.A),
+        game.input.keyboard.addKey(Phaser.Keyboard.S),
+        game.input.keyboard.addKey(Phaser.Keyboard.D),
     ];
-    spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACEBAR);
+    spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-    this.assaultRifle = this.add.weapon(30, 'bullet');
-    this.assaultRifle.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    this.assaultRifle.bulletAngleOffset = 0;
-    this.assaultRifle.bulletSpeed = 400;
-    this.assaultRifle.fireRate = 60;
-    this.assaultRifle.trackSprite(zombie, 14, 14);
+    assaultRifle = game.add.weapon(30, 'bullet');
+    assaultRifle.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    assaultRifle.bulletAngleOffset = 0;
+    assaultRifle.fireAngle = Phaser.ANGLE_RIGHT;
+    assaultRifle.bulletSpeed = 400;
+    assaultRifle.fireRate = 60;
+    assaultRifle.trackSprite(zombie, 14, 14);
 
 }
 
@@ -135,64 +138,63 @@ socket.on('room full', () => {
 function update() {
     if (cursors[DIR.LEFT].isDown)
     {
-        this.zombie.x -= 2;
+        zombie.x -= ZOMBIE_SPEED;
         if (!(cursors[DIR.DOWN].isDown)) {
-            this.zombie.anims.play('left', true);
+            zombie.animations.play('left', true);
         }
     }
     else if (cursors[DIR.RIGHT].isDown)
     {
-        this.zombie.x += 2;
+        zombie.x += ZOMBIE_SPEED;
         if (!(cursors[DIR.DOWN].isDown)) {
-            this.zombie.anims.play('right', true);
+            zombie.animations.play('right', true);
         }
     }
 
     if (cursors[DIR.UP].isDown)
     {
-        this.zombie.y -= 2;
+        zombie.y -= ZOMBIE_SPEED;
         if (!(cursors[DIR.LEFT].isDown || cursors[DIR.RIGHT].isDown)) {
-            this.zombie.anims.play('up', true);
+            zombie.animations.play('up', true);
         }
     }
     else if (cursors[DIR.DOWN].isDown)
     {
-        this.zombie.y += 2;
-        this.zombie.anims.play('down', true);
+        zombie.y += ZOMBIE_SPEED;
+        zombie.animations.play('down', true);
     }
     
     if (wasd[DIR.UP].isDown)
     {
-        this.zombie.y -= 2;
+        assaultRifle.fireAngle = Phaser.ANGLE_UP;
     }
     else if (wasd[DIR.DOWN].isDown)
     {
-        this.zombie.y += 2;
+        assaultRifle.fireAngle = Phaser.ANGLE_DOWN;
     }
-    
-    if (wasd[DIR.RIGHT].isDown)
+    else if (wasd[DIR.RIGHT].isDown)
     {
-        this.zombie.x += 2;
+        assaultRifle.fireAngle = Phaser.ANGLE_RIGHT;
     }
     else if (wasd[DIR.LEFT].isDown)
     {
-        this.zombie.x -= 2;
+        assaultRifle.fireAngle = Phaser.ANGLE_LEFT;
     }
     
     if(cursors.reduce((a,c)=>a||c.isDown, false) + wasd.reduce((a,c)=>a||c.isDown, false)  == 0){
         // No keys pressed - stop animations
-        this.zombie.anims.stop();
-        //this.zombie.anims.play('idle');
+        zombie.animations.stop();
+        //zombie.anims.play('idle');
 
     }
 
     if (spacebar.isDown) {
-        this.assaultRifle.fire();
+        assaultRifle.fire();
     }
 }
 
 function render() {
-    this.debug.spriteInfo(zombie, 20, 32);
+    game.debug.spriteInfo(zombie, 20, 32);
 }
 
 function movementHandler(){

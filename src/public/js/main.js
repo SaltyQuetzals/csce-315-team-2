@@ -1,7 +1,9 @@
+const GAME_VIEW_WIDTH = 800;
+const GAME_VIEW_HEIGHT = 600;
 const config = {
     type: Phaser.AUTO,
-    width: $(window).width(),
-    height: $(window).height(),
+    width: GAME_VIEW_WIDTH,
+    height: GAME_VIEW_HEIGHT,
     physics: {
         default: 'arcade',
         arcade: {
@@ -39,10 +41,8 @@ var zombie;
 var cursors;
 var wasd;
 
-function create ()
-{
-
-    bg = this.add.tileSprite($(window).width()/2, $(window).height()/2, $(window).width(), $(window).height(), 'bg');
+function create() {
+    bg = this.add.tileSprite(GAME_VIEW_WIDTH / 2, GAME_VIEW_HEIGHT / 2, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
     this.zombie = this.physics.add.sprite(100, 100, 'zombie_1');
     this.zombie.setCollideWorldBounds(true);
@@ -96,6 +96,29 @@ function create ()
     ];
 }
 
+const socket = io.connect('http://localhost:3000/');
+
+const splitUrl = location.href.split('/');
+const roomCode = splitUrl[splitUrl.length - 1];
+
+socket.emit('join room', {room: roomCode});
+
+socket.on('new player', () => {
+    console.log('Another player has joined the room!');
+});
+
+socket.on('err', ({message}) => {
+    console.error(message);
+});
+
+socket.on('room full', () => {
+    const errorDialog = document.getElementById('room-full-dialog');
+    console.log(errorDialog);
+    if (errorDialog) {
+        errorDialog.style.display = 'block';
+    }
+});
+
 
 function update() {
     if (cursors[DIR.LEFT].isDown)
@@ -148,6 +171,7 @@ function update() {
         // No keys pressed - stop animations
         this.zombie.anims.stop();
         //this.zombie.anims.play('idle');
+
     }
 }
 

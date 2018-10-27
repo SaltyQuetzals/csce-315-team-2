@@ -1,6 +1,22 @@
-#noPad{
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+body,
+html {
+  height: 100%;
+  display: grid;
 }
+
+.center-container {
+  /* thing to center */
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#create-form, #join-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.buttongroup {
+  flex-direction: row;

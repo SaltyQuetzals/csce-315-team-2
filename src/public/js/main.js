@@ -1,3 +1,6 @@
+// import {AutomaticRifle} from '../../models/Guns';
+
+
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
 const config = {
@@ -28,7 +31,6 @@ const game = new Phaser.Game(config);
 
 function preload ()
 {    
-    this.load.image('zombieUp', '../assets/ZombieUp.png');
     this.load.image('bg', '../assets/bg.png');
     this.load.spritesheet('zombie_1',
         '../assets/ZombieSpriteSheet.png',
@@ -40,6 +42,7 @@ var bg;
 var zombie;
 var cursors;
 var wasd;
+var assaultRifle;
 
 function create() {
     bg = this.add.tileSprite(GAME_VIEW_WIDTH / 2, GAME_VIEW_HEIGHT / 2, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
@@ -94,6 +97,15 @@ function create() {
         this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
         this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     ];
+    spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACEBAR);
+
+    this.assaultRifle = this.add.weapon(30, 'bullet');
+    this.assaultRifle.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    this.assaultRifle.bulletAngleOffset = 0;
+    this.assaultRifle.bulletSpeed = 400;
+    this.assaultRifle.fireRate = 60;
+    this.assaultRifle.trackSprite(zombie, 14, 14);
+
 }
 
 const socket = io.connect('http://localhost:3000/');
@@ -172,6 +184,10 @@ function update() {
         this.zombie.anims.stop();
         //this.zombie.anims.play('idle');
 
+    }
+
+    if (spacebar.isDown) {
+        this.assaultRifle.fire();
     }
 }
 

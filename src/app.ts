@@ -3,7 +3,7 @@ import path = require('path');
 import * as socketio from 'socket.io';
 import http = require('http');
 import * as session from 'express-session';
-import { random } from './shared/functions';
+import {random} from './shared/functions';
 import bodyParser = require('body-parser');
 import {Game} from './controllers/Game';
 
@@ -13,13 +13,13 @@ const ROOM_CODE_LENGTH = 5;
 const STATIC_DIR = path.join(__dirname, 'public');
 
 const sessionMiddleware =
-  session({ resave: true, saveUninitialized: true, secret: 'baboon' });
+    session({resave: true, saveUninitialized: true, secret: 'baboon'});
 
 const app = express();
 
 app.use(express.static(STATIC_DIR));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(sessionMiddleware);
 
 app.use((req, _res, next) => {
@@ -60,11 +60,10 @@ io.on('connection', (socket) => {
     const {room} = data;
     socket.join(room);
     if (defaultNamespace.rooms[room].length === 11) {
-      socket.leave(room).emit('room full', {
-        message: 'The room you have requested is full. Try again later.'
-      });
-    }
-    else {
+      socket.leave(room).emit(
+          'room full',
+          {message: 'The room you have requested is full. Try again later.'});
+    } else {
       socket.broadcast.to(data.room).emit('new player', {});
     }
     console.log(JSON.stringify(io.nsps['/'].adapter.rooms[room], null, 3));
@@ -74,6 +73,4 @@ io.on('connection', (socket) => {
     console.log(socket.request.session.userid, 'is moving');
     console.log(JSON.stringify(movementDelta, null, 3));
   });
-
-
 });

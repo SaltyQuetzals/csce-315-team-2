@@ -1,4 +1,4 @@
-window.onload = function() {
+window.onload = () => {
   const createGameButton = document.getElementById('create-game');
   const createGameForm = document.getElementById('create-form');
   const joinGameButton = document.getElementById('join-game');
@@ -31,8 +31,8 @@ window.onload = function() {
   }
 
   function toggleVisibility(
-    thisForm: HTMLElement | null, thisButton: HTMLElement | null,
-    otherButton: HTMLElement | null, otherForm: HTMLElement | null): void {
+      thisForm: HTMLElement|null, thisButton: HTMLElement|null,
+      otherButton: HTMLElement|null, otherForm: HTMLElement|null): void {
     if (thisForm && thisButton && otherButton && otherForm) {
       thisForm.style.display = 'flex';
       thisButton.style.display = 'none';
@@ -45,7 +45,7 @@ window.onload = function() {
     createGameButton.addEventListener('click', (event) => {
       event.preventDefault();
       toggleVisibility(
-        createGameForm, createGameButton, joinGameButton, joinGameForm);
+          createGameForm, createGameButton, joinGameButton, joinGameForm);
     });
   }
 
@@ -53,7 +53,7 @@ window.onload = function() {
     joinGameButton.addEventListener('click', event => {
       event.preventDefault();
       toggleVisibility(
-        joinGameForm, joinGameButton, createGameButton, createGameForm);
+          joinGameForm, joinGameButton, createGameButton, createGameForm);
     });
   }
-}
+};

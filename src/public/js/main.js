@@ -18,12 +18,22 @@ const config = {
         render
     }
 };
-
+const DIR = {
+    UP: 0,
+    LEFT: 1,
+    DOWN: 2,
+    RIGHT: 3,
+}
 const game = new Phaser.Game(config);
 
-function preload() {
-    this.load.image('zombieUp', '/assets/ZombieUp.png');
-    this.load.image('bg', '/assets/bg.png');
+function preload ()
+{    
+    this.load.image('zombieUp', 'assets/ZombieUp.png');
+    this.load.image('bg', 'assets/bg.png');
+    this.load.spritesheet('zombie_1',
+        'assets/ZombieSpriteSheet.png',
+        { frameWidth: 35, frameHeight: 36}
+    );
 }
 
 var bg;
@@ -34,17 +44,56 @@ var wasd;
 function create() {
     bg = this.add.tileSprite(GAME_VIEW_WIDTH / 2, GAME_VIEW_HEIGHT / 2, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
-    zombie = this.physics.add.sprite(100, 100, 'zombieUp');
-    zombie.setCollideWorldBounds(true);
+    this.zombie = this.physics.add.sprite(100, 100, 'zombie_1');
+    this.zombie.setCollideWorldBounds(true);
+    
+    //Anims
+    this.anims.create({
+        key: 'down',
+        frames: this.anims.generateFrameNumbers('zombie_1', { start: 0, end: 2}),
+        frameRate: 10,
+        repeat: -1,
+    });
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('zombie_1', { start: 3, end: 5}),
+        frameRate: 10,
+        repeat: -1,
+    });
+    this.anims.create({
+        key: 'up',
+        frames: this.anims.generateFrameNumbers('zombie_1', { start: 6, end: 8}),
+        frameRate: 10,
+        repeat: -1,
+    });
+    this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('zombie_1', { start: 9, end: 11}),
+        frameRate: 10,
+        repeat: -1,
+    });
+    this.anims.create({
+        key: 'idle',
+        frames: this.anims.generateFrameNumbers('zombie_1', { start: 12, end: 14}),
+        frameRate: 10,
+        repeat: -1,
+    });
 
     cursors = this.input.keyboard.createCursorKeys();
-
-    wasd = {
-        up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-        down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-        left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-        right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-    };
+    console.log(cursors);
+    cursors = [
+        cursors.up,
+        cursors.left,
+        cursors.down,
+        cursors.right,
+    ];
+    console.log(cursors);
+    wasd = [
+        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+        this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+    ];
 }
 
 const socket = io.connect('http://localhost:3000/');
@@ -72,56 +121,68 @@ socket.on('room full', () => {
 
 
 function update() {
-    let moveDelta = {
-        x: 0,
-        y: 0
-    };
+    if (cursors[DIR.LEFT].isDown)
+    {
+        this.zombie.x -= 2;
+        if (!(cursors[DIR.DOWN].isDown)) {
+            this.zombie.anims.play('left', true);
+        }
+    }
+    else if (cursors[DIR.RIGHT].isDown)
+    {
+        this.zombie.x += 2;
+        if (!(cursors[DIR.DOWN].isDown)) {
+            this.zombie.anims.play('right', true);
+        }
+    }
+
+    if (cursors[DIR.UP].isDown)
+    {
+        this.zombie.y -= 2;
+        if (!(cursors[DIR.LEFT].isDown || cursors[DIR.RIGHT].isDown)) {
+            this.zombie.anims.play('up', true);
+        }
+    }
+    else if (cursors[DIR.DOWN].isDown)
+    {
+        this.zombie.y += 2;
+        this.zombie.anims.play('down', true);
+    }
     
-    if (cursors.left.isDown) {
-        moveDelta.x -= 8;
-        zombie.x -= 8;
-        socket.emit('move', moveDelta);
+    if (wasd[DIR.UP].isDown)
+    {
+        this.zombie.y -= 2;
     }
-    else if (cursors.right.isDown) {
-        zombie.x += 8;
-        moveDelta.x += 8;
-        socket.emit('move', moveDelta);
+    else if (wasd[DIR.DOWN].isDown)
+    {
+        this.zombie.y += 2;
     }
+    
+    if (wasd[DIR.RIGHT].isDown)
+    {
+        this.zombie.x += 2;
+    }
+    else if (wasd[DIR.LEFT].isDown)
+    {
+        this.zombie.x -= 2;
+    }
+    
+    if(cursors.reduce((a,c)=>a||c.isDown, false) + wasd.reduce((a,c)=>a||c.isDown, false)  == 0){
+        // No keys pressed - stop animations
+        this.zombie.anims.stop();
+        //this.zombie.anims.play('idle');
 
-    if (cursors.up.isDown) {
-        zombie.y -= 8;
-        moveDelta.y -= 8;
-        socket.emit('move', moveDelta);
     }
-    else if (cursors.down.isDown) {
-        zombie.y += 8;
-        moveDelta.y += 8;
-        socket.emit('move', moveDelta);
-    }
-    else if (wasd.up.isDown) {
-        zombie.y -= 8;
-        moveDelta.y -= 8;
-        socket.emit('move', moveDelta);
-    }
-    else if (wasd.down.isDown) {
-        zombie.y += 8;
-        moveDelta.y += 8;
-        socket.emit('move', moveDelta);
-    }
-    else if (wasd.right.isDown) {
-        zombie.x += 8;
-        moveDelta.x += 8;
-        socket.emit('move', moveDelta);
-    }
-    else if (wasd.left.isDown) {
-        zombie.x -= 8;
-        moveDelta.x -= 8;
-        socket.emit('move', moveDelta);
-    }
-
 }
 
 function render() {
     this.debug.spriteInfo(zombie, 20, 32);
 }
 
+function movementHandler(){
+
+}
+
+function createAnim(){
+    
+}

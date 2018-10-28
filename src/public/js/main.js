@@ -1,4 +1,4 @@
-const Revolver = require("../../models/Guns.ts")
+const Revolver = require("../../models/Guns.js")
 
 
 const GAME_VIEW_WIDTH = 800;
@@ -33,9 +33,9 @@ function preload ()
     game.load.image('bg', '../assets/bg.png');
     game.load.image('bullet', '../assets/bullet.png');
     game.load.spritesheet('zombie_1',
-        '../assets/ZombieSpriteSheet.png',
-        35, // frame width
-        36, // frame height
+        '../assets/ZombieWalkingSpriteSheet.png',
+        50, // frame width
+        64, // frame height
     );
 }
 
@@ -59,31 +59,31 @@ function create() {
     //Anims
     zombie.animations.add(
         'down', 
-        [0, 1, 2],
+        [0, 1, 2, 3],
         10,
         false
     );
     zombie.animations.add(
         'right',
-        [3, 4, 5],
+        [4, 5, 6, 7],
         10,
         false
     );
     zombie.animations.add(
         'up',
-        [6, 7, 8],
+        [8, 9, 10, 11],
         10,
         false
     );            
     zombie.animations.add(
         'left',
-        [9, 10, 11],
+        [12, 13, 14, 15],
         10,
         false
     );
     zombie.animations.add(
         'idle',
-        [12, 13, 14],
+        [16, 17, 18, 19],
         10,
         false
     );

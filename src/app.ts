@@ -5,7 +5,6 @@ import http = require('http');
 import * as session from 'express-session';
 import {random} from './shared/functions';
 import bodyParser = require('body-parser');
-import {Game} from './controllers/Game';
 
 const USER_ID_LENGTH = 32;
 const ROOM_CODE_LENGTH = 5;

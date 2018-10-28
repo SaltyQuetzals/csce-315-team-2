@@ -33,8 +33,8 @@ function preload ()
     game.load.image('bg', '../assets/bg.png');
     game.load.image('bullet', '../assets/bullet.png');
     game.load.spritesheet('zombie_1',
-        '../assets/ZombieWalkingSpriteSheet.png',
-        50, // frame width
+        '../assets/ZombieWalkingSpriteSheet2.png',
+        64, // frame width
         64, // frame height
     );
 }

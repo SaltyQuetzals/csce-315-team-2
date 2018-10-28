@@ -13,24 +13,32 @@
     <div class="center-container">
         <h1>Untitled Zombie Game ... 3?</h1>
         <form method="POST" action="/rooms" id="create-form" style="display: none">
-            <div class="buttongroup">
-                <input id="create-submit" type="submit" name="create" value="Create">
-                <button class="back-button">Back</button>
+            <div class="buttongroup" style="display: flex; flex-direction: row;">
+                <div class="btn">
+                    <input id="create-submit" type="submit" name="create" value="Create">
+                </div>
+                <div class="btn">
+                    <button class="back-button">Back</button>
+                </div>
             </div>
         </form>
-        <form id="join-form" style="display: none">
-            <p>
-                <input type="text" placeholder="Your provided room code">
-            </p>
-            <div class="buttongroup">
-                <input id="join-submit" type="submit" name="join" value="Join">
-                <button class="back-button">Back</button>
+        <form id="join-form" style="display: flex; flex-direction: column;">
+            <div style="display: flex; flex-direction: row">
+                <input id="access-code" type="text" placeholder="Access Code"/>
+                <div class="btn">
+                    <input id="join-submit" type="submit" name="join" value="→"/>
+                </div>
             </div>
+            <span style="display: block; margin-top: 10px;">Don't have an access code?
+                <b id="create-game" class="btn">
+                    <span style="position: relative; padding: 10px;">Create a Game</span>
+                </b>
+            </span>
         </form>
-        <div class="buttongroup">
+        <!-- <div class="buttongroup" style="display: none">
             <button id="create-game">Create Game</button>
             <button id="join-game">Join Game</button>
-        </div>
+        </div> -->
     </div>
 
 </body>

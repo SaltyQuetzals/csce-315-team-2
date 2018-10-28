@@ -1,11 +1,11 @@
-const Revolver = require("../../models/Guns.js")
+const GUNS = require("../../models/Guns.js")
 
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
 const ZOMBIE_SPEED = 4;
 // const ar = GUNS.AutomaticRifle;
-const revolver = Revolver;
+const revolver = new GUNS.Revolver();
 // const shotgun = GUNS.SawnOffShotgun;
 
 const DIR = {
@@ -104,13 +104,13 @@ function create() {
         game.input.keyboard.addKey(Phaser.Keyboard.D),
     ];
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
-    gun = game.add.weapon(revolver.CLIP_SIZE, 'bullet');
+    
+    gun = game.add.weapon(revolver._clipSize, 'bullet');
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
     gun.fireAngle = Phaser.ANGLE_RIGHT;
     gun.bulletSpeed = 200;
-    gun.fireRate = revolver.FIRE_RATE;
+    gun.fireRate = revolver.fireRateMillis;
     gun.trackSprite(zombie, 14, 14);
 
 }

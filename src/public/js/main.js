@@ -14,6 +14,12 @@ const DIR = {
     DOWN: 2,
     RIGHT: 3,
 }
+const KEYBOARD = {
+    37: 'left',
+    38: 'up',
+    39: 'right',
+    40: 'down',
+}
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
     GAME_VIEW_HEIGHT,
@@ -51,52 +57,20 @@ function create() {
     game.physics.startSystem(Phaser.Physics.Arcade);
     bg = game.add.tileSprite(0, 0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
-    zombie = game.add.sprite(100, 100, 'zombie_1');
-    zombie.frame = 1;
-    game.physics.arcade.enable(zombie);
-    zombie.body.collideWorldBounds = true;
-    
-    //Anims
-    zombie.animations.add(
-        'down', 
-        [0, 1, 2, 3],
-        10,
-        false
-    );
-    zombie.animations.add(
-        'right',
-        [4, 5, 6, 7],
-        10,
-        false
-    );
-    zombie.animations.add(
-        'up',
-        [8, 9, 10, 11],
-        10,
-        false
-    );            
-    zombie.animations.add(
-        'left',
-        [12, 13, 14, 15],
-        10,
-        false
-    );
-    zombie.animations.add(
-        'idle',
-        [16, 17, 18, 19],
-        10,
-        false
-    );
+    game.players = [];
+    game.players.push( initAvatar('zombie_1', 300, 100));
+    game.players.push( initAvatar('zombie_1'));
+    game.localPlayer = initAvatar('zombie_1', 100, 100, true);
+    game.players.push( game.localPlayer);
 
+    //Controls
     cursors = game.input.keyboard.createCursorKeys();
-    console.log(cursors);
     cursors = [
         cursors.up,
         cursors.left,
         cursors.down,
         cursors.right,
     ];
-    console.log(cursors);
     wasd = [
         game.input.keyboard.addKey(Phaser.Keyboard.W),
         game.input.keyboard.addKey(Phaser.Keyboard.A),
@@ -105,6 +79,8 @@ function create() {
     ];
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     
+
+    //Gun
     gun = game.add.weapon(revolver._clipSize, 'bullet');
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
@@ -113,6 +89,40 @@ function create() {
     gun.fireRate = revolver.fireRateMillis;
     gun.trackSprite(zombie, 14, 14);
 
+
+    //Keyboard Events
+    game.localPlayer.keyboard = {
+        movement: {
+            up: 0,
+            left: 0,
+            down: 0,
+            right: 0,
+        },
+        aim: {
+            up: 0,
+            left: 0,
+            down: 0,
+            right: 0,
+        }
+    }
+    game.input.keyboard.onDownCallback = function(event){
+        if(KEYBOARD[event.keyCode] && ! game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ]){
+            game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ] = 1;
+            socket.emit('move',{...game.localPlayer.keyboard.movement,
+                                x: game.localPlayer.x,
+                                y: game.localPlayer.y}
+            );
+        }
+    }
+    game.input.keyboard.onUpCallback = function(event){
+        if(KEYBOARD[event.keyCode] && game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ]){
+            game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ] = 0;
+            socket.emit('move',{...game.localPlayer.keyboard.movement,
+                x: game.localPlayer.x,
+                y: game.localPlayer.y}
+            );
+        }
+    }
 }
 
 const socket = io.connect('http://localhost:3000/');
@@ -140,34 +150,46 @@ socket.on('room full', () => {
 
 
 function update() {
+    movementHandler();
+
+    if (spacebar.isDown) {
+        gun.fire();
+    }
+}
+
+function render() {
+    game.debug.spriteInfo(game.localPlayer, 20, 32);
+}
+
+function movementHandler(){
     if (cursors[DIR.LEFT].isDown)
     {
-        zombie.x -= ZOMBIE_SPEED;
+        game.localPlayer.x -= ZOMBIE_SPEED;
         if (!(cursors[DIR.DOWN].isDown)) {
-            zombie.animations.play('left', true);
+            game.localPlayer.animations.play('left', true);
         }
     }
     else if (cursors[DIR.RIGHT].isDown)
     {
-        zombie.x += ZOMBIE_SPEED;
+        game.localPlayer.x += ZOMBIE_SPEED;
         if (!(cursors[DIR.DOWN].isDown)) {
-            zombie.animations.play('right', true);
+            game.localPlayer.animations.play('right', true);
         }
     }
 
     if (cursors[DIR.UP].isDown)
     {
-        zombie.y -= ZOMBIE_SPEED;
+        game.localPlayer.y -= ZOMBIE_SPEED;
         if (!(cursors[DIR.LEFT].isDown || cursors[DIR.RIGHT].isDown)) {
-            zombie.animations.play('up', true);
+            game.localPlayer.animations.play('up', true);
         }
     }
     else if (cursors[DIR.DOWN].isDown)
     {
-        zombie.y += ZOMBIE_SPEED;
-        zombie.animations.play('down', true);
+        game.localPlayer.y += ZOMBIE_SPEED;
+        game.localPlayer.animations.play('down', true);
     }
-    
+
     if (wasd[DIR.UP].isDown)
     {
         if (wasd[DIR.RIGHT].isDown) {
@@ -200,27 +222,49 @@ function update() {
     {
         gun.fireAngle = Phaser.ANGLE_LEFT;
     }
-    
+
     if(cursors.reduce((a,c)=>a||c.isDown, false) + wasd.reduce((a,c)=>a||c.isDown, false)  == 0){
         // No keys pressed - stop animations
-        zombie.animations.stop();
+        game.localPlayer.animations.stop();
         //zombie.anims.play('idle');
-
-    }
-
-    if (spacebar.isDown) {
-        gun.fire();
     }
 }
 
-function render() {
-    game.debug.spriteInfo(zombie, 20, 32);
-}
-
-function movementHandler(){
-
-}
-
-function createAnim(){
+function initAvatar(spriteSheet, x=100, y=100){
+    avatar = game.add.sprite(x, y, spriteSheet);
+    avatar.frame = 1;
+    game.physics.arcade.enable(avatar);
+    avatar.body.collideWorldBounds = true;
     
+    avatar.animations.add(
+        'down', 
+        [0, 1, 2, 3],
+        10,
+        false
+    );
+    avatar.animations.add(
+        'right',
+        [4, 5, 6, 7],
+        10,
+        false
+    );
+    avatar.animations.add(
+        'up',
+        [8, 9, 10, 11],
+        10,
+        false
+    );            
+    avatar.animations.add(
+        'left',
+        [12, 13, 14, 15],
+        10,
+        false
+    );
+    avatar.animations.add(
+        'idle',
+        [16, 17, 18, 19],
+        10,
+        false
+    );
+    return avatar;
 }

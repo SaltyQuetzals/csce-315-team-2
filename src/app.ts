@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
     console.log(JSON.stringify(io.nsps['/'].adapter.rooms[room], null, 3));
   });
 
-  socket.on('start game', () => {
+  socket.on('start game', (data) => {
     socket.broadcast.to(data.room).emit('start game', {game: new Game(1000,1000)});
   });
 

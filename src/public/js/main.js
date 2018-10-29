@@ -32,8 +32,7 @@ const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
     GAME_VIEW_HEIGHT,
     Phaser.AUTO,
-    '',
-    {
+    '', {
         init: init,
         preload: preload,
         create: create,
@@ -46,8 +45,7 @@ function init() {
     game.stage.disableVisibilityChange = true;
 }
 
-function preload ()
-{    
+function preload() {
     console.log("preloading");
     game.load.image('bg', '../assets/bg.png');
     game.load.image('bullet', '../assets/bullet.png');
@@ -59,7 +57,6 @@ function preload ()
 }
 
 var bg;
-var zombie;
 var cursors;
 var wasd;
 var gun;
@@ -76,10 +73,6 @@ function create() {
     game.localPlayer.id = 0;
     game.players[game.localPlayer.id] = game.localPlayer;
 
-    //game.players.push( {'character': initAvatar('zombie_1', 300, 100) });
-    //////game.players.push( initAvatar('zombie_1'));
-
-
     //Controls
     cursors = game.input.keyboard.createCursorKeys();
     cursors = [
@@ -95,7 +88,7 @@ function create() {
         game.input.keyboard.addKey(Phaser.Keyboard.D),
     ];
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    
+
 
     //Gun
     gun = game.add.weapon(revolver._clipSize, 'bullet');
@@ -108,63 +101,89 @@ function create() {
 
 
     //Keyboard Events
-    game.localPlayer.keyboard = {...PLR_KEYBOARD};
-    game.input.keyboard.onDownCallback = function(event){
-        if(KEYBOARD[event.keyCode] && ! game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ]){
-            game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ] = 1;
-            socket.emit('move',{...game.localPlayer.keyboard.movement,
-                                x: game.localPlayer.character.x,
-                                y: game.localPlayer.character.y}
-            );
+    game.localPlayer.keyboard = { ...PLR_KEYBOARD
+    };
+    game.input.keyboard.onDownCallback = function (event) {
+        if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]]) {
+            game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]] = 1;
+            // socket.emit('move', {
+            //     roomId,
+            //     ...game.localPlayer.keyboard.movement,
+            //     x: game.localPlayer.character.x,
+            //     y: game.localPlayer.character.y
+            // });
         }
     }
-    game.input.keyboard.onUpCallback = function(event){
-        if(KEYBOARD[event.keyCode] && game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ]){
-            game.localPlayer.keyboard.movement[ KEYBOARD[event.keyCode] ] = 0;
-            socket.emit('move',{...game.localPlayer.keyboard.movement,
-                x: game.localPlayer.character.x,
-                y: game.localPlayer.character.y}
-            );
+    game.input.keyboard.onUpCallback = function (event) {
+        if (KEYBOARD[event.keyCode] && game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]]) {
+            game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]] = 0;
+            // socket.emit('move', {
+            //     roomId,
+            //     ...game.localPlayer.keyboard.movement,
+            //     x: game.localPlayer.character.x,
+            //     y: game.localPlayer.character.y
+            // });
         }
     }
 
 }
 const socket = io.connect("http://localhost:3000/");
 
+const splitUrl = location.href.split("/");
+const roomId = splitUrl[splitUrl.length - 1];
+
+const startGameButton = document.getElementById('start');
+
 function startGame() {
-  socket.emit("start game", { room: roomCode });
-  console.log("TEST START");
+    console.log('BARRRA');
+    socket.emit("start game", {
+        roomId
+    });
 }
 
-const splitUrl = location.href.split("/");
-const roomCode = splitUrl[splitUrl.length - 1];
+socket.on('start game', () => {
+    console.log('GAME STARTED');
+})
 
-socket.emit("join room", { room: roomCode });
+if (startGameButton) {
+    startGameButton.addEventListener('click', startGame);
+    console.log('The button definitely exists...');
+}
+
+
+socket.emit("join room", {
+    roomId
+});
 
 socket.on('new player', (message) => {
     console.log('Another player has joined the room!');
-    let newPlayer = {'character': initAvatar('zombie_1') };
+    let newPlayer = {
+        'character': initAvatar('zombie_1')
+    };
     newPlayer.id = message.id;
     game.players[newPlayer.id] = newPlayer;
     console.log(newPlayer.id);
 })
 
 socket.on('player moved', (message) => {
-    avatar = game.players[message.playerId].character;
+    console.log(JSON.stringify(message, null, 3));
+    avatar = game.players[message.id].character;
     avatar.x = avatar.x + message.movementDelta.xDelta;
     avatar.y = avatar.y + message.movementDelta.yDelta;
 })
-  
-socket.on("err", ({ message }) => {
-  console.error(message);
+
+socket.on("err", ({
+    message
+}) => {
+    console.error(message);
 });
 
 socket.on("room full", () => {
-  const errorDialog = document.getElementById("room-full-dialog");
-  console.log(errorDialog);
-  if (errorDialog) {
-    errorDialog.style.display = "block";
-  }
+    const errorDialog = document.getElementById("room-full-dialog");
+    console.log(errorDialog);
+    if (errorDialog) {
+        errorDialog.style.display = "block";
+    }
 });
 
 function update() {
@@ -181,28 +200,28 @@ function render() {
     gun.debug(20, 128);
 }
 
-function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
+function movementHandler(avatar, cursors, wasd, pos = {
+    x: false,
+    y: false
+}) {
     let eventShouldBeEmitted = false;
     const origZombieX = Number(avatar.x);
     const origZombieY = Number(avatar.y);
-  
-    if(pos && (pos.x || pos.y) ){
-        if(pos.x)
+
+    if (pos && (pos.x || pos.y)) {
+        if (pos.x)
             avatar.x = pos.x;
-        if(pos.y)
+        if (pos.y)
             avatar.y = pos.y;
     }
 
-    if (cursors['left'])
-    {
+    if (cursors['left']) {
         avatar.x -= ZOMBIE_SPEED;
         if (!(cursors['down'])) {
             avatar.animations.play('left', true);
         }
         eventShouldBeEmitted = true;
-    }
-    else if (cursors['right'])
-    {
+    } else if (cursors['right']) {
         avatar.x += ZOMBIE_SPEED;
         if (!(cursors['down'])) {
             avatar.animations.play('right', true);
@@ -210,82 +229,67 @@ function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
         eventShouldBeEmitted = true;
     }
 
-    if (cursors['up'])
-    {
+    if (cursors['up']) {
         avatar.y -= ZOMBIE_SPEED;
         if (!(cursors['left'] || cursors['right'])) {
             avatar.animations.play('up', true);
         }
         eventShouldBeEmitted = true;
-    }
-    else if (cursors['down'])
-    {
+    } else if (cursors['down']) {
         avatar.y += ZOMBIE_SPEED;
         avatar.animations.play('down', true);
         eventShouldBeEmitted = true;
     }
 
-  
-    if (wasd['up'])
-    {
+
+    if (wasd['up']) {
         if (wasd['right']) {
             gun.fireAngle = Phaser.ANGLE_NORTH_EAST;
-        }
-        else if (wasd['left']) {
+        } else if (wasd['left']) {
             gun.fireAngle = Phaser.ANGLE_NORTH_WEST;
-        }
-        else {
+        } else {
             gun.fireAngle = Phaser.ANGLE_UP;
         }
-    }
-    else if (wasd['down'])
-    {
+    } else if (wasd['down']) {
         if (wasd['right']) {
             gun.fireAngle = Phaser.ANGLE_SOUTH_EAST;
-        }
-        else if (wasd['left']) {
+        } else if (wasd['left']) {
             gun.fireAngle = Phaser.ANGLE_SOUTH_WEST;
-        }
-        else {
+        } else {
             gun.fireAngle = Phaser.ANGLE_DOWN;
-        }    
-    }
-    else if (wasd['right'])
-    {
+        }
+    } else if (wasd['right']) {
         gun.fireAngle = Phaser.ANGLE_RIGHT;
-    }
-    else if (wasd['left'])
-    {
+    } else if (wasd['left']) {
         gun.fireAngle = Phaser.ANGLE_LEFT;
     }
 
-    if(any(cursors) + any(wasd) == 0){
+    if (any(cursors) + any(wasd) == 0) {
         // No keys pressed - stop animations
         avatar.animations.stop();
         //zombie.anims.play('idle');
 
-    }  
- 
+    }
     if (eventShouldBeEmitted) {
         socket.emit("move", {
-            room: roomCode,
+            roomId,
             movementDelta: {
-            xDelta: avatar.x - origZombieX,
-            yDelta: avatar.y - origZombieY
+                xDelta: avatar.x - origZombieX,
+                yDelta: avatar.y - origZombieY
             }
         });
     }
 }
 
 
-function initAvatar(spriteSheet, x=100, y=100){
+function initAvatar(spriteSheet, x = 100, y = 100) {
     avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
-    
+
     avatar.animations.add(
-        'down', 
+        'down',
         [0, 1, 2, 3],
         10,
         false
@@ -301,7 +305,7 @@ function initAvatar(spriteSheet, x=100, y=100){
         [8, 9, 10, 11],
         10,
         false
-    );            
+    );
     avatar.animations.add(
         'left',
         [12, 13, 14, 15],
@@ -317,6 +321,6 @@ function initAvatar(spriteSheet, x=100, y=100){
     return avatar;
 }
 
-function any(dict){
-    return Object.keys(dict).reduce( (acc, cur)=>acc+dict[cur], 0);
+function any(dict) {
+    return Object.keys(dict).reduce((acc, cur) => acc + dict[cur], 0);
 }

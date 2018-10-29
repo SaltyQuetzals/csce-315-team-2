@@ -34,12 +34,17 @@ const game = new Phaser.Game(
     Phaser.AUTO,
     '',
     {
+        init: init,
         preload: preload,
         create: create,
         update: update,
         render: render
     }
 );
+
+function init() {
+    game.stage.visibilityChange = true;
+}
 
 function preload ()
 {    
@@ -68,10 +73,12 @@ function create() {
     game.players = [];
     game.localPlayer = {}
     game.localPlayer.character = initAvatar('zombie_1', 100, 100, true);
-    game.localPlayer.id = 0;
-    game.players.push( {'character': initAvatar('zombie_1', 300, 100) });
-    //game.players.push( initAvatar('zombie_1'));
     game.players.push( game.localPlayer);
+    game.localPlayer.id = 0;
+
+    //game.players.push( {'character': initAvatar('zombie_1', 300, 100) });
+    //////game.players.push( initAvatar('zombie_1'));
+
 
     //Controls
     cursors = game.input.keyboard.createCursorKeys();
@@ -95,7 +102,7 @@ function create() {
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
     gun.fireAngle = Phaser.ANGLE_RIGHT;
-    gun.bulletSpeed = 200;
+    gun.bulletSpeed = 1000;
     gun.fireRate = revolver.fireRateMillis;
     gun.trackSprite(game.localPlayer.character, 14, 14);
 
@@ -166,6 +173,7 @@ function update() {
 
 function render() {
     game.debug.spriteInfo(game.localPlayer.character, 20, 32);
+    gun.debug(20, 128);
 }
 
 function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){

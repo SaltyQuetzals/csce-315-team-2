@@ -1,7 +1,7 @@
-import {Human, Position, Zombie} from '../models/Avatar';
-import {Weapon} from '../models/Guns';
-import {SquareObstacle} from '../models/Obstacle';
-import {Player} from '../models/Player';
+import { Human, Position, Zombie } from '../models/Avatar';
+import { Weapon } from '../models/Guns';
+import { SquareObstacle } from '../models/Obstacle';
+import { Player } from '../models/Player';
 
 export type PlayerData = {
   name: string
@@ -76,14 +76,20 @@ export class Game {
     this.obstacles = [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5];
   }
 
-  generatePowerUps() {}
+  generatePowerUps() { }
 
-  generateGuns() {}
+  generateGuns() { }
 
   movePlayer(playerName: string, movementData: MovementData) {
     this.players[playerName].avatar.move(
-        movementData.xDelta, movementData.yDelta);
+      movementData.xDelta, movementData.yDelta);
   }
+
+  
+  getPlayer(playerId: string) : Player {
+    return this.players[playerId];
+  }
+  
 }
 
 function getRandomChoice(max: number, min: number) {

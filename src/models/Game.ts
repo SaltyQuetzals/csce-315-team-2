@@ -8,10 +8,9 @@ export type PlayerData = {
 };
 
 export type MovementData = {
-  name: string,
   xDelta: number,
   yDelta: number
-}
+};
 
 export interface Players {
   [key: string]: Player;
@@ -82,7 +81,8 @@ export class Game {
   generateGuns() {}
 
   movePlayer(playerName: string, movementData: MovementData) {
-    this.players[movementData.name].avatar.move(movementData.xDelta, movementData.yDelta);
+    this.players[playerName].avatar.move(
+        movementData.xDelta, movementData.yDelta);
   }
 }
 

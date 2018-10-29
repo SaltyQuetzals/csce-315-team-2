@@ -29,14 +29,11 @@ describe('Game movement function', () => {
   const players: PlayerData[] =
       [{name: 'gamer1'}, {name: 'gamer2'}, {name: 'gamer3'}, {name: 'gamer4'}];
   game.generatePlayers(players);
-  const movementData: MovementData = {
-    'gamer1': {xDelta: 10, yDelta: -10},
-    'gamer2': {xDelta: 5, yDelta: -5},
-    'gamer3': {xDelta: 100, yDelta: -1},
-    'gamer4': {xDelta: 10, yDelta: -10}
-  };
   it('Should change the location of the avatar given player data', () => {
-    game.movePlayers(movementData);
+    const movePlayer1: MovementData = {xDelta: 10, yDelta: -10};
+    game.movePlayer('gamer1', movePlayer1);
+    const movePlayer2: MovementData = {xDelta: 5, yDelta: -5};
+    game.movePlayer('gamer2', movePlayer2);
     const players = game.getPlayers();
     expect(players.gamer1.avatar.position[0]).to.equal(10);
     expect(players.gamer1.avatar.position[1]).to.equal(-10);

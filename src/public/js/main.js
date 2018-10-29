@@ -127,34 +127,37 @@ function create() {
             );
         }
     }
+
+}
+const socket = io.connect("http://localhost:3000/");
+
+function startGame() {
+  socket.emit("start game", { room: roomCode });
 }
 
-const socket = io.connect('http://localhost:3000/');
-
-const splitUrl = location.href.split('/');
+const splitUrl = location.href.split("/");
 const roomCode = splitUrl[splitUrl.length - 1];
 
-socket.emit('join room', {room: roomCode});
+socket.emit("join room", { room: roomCode });
 
 socket.on('new player', (message) => {
     console.log('Another player has joined the room!');
     let newPlayer = {'character': initAvatar('zombie_1') };
     newPlayer.id = message.id;
     game.players.push(newPlayer);
+})
+  
+socket.on("err", ({ message }) => {
+  console.error(message);
 });
 
-socket.on('err', ({message}) => {
-    console.error(message);
+socket.on("room full", () => {
+  const errorDialog = document.getElementById("room-full-dialog");
+  console.log(errorDialog);
+  if (errorDialog) {
+    errorDialog.style.display = "block";
+  }
 });
-
-socket.on('room full', () => {
-    const errorDialog = document.getElementById('room-full-dialog');
-    console.log(errorDialog);
-    if (errorDialog) {
-        errorDialog.style.display = 'block';
-    }
-});
-
 
 function update() {
     //LocalPlayer
@@ -177,6 +180,10 @@ function render() {
 }
 
 function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
+    let eventShouldBeEmitted = false;
+    const origZombieX = Number(game.zombie.x);
+    const origZombieY = Number(game.zombie.y);
+  
     if(pos && (pos.x || pos.y) ){
         if(pos.x)
             avatar.x = pos.x;
@@ -190,6 +197,7 @@ function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
         if (!(cursors['down'])) {
             avatar.animations.play('left', true);
         }
+        eventShouldBeEmitted = true;
     }
     else if (cursors['right'])
     {
@@ -197,6 +205,7 @@ function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
         if (!(cursors['down'])) {
             avatar.animations.play('right', true);
         }
+        eventShouldBeEmitted = true;
     }
 
     if (cursors['up'])
@@ -205,13 +214,16 @@ function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
         if (!(cursors['left'] || cursors['right'])) {
             avatar.animations.play('up', true);
         }
+        eventShouldBeEmitted = true;
     }
     else if (cursors['down'])
     {
         avatar.y += ZOMBIE_SPEED;
         avatar.animations.play('down', true);
+        eventShouldBeEmitted = true;
     }
 
+  
     if (wasd['up'])
     {
         if (wasd['right']) {
@@ -249,8 +261,20 @@ function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
         // No keys pressed - stop animations
         avatar.animations.stop();
         //zombie.anims.play('idle');
+
+    }  
+ 
+    if (eventShouldBeEmitted) {
+      socket.emit("move", {
+        room: roomCode,
+        movementDelta: {
+          xDelta: this.zombie.x - origZombieX,
+          yDelta: this.zombie.y - origZombieY
+        }
+      });
     }
-}
+  }
+
 
 function initAvatar(spriteSheet, x=100, y=100){
     avatar = game.add.sprite(x, y, spriteSheet);
@@ -294,4 +318,3 @@ function initAvatar(spriteSheet, x=100, y=100){
 function any(dict){
     return Object.keys(dict).reduce( (acc, cur)=>acc+dict[cur], 0);
 }
-

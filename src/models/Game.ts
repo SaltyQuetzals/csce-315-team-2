@@ -7,25 +7,47 @@ export type PlayerData = {
   name: string
 };
 
+export type MovementData = {
+  name: string,
+  xDelta: number,
+  yDelta: number
+}
+
+export interface Players {
+  [key: string]: Player;
+}
+
 export class Game {
-  private players!: Player[];
+  private players!: Players;
   private obstacles!: SquareObstacle[];
   private readonly boardWidth!: number;
   private readonly boardHeight!: number;
 
   constructor(boardWidth: number, boardHeight: number) {
-    this.players = [];
+    this.players = {};
     this.obstacles = [];
     this.boardHeight = boardHeight;
     this.boardWidth = boardWidth;
   }
 
+  /*
+  Get and Setter Functions
+  */
+
   addPlayer(player: Player) {
-    this.players.push(player);
+    this.players[player.name] = player;
   }
 
   getPlayers() {
     return this.players;
+  }
+
+  addObstacle(obstacle: SquareObstacle) {
+    this.obstacles.push(obstacle);
+  }
+
+  getObstacles() {
+    return this.obstacles;
   }
 
   assignStartPosition(): Position {
@@ -46,11 +68,22 @@ export class Game {
     }
   }
 
-  generateObstacles() {}
+  generateObstacles() {
+    const obstacle1 = new SquareObstacle([10, 10], 100, 100);
+    const obstacle2 = new SquareObstacle([100, 100], 50, 50);
+    const obstacle3 = new SquareObstacle([700, 200], 200, 300);
+    const obstacle4 = new SquareObstacle([800, 800], 100, 100);
+    const obstacle5 = new SquareObstacle([200, 800], 20, 200);
+    this.obstacles = [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5];
+  }
 
   generatePowerUps() {}
 
   generateGuns() {}
+
+  movePlayer(playerName: string, movementData: MovementData) {
+    this.players[movementData.name].avatar.move(movementData.xDelta, movementData.yDelta);
+  }
 }
 
 function getRandomChoice(max: number, min: number) {

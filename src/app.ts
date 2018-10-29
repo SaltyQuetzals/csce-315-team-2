@@ -5,6 +5,7 @@ import http = require('http');
 import * as session from 'express-session';
 import {random} from './shared/functions';
 import bodyParser = require('body-parser');
+import { Game } from './models/Game';
 
 const USER_ID_LENGTH = 32;
 const ROOM_CODE_LENGTH = 5;
@@ -68,8 +69,17 @@ io.on('connection', (socket) => {
     console.log(JSON.stringify(io.nsps['/'].adapter.rooms[room], null, 3));
   });
 
-  socket.on('move', (movementDelta) => {
+  socket.on('start game', () => {
+    socket.broadcast.to(data.room).emit('start game', {game: new Game(1000,1000)});
+  });
+
+  socket.on('move', (data) => {
+    const game: Game = data.game;
+    const {room, movementDelta} = data;
     console.log(socket.request.session.userid, 'is moving');
     console.log(JSON.stringify(movementDelta, null, 3));
+    game.movePlayer(socket.request.session.userid, movementDelta);
+
+    socket.broadcast.to(data.room).emit('player moved', {game: game});
   });
 });

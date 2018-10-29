@@ -70,11 +70,11 @@ function create() {
     game.physics.startSystem(Phaser.Physics.Arcade);
     bg = game.add.tileSprite(0, 0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
-    game.players = [];
+    game.players = {};
     game.localPlayer = {}
     game.localPlayer.character = initAvatar('zombie_1', 100, 100, true);
-    game.players.push( game.localPlayer);
     game.localPlayer.id = 0;
+    game.players[game.localPlayer.id] = game.localPlayer;
 
     //game.players.push( {'character': initAvatar('zombie_1', 300, 100) });
     //////game.players.push( initAvatar('zombie_1'));
@@ -145,7 +145,14 @@ socket.on('new player', (message) => {
     console.log('Another player has joined the room!');
     let newPlayer = {'character': initAvatar('zombie_1') };
     newPlayer.id = message.id;
-    game.players.push(newPlayer);
+    game.players[newPlayer.id] = newPlayer;
+    console.log(newPlayer.id);
+})
+
+socket.on('player moved', (message) => {
+    avatar = game.players[message.playerId].character;
+    avatar.x = avatar.x + message.movementDelta.xDelta;
+    avatar.y = avatar.y + message.movementDelta.yDelta;
 })
   
 socket.on("err", ({ message }) => {
@@ -164,12 +171,6 @@ function update() {
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.keyboard.movement, game.localPlayer.keyboard.aim);
     //Loop through players (move non-LocalPlayer)
-    for(let i = 0; i < game.players.length; i++){
-        let player = game.players[i];
-        if (player.id && player.keyboard && (any(player.keyboard.movement) || any(player.keyboard.aim))){
-            console.log(`Moving ${player.id}`);
-        }
-    }
     if (spacebar.isDown) {
         gun.fire();
     }
@@ -266,13 +267,13 @@ function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
     }  
  
     if (eventShouldBeEmitted) {
-      socket.emit("move", {
-        room: roomCode,
-        movementDelta: {
-          xDelta: avatar.x - origZombieX,
-          yDelta: avatar.y - origZombieY
-        }
-      });
+        socket.emit("move", {
+            room: roomCode,
+            movementDelta: {
+            xDelta: avatar.x - origZombieX,
+            yDelta: avatar.y - origZombieY
+            }
+        });
     }
 }
 

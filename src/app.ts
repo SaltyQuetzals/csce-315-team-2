@@ -7,6 +7,7 @@ import { random } from "./shared/functions";
 import bodyParser = require("body-parser");
 import { Game } from "./models/Game";
 import { Player } from "./models/Player";
+import { stringify } from "querystring";
 
 type RoomState = {
   roomLeader: string,
@@ -86,7 +87,10 @@ io.on("connection", socket => {
       });
       delete rooms[room].names[socket.id];
     } else {
-      socket.broadcast.to(data.room).emit("new player", {});
+      const eventData = {
+        id: socket.id
+      }
+      socket.broadcast.to(data.room).emit("new player", eventData);
     }
   });
 
@@ -112,13 +116,15 @@ io.on("connection", socket => {
   socket.on("move", data => {
     const { room, movementDelta } = data;
 
-    if (rooms[room] && rooms[room].gameInProgress) {
-      const game = rooms[room].game;
-      rooms[room].game.movePlayer(socket.id, movementDelta);
+    if (rooms[room]) {// && rooms[room].gameInProgress) {
+      //const game = rooms[room].game;
+      // rooms[room].game.movePlayer(socket.id, movementDelta);          // ERROR
       const eventData = {
         playerId: socket.id,
-        newPos: game.getPlayer(socket.id).avatar.position
+        movementDelta: movementDelta
+        // newPos: game.getPlayer(socket.id).avatar.position            // ERROR
       };
+      
       socket.to(room).emit("player moved", eventData);
     }
 

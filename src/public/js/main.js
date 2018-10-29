@@ -155,7 +155,7 @@ function update() {
     //Loop through players (move non-LocalPlayer)
     for(let i = 0; i < game.players.length; i++){
         let player = game.players[i];
-        if (player.id && player.keyboard && (any(player.keyboard.movement) || any(player.kayboard.aim))){
+        if (player.id && player.keyboard && (any(player.keyboard.movement) || any(player.keyboard.aim))){
             console.log(`Moving ${player.id}`);
         }
     }

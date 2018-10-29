@@ -43,7 +43,7 @@ const game = new Phaser.Game(
 );
 
 function init() {
-    game.stage.visibilityChange = true;
+    game.stage.disableVisibilityChange = true;
 }
 
 function preload ()
@@ -133,6 +133,7 @@ const socket = io.connect("http://localhost:3000/");
 
 function startGame() {
   socket.emit("start game", { room: roomCode });
+  console.log("TEST START");
 }
 
 const splitUrl = location.href.split("/");
@@ -181,8 +182,8 @@ function render() {
 
 function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
     let eventShouldBeEmitted = false;
-    const origZombieX = Number(game.zombie.x);
-    const origZombieY = Number(game.zombie.y);
+    const origZombieX = Number(avatar.x);
+    const origZombieY = Number(avatar.y);
   
     if(pos && (pos.x || pos.y) ){
         if(pos.x)
@@ -268,12 +269,12 @@ function movementHandler(avatar, cursors, wasd, pos={x:false, y:false}){
       socket.emit("move", {
         room: roomCode,
         movementDelta: {
-          xDelta: this.zombie.x - origZombieX,
-          yDelta: this.zombie.y - origZombieY
+          xDelta: avatar.x - origZombieX,
+          yDelta: avatar.y - origZombieY
         }
       });
     }
-  }
+}
 
 
 function initAvatar(spriteSheet, x=100, y=100){

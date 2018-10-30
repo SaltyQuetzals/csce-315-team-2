@@ -5,9 +5,16 @@ import http = require('http');
 import * as session from 'express-session';
 import {random} from './shared/functions';
 import bodyParser = require('body-parser');
-import {Game} from './controllers/Game';
+import {Game} from './models/Game';
+import {RoomController} from './controllers/RoomController';
 
-const USER_ID_LENGTH = 32;
+type RoomState = {
+  roomLeader: string,
+  game: Game,
+  gameInProgress: boolean,
+  names: {[socketid: string]: string}
+};
+
 const ROOM_CODE_LENGTH = 5;
 
 const STATIC_DIR = path.join(__dirname, 'public');
@@ -22,13 +29,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(sessionMiddleware);
 
-app.use((req, _res, next) => {
-  if (req.session && !req.session.userid) {
-    req.session.userid = random(USER_ID_LENGTH);
-  }
-  next();
-});
-
 app.get('/', (_req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'index.html'));
 });
@@ -42,35 +42,65 @@ app.get('/rooms/:roomCode', (_req, res) => {
   res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
 });
 
-
 const server = new http.Server(app);
 const io = socketio(server);
-const defaultNamespace = io.nsps['/'].adapter;
+
+const roomController = new RoomController();
 
 server.listen(3000, () => {
   console.log('Listening on port 3000');
 });
 
-io.use((socket, next) => {
-  sessionMiddleware(socket.request, socket.request, next);
-});
-
-io.on('connection', (socket) => {
-  socket.on('join room', (data) => {
-    const {room} = data;
-    socket.join(room);
-    if (defaultNamespace.rooms[room].length === 11) {
-      socket.leave(room).emit(
-          'room full',
-          {message: 'The room you have requested is full. Try again later.'});
-    } else {
-      socket.broadcast.to(data.room).emit('new player', {});
-    }
-    console.log(JSON.stringify(io.nsps['/'].adapter.rooms[room], null, 3));
+io.on('connection', socket => {
+  socket.on('join room', data => {
+    const {roomId, name} = data;  // TODO: Use name as key in `names` field
+    socket.join(roomId);
+    roomController.addPlayerToRoom(roomId, socket.id, socket.id);
+    const game = roomController.getGame(roomId);
+    io.to(roomId).emit('new player', {id: socket.id, game});
   });
 
-  socket.on('move', (movementDelta) => {
-    console.log(socket.request.session.userid, 'is moving');
-    console.log(JSON.stringify(movementDelta, null, 3));
+  socket.on('start game', data => {
+    const {roomId} = data;
+    console.log('Received request to start game');
+    try {
+      const room = roomController.getRoom(roomId);
+      if (!room.gameInProgress) {
+        roomController.startGame(roomId);
+        const game = roomController.getGame(roomId);
+        io.to(roomId).emit('start game', game);
+      } else {
+        console.log('Game already started');
+      }
+    } catch (err) {
+      console.error('start game', err);
+      socket.emit('err', {message: err.message});
+    }
+  });
+
+  socket.on('move', data => {
+    const {roomId, movementDelta} = data;
+    console.log(JSON.stringify(data, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        const game = roomController.getGame(roomId);
+        game.movePlayer(socket.id, movementDelta);
+        socket.to(roomId).emit('player moved', {id: socket.id, movementDelta});
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      console.error('move', err);
+      socket.emit('err', {message: err.message});
+    }
+  });
+
+  socket.on('disconnect', (data) => {
+    try {
+      roomController.removePlayerFromRooms(socket.id);
+    } catch (err) {
+      console.error('disconnect', err);
+    }
   });
 });

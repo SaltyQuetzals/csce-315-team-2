@@ -3,24 +3,25 @@ window.onload = () => {
   const createGameForm = document.getElementById('create-form');
   const joinGameButton = document.getElementById('join-game');
   const joinGameForm = document.getElementById('join-form');
-
+  const joinSubmitButton = document.getElementById('join-submit');
+  const accessCodeForm = document.getElementById('access-code');
   const backButtons = document.getElementsByClassName('back-button');
 
   function reset(this: HTMLElement, event: Event) {
     if (event) {
       event.preventDefault();
     }
-    if (createGameButton) {
-      createGameButton.style.display = 'inline-block';
-    }
+    // if (createGameButton) {
+    //   createGameButton.style.display = 'inline-block';
+    // }
     if (createGameForm) {
       createGameForm.style.display = 'none';
     }
-    if (joinGameButton) {
-      joinGameButton.style.display = 'inline-block';
-    }
+    // if (joinGameButton) {
+    //   joinGameButton.style.display = 'inline-block';
+    // }
     if (joinGameForm) {
-      joinGameForm.style.display = 'none';
+      joinGameForm.style.display = 'inline-block';
     }
   }
 
@@ -40,12 +41,23 @@ window.onload = () => {
       otherForm.style.display = 'none';
     }
   }
+  function toggle(el: HTMLElement|null): void {
+    if (el) {
+      if (el.style.display === 'none') {
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+  }
 
   if (createGameButton) {
     createGameButton.addEventListener('click', (event) => {
       event.preventDefault();
-      toggleVisibility(
-          createGameForm, createGameButton, joinGameButton, joinGameForm);
+      // toggleVisibility(
+      //     createGameForm, createGameButton, joinGameButton, joinGameForm);
+      toggle(createGameForm);
+      toggle(joinGameForm);
     });
   }
 
@@ -54,6 +66,14 @@ window.onload = () => {
       event.preventDefault();
       toggleVisibility(
           joinGameForm, joinGameButton, createGameButton, createGameForm);
+    });
+  }
+
+  if (joinSubmitButton && accessCodeForm) {
+    joinSubmitButton.addEventListener('click', event => {
+      event.preventDefault();
+      window.location.replace(
+          `/rooms/${(accessCodeForm as HTMLInputElement).value}`);
     });
   }
 };

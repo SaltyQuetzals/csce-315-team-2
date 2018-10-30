@@ -7,8 +7,8 @@ import {random} from './shared/functions';
 import bodyParser = require('body-parser');
 import {Game} from './models/Game';
 import {RoomController} from './controllers/RoomController';
-import { Human } from './models/Avatar';
-import { Player } from './models/Player';
+import {Human} from './models/Avatar';
+import {Player} from './models/Player';
 
 type RoomState = {
   roomLeader: string,
@@ -109,18 +109,18 @@ io.on('connection', socket => {
   socket.on('weapon pickup', data => {
     const {roomId, weaponId} = data;
     console.log(JSON.stringify(data, null, 3));
-    try{
+    try {
       const room = roomController.getRoom(roomId);
-      if (room.gameInProgress){
+      if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
         const player = game.getPlayer(socket.id);
-        if (player.avatar instanceof Human){
+        if (player.avatar instanceof Human) {
           game.pickupWeapon(socket.id, weaponId);
-          socket.emit('player pickup weapon', {id: socket.id, weapon: weaponId});
+          socket.emit(
+              'player pickup weapon', {id: socket.id, weapon: weaponId});
         }
       }
-    }
-    catch(err){
+    } catch (err) {
       console.error('weapon pickup', err);
       socket.emit('err', {message: err.message});
     }
@@ -129,18 +129,17 @@ io.on('connection', socket => {
   socket.on('weapon fired', data => {
     const {roomId} = data;
     console.log(JSON.stringify(data, null, 3));
-    try{
+    try {
       const room = roomController.getRoom(roomId);
-      if (room.gameInProgress){
+      if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
         const player = game.getPlayer(socket.id);
-        if (player.avatar instanceof Human && player.avatar.heldWeapon){
+        if (player.avatar instanceof Human && player.avatar.heldWeapon) {
           player.avatar.heldWeapon.fire();
           socket.emit('player fired weapon', {id: socket.id});
         }
       }
-    }
-    catch(err){
+    } catch (err) {
       console.error(err, {message: err});
       socket.emit('err', {message: err.message});
     }
@@ -149,19 +148,16 @@ io.on('connection', socket => {
   socket.on('killed', data => {
     const {roomId, killedPlayerId} = data;
     console.log(JSON.stringify(data, null, 3));
-    try{
+    try {
       const room = roomController.getRoom(roomId);
-      if (room.gameInProgress){
+      if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
         game.playerKilled(socket.id, killedPlayerId);
-        socket.emit('player killed', {id: socket.id, killedPlayerId: killedPlayerId});
+        socket.emit('player killed', {id: socket.id, killedPlayerId});
       }
-    }
-    catch(err){
+    } catch (err) {
       console.error(err, {message: err});
       socket.emit('err', {message: err.message});
     }
   });
-
-  
 });

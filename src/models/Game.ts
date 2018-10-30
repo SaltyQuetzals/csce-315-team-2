@@ -67,7 +67,7 @@ export class Game {
   /**
    * Returns the weapon given by the specified weapon id
    */
-  getWeapon(weaponId: string): Weapon{
+  getWeapon(weaponId: string): Weapon {
     return this.weapons[weaponId];
   }
 
@@ -118,14 +118,20 @@ export class Game {
 
   // TODO generate guns on the board randomly
   generateWeapons() {
+    for (let i = 0; i < this.boardHeight / 200; i++) {
+      for (let i = 0; i < this.boardWidth / 200; i++) {
+        console.log("This should be a random position");
+      }
+    }
   }
 
-  pickupWeapon(playerId: string, weaponId: string){
-    const avatar = this.getPlayer(playerId).avatar
-    if (avatar instanceof Human){
+  pickupWeapon(playerId: string, weaponId: string) {
+    const avatar = this.getPlayer(playerId).avatar;
+    if (avatar instanceof Human) {
       avatar.pickUp(this.getWeapon(weaponId));
     }
-    // TODO Do something with the item being dropped and keeping track of the current location of the dropped object
+    // TODO Do something with the item being dropped and keeping track of the
+    // current location of the dropped object
   }
 
   /**
@@ -146,9 +152,7 @@ export class Game {
         movementData.xDelta, movementData.yDelta);
   }
 
-  playerKilled(playerId: string, killedPlayerId: string){
-    
-  }
+  playerKilled(playerId: string, killedPlayerId: string) {}
 } /*
 -----------------------------------------------------------
 */
@@ -158,7 +162,7 @@ export class Game {
  * @param min the smallest number that can be randomly generated
  * @param max the largest number that can be randomly generated
  */
-export function getRandomChoice(min: number, max: number) {
+export function getRandomChoice(min: number, max: number): integer {
   console.assert(
       Number.isInteger(min), 'The minimum provided is not an integer');
   console.assert(
@@ -166,4 +170,17 @@ export function getRandomChoice(min: number, max: number) {
   console.assert(
       min <= max, 'The minimum must be less than or equal to the maximum');
   return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+export function getRandomPosition(min: Position, max: Position): Position{
+  console.assert(
+    Number.isInteger(max[0]) && Number.isInteger(max[1]), 'The maximum position is not a set of integers'
+  );
+  console.assert(
+    Number.isInteger(min[0]) && Number.isInteger(min[1]), 'The minimum position is not a set of integers'
+  );
+  console.assert(min[0] <= max[0] && min[1] <= max[1], 'The minimum position must be smaller than the maximum position');
+  const xCoord = getRandomChoice(min[0], max[0]);
+  const yCoord = getRandomChoice(min[1], max[1]);
+  return [xCoord, yCoord];
 }

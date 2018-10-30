@@ -1,4 +1,4 @@
-import {Human, Position, Zombie} from '../models/Avatar';
+import {Human, Zombie} from '../models/Avatar';
 import {Weapon} from '../models/Guns';
 import {SquareObstacle} from '../models/Obstacle';
 import {Player} from '../models/Player';
@@ -67,7 +67,7 @@ export class Game {
   /**
    * Assigns start position in the center of the board
    */
-  assignStartPosition(): Position {
+  assignStartPosition(): XY {
     return [this.boardHeight / 2, this.boardWidth / 2];
   }
 

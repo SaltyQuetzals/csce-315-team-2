@@ -101,7 +101,8 @@ function create() {
 
 
     //Keyboard Events
-    game.localPlayer.keyboard = { ...PLR_KEYBOARD
+    game.localPlayer.keyboard = {
+        ...PLR_KEYBOARD
     };
     game.input.keyboard.onDownCallback = function (event) {
         if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]]) {

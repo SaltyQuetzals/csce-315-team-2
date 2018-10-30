@@ -43,10 +43,11 @@ window.onload = () => {
   }
   function toggle(el: HTMLElement|null): void {
     if (el) {
-      if(el.style.display === 'none')
+      if (el.style.display === 'none') {
         el.style.display = 'block';
-      else
+      } else {
         el.style.display = 'none';
+      }
     }
   }
 
@@ -68,10 +69,11 @@ window.onload = () => {
     });
   }
 
-  if (joinSubmitButton && accessCodeForm){
+  if (joinSubmitButton && accessCodeForm) {
     joinSubmitButton.addEventListener('click', event => {
       event.preventDefault();
-      window.location.replace(`/rooms/${(<HTMLInputElement>accessCodeForm).value}`);
-    })
+      window.location.replace(
+          `/rooms/${(accessCodeForm as HTMLInputElement).value}`);
+    });
   }
 };

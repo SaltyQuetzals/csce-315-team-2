@@ -4,7 +4,7 @@ import {SquareObstacle} from '../models/Obstacle';
 import {Player} from '../models/Player';
 
 export type PlayerData = {
-  name: string
+  id: string
 };
 
 export type MovementData = {
@@ -15,6 +15,7 @@ export type MovementData = {
 export class Game {
   private players!: {[key: string]: Player};
   private _obstacles!: SquareObstacle[];
+  private weapons!: {[key: string]: Weapon};
   private readonly boardWidth!: number;
   private readonly boardHeight!: number;
 
@@ -30,7 +31,7 @@ export class Game {
    * @param player a Player object that has been previously declared
    */
   addPlayer(player: Player) {
-    this.players[player.name] = player;
+    this.players[player.id] = player;
   }
 
   /**
@@ -53,16 +54,22 @@ export class Game {
    * @param obstacle a SquareObstacle object that has been declared
    */
   addObstacle(obstacle: SquareObstacle) {
-    this.obstacles.push(obstacle);
+    this._obstacles.push(obstacle);
   }
 
   /**
    * Returns the obstacles
    */
-  get obstacles(): SquareObstacle[] {
+  getObstacles(): SquareObstacle[] {
     return this._obstacles;
   }
 
+  /**
+   * Returns the weapon given by the specified weapon id
+   */
+  getWeapon(weaponId: string): Weapon{
+    return this.weapons[weaponId];
+  }
 
   /**
    * Assigns start position in the center of the board
@@ -83,10 +90,10 @@ export class Game {
       const player: PlayerData = players[i];
       if (i === zombiePlayerIndex) {
         const zombie: Zombie = new Zombie([0, 0]);
-        this.addPlayer(new Player(player.name, zombie));
+        this.addPlayer(new Player(player.id, zombie));
       } else {
         const human = new Human([0, 0]);
-        this.addPlayer(new Player(player.name, human));
+        this.addPlayer(new Player(player.id, human));
       }
     }
   }
@@ -110,24 +117,37 @@ export class Game {
   generatePowerUps() {}
 
   // TODO generate guns on the board randomly
-  generateGuns() {}
+  generateWeapons() {
+  }
+
+  pickupWeapon(playerId: string, weaponId: string){
+    const avatar = this.getPlayer(playerId).avatar
+    if (avatar instanceof Human){
+      avatar.pickUp(this.getWeapon(weaponId));
+    }
+    // TODO Do something with the item being dropped and keeping track of the current location of the dropped object
+  }
 
   /**
    * Takes in the name/id of the player and the movementData associated with the
    * changes made by a user The function then calls the movement function for
    * that players avatar with the x and y delta
-   * @param playerName the name of the player from the movement data
+   * @param playerId the unique id of the player data
    * @param movementData the x and the y delta from the player
    */
-  movePlayer(playerName: string, movementData: MovementData) {
+  movePlayer(playerId: string, movementData: MovementData) {
     console.assert(
         typeof (movementData.xDelta) === 'number',
         'xDelta attribute is not a number');
     console.assert(
         typeof (movementData.yDelta) === 'number',
         'yDelta attribute is not a number');
-    this.players[playerName].avatar.move(
+    this.players[playerId].avatar.move(
         movementData.xDelta, movementData.yDelta);
+  }
+
+  playerKilled(playerId: string, killedPlayerId: string){
+    
   }
 } /*
 -----------------------------------------------------------

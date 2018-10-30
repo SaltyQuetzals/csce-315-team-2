@@ -194,11 +194,15 @@ socket.on("room full", () => {
 });
 
 function update() {
+    console.log(game.players);
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.keyboard.movement, game.localPlayer.keyboard.aim);
     //Loop through players (move non-LocalPlayer)
     if (spacebar.isDown) {
         gun.fire();
+        socket.emit('weapon fired', {
+            roomId
+        })
     }
 }
 

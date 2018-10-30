@@ -57,7 +57,7 @@ io.on('connection', socket => {
     socket.join(roomId);
     roomController.addPlayerToRoom(roomId, socket.id, socket.id);
     const game = roomController.getGame(roomId);
-    socket.to(roomId).emit('new player', { id: socket.id, game });
+    io.to(roomId).emit('new player', { id: socket.id, game });
   });
 
   socket.on('start game', data => {

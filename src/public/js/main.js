@@ -57,8 +57,6 @@ function preload() {
 }
 
 var bg;
-var cursors;
-var wasd;
 var gun;
 
 function create() {
@@ -74,19 +72,6 @@ function create() {
     game.players[game.localPlayer.id] = game.localPlayer;
 
     //Controls
-    cursors = game.input.keyboard.createCursorKeys();
-    cursors = [
-        cursors.up,
-        cursors.left,
-        cursors.down,
-        cursors.right,
-    ];
-    wasd = [
-        game.input.keyboard.addKey(Phaser.Keyboard.W),
-        game.input.keyboard.addKey(Phaser.Keyboard.A),
-        game.input.keyboard.addKey(Phaser.Keyboard.S),
-        game.input.keyboard.addKey(Phaser.Keyboard.D),
-    ];
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
 
@@ -200,20 +185,17 @@ function render() {
     gun.debug(20, 128);
 }
 
-function movementHandler(avatar, cursors, wasd, pos = {
-    x: false,
-    y: false
-}) {
+function movementHandler(avatar, cursors, wasd, /*pos = {x: false,y: false}*/) {
     let eventShouldBeEmitted = false;
     const origZombieX = Number(avatar.x);
     const origZombieY = Number(avatar.y);
 
-    if (pos && (pos.x || pos.y)) {
-        if (pos.x)
-            avatar.x = pos.x;
-        if (pos.y)
-            avatar.y = pos.y;
-    }
+    // if (pos && (pos.x || pos.y)) {
+    //     if (pos.x)
+    //         avatar.x = pos.x;
+    //     if (pos.y)
+    //         avatar.y = pos.y;
+    // }
 
     if (cursors['left']) {
         avatar.x -= ZOMBIE_SPEED;

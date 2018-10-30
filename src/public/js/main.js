@@ -3,7 +3,7 @@ const GUNS = require("../../models/Guns.js")
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
-const ZOMBIE_SPEED = 4;
+const ZOMBIE_SPEED = 8;
 // const ar = GUNS.AutomaticRifle;
 const revolver = new GUNS.Revolver();
 // const shotgun = GUNS.SawnOffShotgun;
@@ -157,13 +157,19 @@ socket.emit("join room", {
 });
 
 socket.on('new player', (message) => {
-    console.log('Another player has joined the room!');
-    let newPlayer = {
-        'character': initAvatar('zombie_1')
-    };
-    newPlayer.id = message.id;
-    game.players[newPlayer.id] = newPlayer;
-    console.log(newPlayer.id);
+    if (message.id === socket.id) {
+        // Update all other players
+        
+    }
+    else {
+        console.log('Another player has joined the room!');
+        let newPlayer = {
+            'character': initAvatar('zombie_1')
+        };
+        newPlayer.id = message.id;
+        game.players[newPlayer.id] = newPlayer;
+        console.log(newPlayer.id);
+    }
 })
 
 socket.on('player moved', (message) => {

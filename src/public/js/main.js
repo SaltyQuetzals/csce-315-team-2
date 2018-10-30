@@ -13,20 +13,20 @@ const KEYBOARD = {
     38: 'up',
     39: 'right',
     40: 'down',
+    87: 'W',
+    65: 'A',
+    83: 'S',
+    68: 'D'
 }
 const PLR_KEYBOARD = {
-    movement: {
-        up: 0,
-        left: 0,
-        down: 0,
-        right: 0,
-    },
-    aim: {
-        up: 0,
-        left: 0,
-        down: 0,
-        right: 0,
-    }
+    up: 0,
+    left: 0,
+    down: 0,
+    right: 0,
+    W: 0,
+    A: 0,
+    S: 0,
+    D: 0
 }
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
@@ -89,25 +89,13 @@ function create() {
     game.localPlayer.keyboard = { ...PLR_KEYBOARD
     };
     game.input.keyboard.onDownCallback = function (event) {
-        if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]]) {
-            game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]] = 1;
-            // socket.emit('move', {
-            //     roomId,
-            //     ...game.localPlayer.keyboard.movement,
-            //     x: game.localPlayer.character.x,
-            //     y: game.localPlayer.character.y
-            // });
+        if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
+            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = 1;
         }
     }
     game.input.keyboard.onUpCallback = function (event) {
-        if (KEYBOARD[event.keyCode] && game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]]) {
-            game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]] = 0;
-            // socket.emit('move', {
-            //     roomId,
-            //     ...game.localPlayer.keyboard.movement,
-            //     x: game.localPlayer.character.x,
-            //     y: game.localPlayer.character.y
-            // });
+        if (KEYBOARD[event.keyCode] && game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
+            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = 0;
         }
     }
 
@@ -173,7 +161,7 @@ socket.on("room full", () => {
 
 function update() {
     //LocalPlayer
-    movementHandler(game.localPlayer.character, game.localPlayer.keyboard.movement, game.localPlayer.keyboard.aim);
+    movementHandler(game.localPlayer.character, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (spacebar.isDown) {
         gun.fire();
@@ -185,7 +173,7 @@ function render() {
     gun.debug(20, 128);
 }
 
-function movementHandler(avatar, cursors, wasd, /*pos = {x: false,y: false}*/) {
+function movementHandler(avatar, keys, /*pos = {x: false,y: false}*/) {
     let eventShouldBeEmitted = false;
     const origZombieX = Number(avatar.x);
     const origZombieY = Number(avatar.y);
@@ -197,56 +185,56 @@ function movementHandler(avatar, cursors, wasd, /*pos = {x: false,y: false}*/) {
     //         avatar.y = pos.y;
     // }
 
-    if (cursors['left']) {
+    if (keys['left']) {
         avatar.x -= ZOMBIE_SPEED;
-        if (!(cursors['down'])) {
+        if (!(keys['down'])) {
             avatar.animations.play('left', true);
         }
         eventShouldBeEmitted = true;
-    } else if (cursors['right']) {
+    } else if (keys['right']) {
         avatar.x += ZOMBIE_SPEED;
-        if (!(cursors['down'])) {
+        if (!(keys['down'])) {
             avatar.animations.play('right', true);
         }
         eventShouldBeEmitted = true;
     }
 
-    if (cursors['up']) {
+    if (keys['up']) {
         avatar.y -= ZOMBIE_SPEED;
-        if (!(cursors['left'] || cursors['right'])) {
+        if (!(keys['left'] || keys['right'])) {
             avatar.animations.play('up', true);
         }
         eventShouldBeEmitted = true;
-    } else if (cursors['down']) {
+    } else if (keys['down']) {
         avatar.y += ZOMBIE_SPEED;
         avatar.animations.play('down', true);
         eventShouldBeEmitted = true;
     }
 
 
-    if (wasd['up']) {
-        if (wasd['right']) {
+    if (keys['W']) {
+        if (keys['D']) {
             gun.fireAngle = Phaser.ANGLE_NORTH_EAST;
-        } else if (wasd['left']) {
+        } else if (keys['A']) {
             gun.fireAngle = Phaser.ANGLE_NORTH_WEST;
         } else {
             gun.fireAngle = Phaser.ANGLE_UP;
         }
-    } else if (wasd['down']) {
-        if (wasd['right']) {
+    } else if (keys['S']) {
+        if (keys['D']) {
             gun.fireAngle = Phaser.ANGLE_SOUTH_EAST;
-        } else if (wasd['left']) {
+        } else if (keys['A']) {
             gun.fireAngle = Phaser.ANGLE_SOUTH_WEST;
         } else {
             gun.fireAngle = Phaser.ANGLE_DOWN;
         }
-    } else if (wasd['right']) {
+    } else if (keys['D']) {
         gun.fireAngle = Phaser.ANGLE_RIGHT;
-    } else if (wasd['left']) {
+    } else if (keys['A']) {
         gun.fireAngle = Phaser.ANGLE_LEFT;
     }
 
-    if (any(cursors) + any(wasd) == 0) {
+    if (any(keys) + any(keys) == 0) {
         // No keys pressed - stop animations
         avatar.animations.stop();
         //zombie.anims.play('idle');

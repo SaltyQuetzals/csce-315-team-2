@@ -9,7 +9,7 @@ import {Player} from '../../src/models/Player';
 
 describe('Generate Players Function', () => {
   const players: PlayerData[] =
-      [{name: 'gamer1'}, {name: 'gamer2'}, {name: 'gamer3'}, {name: 'gamer4'}];
+      [{id: 'gamer1'}, {id: 'gamer2'}, {id: 'gamer3'}, {id: 'gamer4'}];
   const game = new Game(100, 100);
   game.generatePlayers(players);
 
@@ -30,14 +30,14 @@ describe('Generate Obstacles Function', () => {
   const game = new Game(1000, 1000);
   it('Should generate obstacles and return the obstacles in the game', () => {
     game.generateObstacles();
-    expect(game.obstacles).to.have.lengthOf(5);
+    expect(game.getObstacles()).to.have.lengthOf(5);
   });
 });
 
 describe('Game movement function', () => {
   const game = new Game(100, 100);
   const players: PlayerData[] =
-      [{name: 'gamer1'}, {name: 'gamer2'}, {name: 'gamer3'}, {name: 'gamer4'}];
+      [{id: 'gamer1'}, {id: 'gamer2'}, {id: 'gamer3'}, {id: 'gamer4'}];
   game.generatePlayers(players);
   it('Should change the location of the avatar given player data', () => {
     const movePlayer1: MovementData = {xDelta: 10, yDelta: -10};
@@ -65,8 +65,8 @@ describe('Add obstacle function', () => {
     const game = new Game(1000, 1000);
     game.generateObstacles();
     game.addObstacle(new SquareObstacle([0, 0], 100, 100));
-    expect(game.obstacles).to.have.lengthOf(6);
+    expect(game.getObstacles()).to.have.lengthOf(6);
     game.addObstacle(new SquareObstacle([100, 100], 200, 200));
-    expect(game.obstacles).to.have.lengthOf(7);
+    expect(game.getObstacles()).to.have.lengthOf(7);
   });
 });

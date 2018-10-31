@@ -13,20 +13,20 @@ const KEYBOARD = {
     38: 'up',
     39: 'right',
     40: 'down',
+    87: 'W',
+    65: 'A',
+    83: 'S',
+    68: 'D'
 }
 const PLR_KEYBOARD = {
-    movement: {
-        up: 0,
-        left: 0,
-        down: 0,
-        right: 0,
-    },
-    aim: {
-        up: 0,
-        left: 0,
-        down: 0,
-        right: 0,
-    }
+    up: 0,
+    left: 0,
+    down: 0,
+    right: 0,
+    W: 0,
+    A: 0,
+    S: 0,
+    D: 0
 }
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
@@ -56,10 +56,8 @@ function preload() {
     );
 }
 
-var bg;
-var cursors;
-var wasd;
 var gun;
+var socket;
 
 function create() {
 
@@ -68,36 +66,17 @@ function create() {
     bg = game.add.tileSprite(0, 0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
     game.players = {};
+
+    game.targets = game.add.group();
+    game.physics.arcade.enable(game.targets);
+
     game.localPlayer = {}
-    game.localPlayer.character = initAvatar('zombie_1', 100, 100, true);
     game.localPlayer.id = 0;
-    game.players[game.localPlayer.id] = game.localPlayer;
+    game.localPlayer.character = initAvatar(0, 'zombie_1', 100, 100, true);
+    game.localPlayer.gun = initGun(game.localPlayer.character);
 
     //Controls
-    cursors = game.input.keyboard.createCursorKeys();
-    cursors = [
-        cursors.up,
-        cursors.left,
-        cursors.down,
-        cursors.right,
-    ];
-    wasd = [
-        game.input.keyboard.addKey(Phaser.Keyboard.W),
-        game.input.keyboard.addKey(Phaser.Keyboard.A),
-        game.input.keyboard.addKey(Phaser.Keyboard.S),
-        game.input.keyboard.addKey(Phaser.Keyboard.D),
-    ];
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
-
-    //Gun
-    gun = game.add.weapon(revolver._clipSize, 'bullet');
-    gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    gun.bulletAngleOffset = 0;
-    gun.fireAngle = Phaser.ANGLE_RIGHT;
-    gun.bulletSpeed = 1000;
-    gun.fireRate = revolver.fireRateMillis;
-    gun.trackSprite(game.localPlayer.character, 14, 14);
 
 
     //Keyboard Events
@@ -105,30 +84,18 @@ function create() {
         ...PLR_KEYBOARD
     };
     game.input.keyboard.onDownCallback = function (event) {
-        if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]]) {
-            game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]] = 1;
-            // socket.emit('move', {
-            //     roomId,
-            //     ...game.localPlayer.keyboard.movement,
-            //     x: game.localPlayer.character.x,
-            //     y: game.localPlayer.character.y
-            // });
+        if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
+            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = 1;
         }
     }
     game.input.keyboard.onUpCallback = function (event) {
-        if (KEYBOARD[event.keyCode] && game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]]) {
-            game.localPlayer.keyboard.movement[KEYBOARD[event.keyCode]] = 0;
-            // socket.emit('move', {
-            //     roomId,
-            //     ...game.localPlayer.keyboard.movement,
-            //     x: game.localPlayer.character.x,
-            //     y: game.localPlayer.character.y
-            // });
+        if (KEYBOARD[event.keyCode] && game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
+            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = 0;
         }
     }
 
+    socket = io.connect("http://localhost:3000/");
 }
-const socket = io.connect("http://localhost:3000/");
 
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
@@ -142,140 +109,177 @@ function startGame() {
     });
 }
 
-socket.on('start game', () => {
-    console.log('GAME STARTED');
-})
-
 if (startGameButton) {
     startGameButton.addEventListener('click', startGame);
-    console.log('The button definitely exists...');
 }
 
-
-socket.emit("join room", {
-    roomId
-});
-
-socket.on('new player', (message) => {
-    if (message.id === socket.id) {
-        // Update all other players
-        
-    }
-    else {
-        console.log('Another player has joined the room!');
-        let newPlayer = {
-            'character': initAvatar('zombie_1')
-        };
-        newPlayer.id = message.id;
-        game.players[newPlayer.id] = newPlayer;
-        console.log(newPlayer.id);
-    }
-})
-
-socket.on('player moved', (message) => {
-    console.log(JSON.stringify(message, null, 3));
-    avatar = game.players[message.id].character;
-    avatar.x = avatar.x + message.movementDelta.xDelta;
-    avatar.y = avatar.y + message.movementDelta.yDelta;
-})
-
-socket.on("err", ({
-    message
-}) => {
-    console.error(message);
-});
-
-socket.on("room full", () => {
-    const errorDialog = document.getElementById("room-full-dialog");
-    console.log(errorDialog);
-    if (errorDialog) {
-        errorDialog.style.display = "block";
-    }
-});
-
 function update() {
-    console.log(game.players);
+    socket.on('connect', () => {
+
+        socket.on('start game', () => {
+            console.log('GAME STARTED');
+        })
+    
+        socket.on('serverSocketId', (message) => {
+            // console.log('serverSocketID = ' + message.id);
+            game.localPlayer.id = message.id;
+            game.players[game.localPlayer.id] = game.localPlayer;
+        })
+    
+        socket.on('new player', (message) => {
+            if (message.id === game.localPlayer.id) {
+                // create all preexisting players
+                for (var key in message.players) {
+                    if (key != game.localPlayer.id) {
+                        character = initAvatar(key, 'zombie_1');
+                        let newPlayer = {
+                            'character': character,
+                            'id' : key,
+                            'gun': initGun(character),
+                        };
+                        game.players[newPlayer.id] = newPlayer;
+                    }
+                }
+            }
+            else {
+                // create only new player
+                console.log('Another player has joined the room!');
+                character = initAvatar(message.id, 'zombie_1');
+                let newPlayer = {
+                    'character': character,
+                    'id' : message.id,
+                    'gun': initGun(character),
+                };
+                game.players[newPlayer.id] = newPlayer;
+                console.log(newPlayer.id);
+            }
+        })
+    
+        
+        socket.emit("join room", {
+            roomId
+        });
+    
+        socket.on('player moved', (message) => {
+            // console.log(JSON.stringify(message, null, 3));
+            // console.log(game.players);
+            avatar = game.players[message.id].character;
+            avatar.x = avatar.x + message.movementDelta.xDelta;
+            avatar.y = avatar.y + message.movementDelta.yDelta;
+        })
+
+        socket.on('weapon fired', (message) => {
+            const { id, fireAngle } = message;
+            gun = game.players[id].gun;
+            gun.fireAngle = fireAngle;
+            gun.fire();
+        })
+
+        socket.on('player killed', (message) => {
+            const { id } = message;
+            avatar = game.players[id].character;
+            avatar.kill();
+        })
+    
+        socket.on("err", ({
+            message
+        }) => {
+            console.error(message);
+        });
+    
+        socket.on("room full", () => {
+            const errorDialog = document.getElementById("room-full-dialog");
+            console.log(errorDialog);
+            if (errorDialog) {
+                errorDialog.style.display = "block";
+            }
+        });
+    })
     //LocalPlayer
-    movementHandler(game.localPlayer.character, game.localPlayer.keyboard.movement, game.localPlayer.keyboard.aim);
+    movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (spacebar.isDown) {
-        gun.fire();
-        socket.emit('weapon fired', {
-            roomId
-        })
+        game.localPlayer.gun.fire();
+        socket.emit('fire', {
+            roomId,
+            fireAngle: game.localPlayer.gun.fireAngle
+        });
     }
+
+    // Check collisions
+    game.physics.arcade.overlap(game.localPlayer.gun.bullets, game.targets, bulletHitHandler, null, game);
 }
 
 function render() {
     game.debug.spriteInfo(game.localPlayer.character, 20, 32);
-    gun.debug(20, 128);
+    game.localPlayer.gun.debug(20, 128);
 }
 
-function movementHandler(avatar, cursors, wasd, pos = {
-    x: false,
-    y: false
-}) {
+function bulletHitHandler(bullet, enemy) {
+    ///// Currently just kills sprites... need to implement health here
+    socket.emit('kill', {
+        roomId,
+        id: enemy.id
+    });
+    bullet.kill();
+    enemy.kill();
+}
+
+function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
     let eventShouldBeEmitted = false;
     const origZombieX = Number(avatar.x);
     const origZombieY = Number(avatar.y);
 
-    if (pos && (pos.x || pos.y)) {
-        if (pos.x)
-            avatar.x = pos.x;
-        if (pos.y)
-            avatar.y = pos.y;
-    }
-
-    if (cursors['left']) {
+    if (keys['left']) {
         avatar.x -= ZOMBIE_SPEED;
-        if (!(cursors['down'])) {
+        if (!(keys['down'])) {
             avatar.animations.play('left', true);
         }
         eventShouldBeEmitted = true;
-    } else if (cursors['right']) {
+    } else if (keys['right']) {
         avatar.x += ZOMBIE_SPEED;
-        if (!(cursors['down'])) {
+        if (!(keys['down'])) {
             avatar.animations.play('right', true);
         }
         eventShouldBeEmitted = true;
     }
 
-    if (cursors['up']) {
+    if (keys['up']) {
         avatar.y -= ZOMBIE_SPEED;
-        if (!(cursors['left'] || cursors['right'])) {
+        if (!(keys['left'] || keys['right'])) {
             avatar.animations.play('up', true);
         }
         eventShouldBeEmitted = true;
-    } else if (cursors['down']) {
+    } else if (keys['down']) {
         avatar.y += ZOMBIE_SPEED;
         avatar.animations.play('down', true);
         eventShouldBeEmitted = true;
     }
 
 
-    if (wasd['up']) {
-        if (wasd['right']) {
+    if (keys['W']) {
+        if (keys['D']) {
             gun.fireAngle = Phaser.ANGLE_NORTH_EAST;
-        } else if (wasd['left']) {
+        } else if (keys['A']) {
             gun.fireAngle = Phaser.ANGLE_NORTH_WEST;
         } else {
             gun.fireAngle = Phaser.ANGLE_UP;
         }
-    } else if (wasd['down']) {
-        if (wasd['right']) {
+    } else if (keys['S']) {
+        if (keys['D']) {
             gun.fireAngle = Phaser.ANGLE_SOUTH_EAST;
-        } else if (wasd['left']) {
+        } else if (keys['A']) {
             gun.fireAngle = Phaser.ANGLE_SOUTH_WEST;
         } else {
             gun.fireAngle = Phaser.ANGLE_DOWN;
         }
-    } else if (wasd['right']) {
+    } else if (keys['D']) {
         gun.fireAngle = Phaser.ANGLE_RIGHT;
-    } else if (wasd['left']) {
+    } else if (keys['A']) {
         gun.fireAngle = Phaser.ANGLE_LEFT;
     }
 
-    if (any(cursors) + any(wasd) == 0) {
+    if (any(keys) + any(keys) == 0) {
         // No keys pressed - stop animations
         avatar.animations.stop();
         //zombie.anims.play('idle');
@@ -292,12 +296,26 @@ function movementHandler(avatar, cursors, wasd, pos = {
     }
 }
 
+function initGun(character) {
+    gun = game.add.weapon(revolver._clipSize, 'bullet');
+    gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    gun.bulletAngleOffset = 0;
+    gun.fireAngle = Phaser.ANGLE_RIGHT;
+    gun.bulletSpeed = 1000;
+    gun.fireRate = revolver.fireRateMillis;
+    gun.trackSprite(character, character.height/2, character.height/2);
+    return gun;
+}
 
-function initAvatar(spriteSheet, x = 100, y = 100) {
+function initAvatar(id, spriteSheet, x = 100, y = 100) {
     avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
+    avatar.id = id;
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
+    if (avatar.id != 0) {
+        game.targets.add(avatar);
+    }
 
     avatar.animations.add(
         'down',

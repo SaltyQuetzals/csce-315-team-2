@@ -54,12 +54,14 @@ server.listen(3000, () => {
 });
 
 io.on('connection', socket => {
+
   socket.on('join room', data => {
-    const {roomId, name} = data;  // TODO: Use name as key in `names` field
+    socket.emit('serverSocketId', {id: socket.id});
+    const { roomId, name } = data;  // TODO: Use name as key in `names` field
     socket.join(roomId);
     roomController.addPlayerToRoom(roomId, socket.id, socket.id);
-    const game = roomController.getGame(roomId);
-    io.to(roomId).emit('new player', {id: socket.id, game});
+    const players = roomController.getNames(roomId);
+    io.in(roomId).emit('new player', { id: socket.id, players: players });
   });
 
   socket.on('start game', data => {
@@ -70,7 +72,7 @@ io.on('connection', socket => {
       if (!room.gameInProgress) {
         roomController.startGame(roomId);
         const game = roomController.getGame(roomId);
-        io.to(roomId).emit('start game', game);
+        socket.to(roomId).emit('start game', game);
       } else {
         console.log('Game already started');
       }
@@ -81,7 +83,7 @@ io.on('connection', socket => {
   });
 
   socket.on('move', data => {
-    const {roomId, movementDelta} = data;
+    const { roomId, movementDelta } = data;
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
@@ -94,6 +96,43 @@ io.on('connection', socket => {
     } catch (err) {
       console.error('move', err);
       socket.emit('err', {message: err.message});
+    }
+  });
+
+  socket.on('fire', data => {
+    const { roomId, fireAngle } = data;
+    // console.log(JSON.stringify(data, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        socket.to(roomId).emit('weapon fired', { 
+            id: socket.id,
+            fireAngle: fireAngle
+          });
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      console.error('fire', err);
+      socket.emit('err', { message: err.message });
+    }
+  });
+
+  socket.on('kill', data => {
+    const { roomId, id } = data;
+    // console.log(JSON.stringify(id, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        socket.to(roomId).emit('player killed', { 
+            id: id
+        });
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      console.error('kill', err);
+      socket.emit('err', { message: err.message });
     }
   });
 

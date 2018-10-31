@@ -3,7 +3,7 @@ const GUNS = require("../../models/Guns.js")
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
-const ZOMBIE_SPEED = 4;
+const ZOMBIE_SPEED = 8;
 // const ar = GUNS.AutomaticRifle;
 const revolver = new GUNS.Revolver();
 // const shotgun = GUNS.SawnOffShotgun;
@@ -80,7 +80,8 @@ function create() {
 
 
     //Keyboard Events
-    game.localPlayer.keyboard = { ...PLR_KEYBOARD
+    game.localPlayer.keyboard = {
+        ...PLR_KEYBOARD
     };
     game.input.keyboard.onDownCallback = function (event) {
         if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
@@ -111,9 +112,6 @@ function startGame() {
 if (startGameButton) {
     startGameButton.addEventListener('click', startGame);
 }
-
-
-
 
 function update() {
     socket.on('connect', () => {
@@ -197,7 +195,6 @@ function update() {
             }
         });
     })
-    
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)

@@ -4,11 +4,12 @@
     "rootDir": ".",
     "outDir": "build", 
     "target": "es6",
-    "lib": ["es2016", "dom", "scripthost"]
+    "lib": ["es2016", "dom", "scripthost"],
+    "typeRoots" : ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src/**/*",
     "test/**/*", 
-    "src/public/js/lib/phaser.min.js"
+    "src/public/js/lib/phaser.min.js",
   ]
 }

@@ -1,4 +1,4 @@
-import {Weapon} from './Guns';
+import {Revolver, Weapon} from './Guns';
 
 export enum Direction {
   North = 1,
@@ -6,8 +6,6 @@ export enum Direction {
   West,
   East
 }
-
-export type Position = [number, number];  // X, Y
 
 const INITIAL_DIRECTION = Direction.South;
 
@@ -17,12 +15,12 @@ const HUMAN_MOVE_SPEED = 1;
 
 export abstract class Avatar {
   facingDirection!: Direction;
-  constructor(readonly movementSpeed: number, private _position: Position) {
+  constructor(readonly movementSpeed: number, private _position: XY) {
     this.facingDirection = INITIAL_DIRECTION;
   }
 
 
-  get position(): Position {
+  get position(): XY {
     return this._position;
   }
 
@@ -30,28 +28,18 @@ export abstract class Avatar {
     this._position[0] += xDelta;
     this._position[1] += yDelta;
   }
-
-  abstract attack(): void;
 }
 
 export class Zombie extends Avatar {
-  constructor(position: Position) {
+  constructor(position: XY) {
     super(ZOMBIE_MOVE_SPEED, position);
   }
-  attack(): void {}
 }
 
 export class Human extends Avatar {
-  heldWeapon!: Weapon|null;
-  constructor(position: Position) {
+  heldWeapon!: Weapon;
+  constructor(position: XY) {
     super(HUMAN_MOVE_SPEED, position);
-    this.heldWeapon = null;
-  }
-  attack(): void {}
-
-  pickUp(newWeapon: Weapon): Weapon|null {
-    const tempWeapon = this.heldWeapon;
-    this.heldWeapon = newWeapon;
-    return tempWeapon;
+    this.heldWeapon = new Revolver();
   }
 }

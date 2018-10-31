@@ -7,6 +7,8 @@ const ZOMBIE_SPEED = 8;
 // const ar = GUNS.AutomaticRifle;
 const revolver = new GUNS.Revolver();
 // const shotgun = GUNS.SawnOffShotgun;
+const splitUrl = location.href.split("/");
+const roomId = splitUrl[splitUrl.length - 1];
 
 const KEYBOARD = {
     37: 'left',
@@ -94,11 +96,10 @@ function create() {
         }
     }
 
-    socket = io.connect("http://localhost:3000/");
+    socket = io.connect("http://localhost:3000/", {
+        query: `roomId=${roomId}`
+    });
 }
-
-const splitUrl = location.href.split("/");
-const roomId = splitUrl[splitUrl.length - 1];
 
 const startGameButton = document.getElementById('start');
 
@@ -115,51 +116,44 @@ if (startGameButton) {
 
 function update() {
     socket.on('connect', () => {
-
+        game.localPlayer.id = socket.id;
+        game.players[game.localPlayer.id] = game.localPlayer;
         socket.on('start game', () => {
             console.log('GAME STARTED');
         })
-    
-        socket.on('serverSocketId', (message) => {
-            // console.log('serverSocketID = ' + message.id);
-            game.localPlayer.id = message.id;
-            game.players[game.localPlayer.id] = game.localPlayer;
-        })
-    
+
         socket.on('new player', (message) => {
+            console.log(JSON.stringify(Object.keys(game.players), null, 3));
             if (message.id === game.localPlayer.id) {
                 // create all preexisting players
                 for (var key in message.players) {
-                    if (key != game.localPlayer.id) {
+                    console.log(key, socket.id, game.localPlayer.id);
+                    if (key !== game.localPlayer.id && !(key in game.players)) {
                         character = initAvatar(key, 'zombie_1');
                         let newPlayer = {
                             'character': character,
-                            'id' : key,
+                            'id': key,
                             'gun': initGun(character),
                         };
                         game.players[newPlayer.id] = newPlayer;
                     }
                 }
-            }
-            else {
+            } else {
                 // create only new player
-                console.log('Another player has joined the room!');
                 character = initAvatar(message.id, 'zombie_1');
-                let newPlayer = {
-                    'character': character,
-                    'id' : message.id,
-                    'gun': initGun(character),
-                };
-                game.players[newPlayer.id] = newPlayer;
-                console.log(newPlayer.id);
+                if (!(message.id in game.players)) {
+                    console.log('Another player has joined the room!');
+                    let newPlayer = {
+                        'character': character,
+                        'id': message.id,
+                        'gun': initGun(character),
+                    };
+                    game.players[newPlayer.id] = newPlayer;
+                    console.log(newPlayer.id);
+                }
             }
         })
-    
-        
-        socket.emit("join room", {
-            roomId
-        });
-    
+
         socket.on('player moved', (message) => {
             // console.log(JSON.stringify(message, null, 3));
             // console.log(game.players);
@@ -169,24 +163,29 @@ function update() {
         })
 
         socket.on('weapon fired', (message) => {
-            const { id, fireAngle } = message;
+            const {
+                id,
+                fireAngle
+            } = message;
             gun = game.players[id].gun;
             gun.fireAngle = fireAngle;
             gun.fire();
         })
 
         socket.on('player killed', (message) => {
-            const { id } = message;
+            const {
+                id
+            } = message;
             avatar = game.players[id].character;
             avatar.kill();
         })
-    
+
         socket.on("err", ({
             message
         }) => {
             console.error(message);
         });
-    
+
         socket.on("room full", () => {
             const errorDialog = document.getElementById("room-full-dialog");
             console.log(errorDialog);
@@ -194,7 +193,7 @@ function update() {
                 errorDialog.style.display = "block";
             }
         });
-    })
+    });
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
@@ -225,7 +224,7 @@ function bulletHitHandler(bullet, enemy) {
     enemy.kill();
 }
 
-function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
+function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     let eventShouldBeEmitted = false;
     const origZombieX = Number(avatar.x);
     const origZombieY = Number(avatar.y);
@@ -303,7 +302,7 @@ function initGun(character) {
     gun.fireAngle = Phaser.ANGLE_RIGHT;
     gun.bulletSpeed = 1000;
     gun.fireRate = revolver.fireRateMillis;
-    gun.trackSprite(character, character.height/2, character.height/2);
+    gun.trackSprite(character, character.height / 2, character.height / 2);
     return gun;
 }
 

@@ -52,6 +52,9 @@ server.listen(3000, () => {
 });
 
 io.on('connection', socket => {
+
+  socket.emit('server socketId', socket.id);
+
   socket.on('join room', data => {
     const { roomId, name } = data;  // TODO: Use name as key in `names` field
     socket.join(roomId);

@@ -118,11 +118,7 @@ export class Game {
 
   // TODO generate guns on the board randomly
   generateWeapons() {
-    for (let i = 0; i < this.boardHeight / 200; i++) {
-      for (let i = 0; i < this.boardWidth / 200; i++) {
-        console.log("This should be a random position");
-      }
-    }
+    const positions: Position[] = generateRandomPositions(333, this.boardWidth, this.boardHeight);
   }
 
   pickupWeapon(playerId: string, weaponId: string) {
@@ -172,15 +168,31 @@ export function getRandomChoice(min: number, max: number): integer {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export function getRandomPosition(min: Position, max: Position): Position{
+export function getRandomPosition(min: Position, max: Position): Position {
   console.assert(
-    Number.isInteger(max[0]) && Number.isInteger(max[1]), 'The maximum position is not a set of integers'
-  );
+      Number.isInteger(max[0]) && Number.isInteger(max[1]),
+      'The maximum position is not a set of integers');
   console.assert(
-    Number.isInteger(min[0]) && Number.isInteger(min[1]), 'The minimum position is not a set of integers'
-  );
-  console.assert(min[0] <= max[0] && min[1] <= max[1], 'The minimum position must be smaller than the maximum position');
+      Number.isInteger(min[0]) && Number.isInteger(min[1]),
+      'The minimum position is not a set of integers');
+  console.assert(
+      min[0] <= max[0] && min[1] <= max[1],
+      'The minimum position must be smaller than the maximum position');
   const xCoord = getRandomChoice(min[0], max[0]);
   const yCoord = getRandomChoice(min[1], max[1]);
   return [xCoord, yCoord];
+}
+
+export function generateRandomPositions(
+    chunkSize: number, boardWidth: integer, boardHeight: integer) {
+  const positions: Position[] = [];
+  const CHUNKS_SIZE = 333;
+  for (let i = 0; i < Math.floor(boardHeight / CHUNKS_SIZE); i++) {
+    for (let j = 0; j < Math.floor(boardWidth / CHUNKS_SIZE); j++) {
+      positions.push(getRandomPosition(
+          [j * CHUNKS_SIZE, i * CHUNKS_SIZE],
+          [CHUNKS_SIZE * (j + 1), CHUNKS_SIZE * (i + 1)]));
+    }
+  }
+  return positions;
 }

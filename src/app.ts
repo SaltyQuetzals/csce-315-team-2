@@ -117,18 +117,18 @@ io.on('connection', socket => {
   socket.on('weapon pickup', data => {
     const {roomId, weaponId} = data;
     console.log(JSON.stringify(data, null, 3));
-    try{
+    try {
       const room = roomController.getRoom(roomId);
-      if (room.gameInProgress){
+      if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
         const player = game.getPlayer(socket.id);
-        if (player.avatar instanceof Human){
+        if (player.avatar instanceof Human) {
           game.pickupWeapon(socket.id, weaponId);
-          socket.emit('player pickup weapon', {id: socket.id, weapon: weaponId});
+          socket.emit(
+              'player pickup weapon', {id: socket.id, weapon: weaponId});
         }
       }
-    }
-    catch(err){
+    } catch (err) {
       console.error('weapon pickup', err);
       socket.emit('err', {message: err.message});
     }

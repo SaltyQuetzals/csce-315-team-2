@@ -3,7 +3,9 @@ import 'mocha';
 import {AssertionError} from 'assert';
 import {expect} from 'chai';
 
+import {Human} from '../../src/models/Avatar';
 import {Game, getRandomChoice, MovementData, PlayerData} from '../../src/models/Game';
+import {SawnOffShotgun} from '../../src/models/Guns';
 import {SquareObstacle} from '../../src/models/Obstacle';
 import {Player} from '../../src/models/Player';
 
@@ -71,10 +73,27 @@ describe('Add obstacle function', () => {
   });
 });
 
-describe('Generate Weapons function', () => {
-  it('Should generate different numbers based on the size of the gameboard',
-     () => {
-       const game = new Game(1000, 1000);
-       game.generateWeapons();
-     });
+describe('Generate drops function', () => {
+  it('Should generate drops spread across the game board', () => {
+    const game1 = new Game(1000, 1000);
+    game1.generateDrops();
+    expect(Object.keys(game1.getDrops())).to.have.lengthOf(16);
+
+    const game2 = new Game(500, 500);
+    game2.generateDrops();
+    expect(Object.keys(game2.getDrops())).to.have.lengthOf(4);
+  });
+});
+
+describe('Pick up new item', () => {
+  it('Should pick up new item and drop the old item', () => {
+    const game = new Game(1000, 1000);
+    game.generateDrops();
+    game.addPlayer(new Player('1', new Human([0, 0])));
+    game.pickupWeapon('1', 1);
+    const playerAvatar = game.getPlayer('1').avatar;
+    if (playerAvatar instanceof Human) {
+      expect(playerAvatar.heldWeapon).to.be.instanceof(SawnOffShotgun);
+    }
+  });
 });

@@ -1,7 +1,10 @@
-import {Human, Zombie} from '../models/Avatar';
-import {Weapon} from '../models/Guns';
-import {SquareObstacle} from '../models/Obstacle';
-import {Player} from '../models/Player';
+import { Human, Zombie } from '../models/Avatar';
+import { AutomaticRifle, Revolver, SawnOffShotgun, Weapon } from '../models/Guns';
+import { SquareObstacle } from '../models/Obstacle';
+import { Player } from '../models/Player';
+
+import { Drop } from './Drop';
+import { Grit, Hammertime, PowerUp, WeirdFlex } from './PowerUp';
 
 export type PlayerData = {
   id: string
@@ -13,9 +16,10 @@ export type MovementData = {
 };
 
 export class Game {
-  private players!: {[key: string]: Player};
+  private players!: { [key: string]: Player };
   private _obstacles!: SquareObstacle[];
-  private weapons!: {[key: string]: Weapon};
+  private drops!: { [key: number]: Drop };
+  private dropCounter = 0;
   private readonly boardWidth!: number;
   private readonly boardHeight!: number;
 
@@ -24,6 +28,11 @@ export class Game {
     this._obstacles = [];
     this.boardHeight = boardHeight;
     this.boardWidth = boardWidth;
+    this.drops = {};
+  }
+
+  getNewDropId() {
+    return this.dropCounter++;
   }
 
   /**
@@ -42,7 +51,7 @@ export class Game {
   }
 
   /**
-   * Returns the player associiated with the player id
+   * Returns the player associated with the player id
    * @param playerId an id associated with each player
    */
   getPlayer(playerId: string): Player {
@@ -67,8 +76,12 @@ export class Game {
   /**
    * Returns the weapon given by the specified weapon id
    */
-  getWeapon(weaponId: string): Weapon{
-    return this.weapons[weaponId];
+  getDrop(dropId: number): Drop {
+    return this.drops[dropId];
+  }
+
+  getDrops(): { [key: number]: Drop } {
+    return this.drops;
   }
 
   /**
@@ -106,26 +119,58 @@ export class Game {
   // be randomly generated
   generateObstacles() {
     const obstacle1 = new SquareObstacle([10, 10], 100, 100),
-          obstacle2 = new SquareObstacle([100, 100], 50, 50),
-          obstacle3 = new SquareObstacle([700, 200], 200, 300),
-          obstacle4 = new SquareObstacle([800, 800], 100, 100),
-          obstacle5 = new SquareObstacle([200, 800], 20, 200);
+      obstacle2 = new SquareObstacle([100, 100], 50, 50),
+      obstacle3 = new SquareObstacle([700, 200], 200, 300),
+      obstacle4 = new SquareObstacle([800, 800], 100, 100),
+      obstacle5 = new SquareObstacle([200, 800], 20, 200);
     this._obstacles = [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5];
   }
 
-  // TODO generate powerups on the board randomly
-  generatePowerUps() {}
+  generateDrops() {
+    const positions: XY[] =
+      generateRandomPositions(250, this.boardWidth, this.boardHeight);
+    shuffleArray(positions);
+    for (let i = 0; i < positions.length; i++) {
+      let dropItem: Weapon | PowerUp;
 
-  // TODO generate guns on the board randomly
-  generateWeapons() {
+      switch (i % 6) {
+        case 0:
+          dropItem = new Revolver();
+          break;
+        case 1:
+          dropItem = new SawnOffShotgun();
+          break;
+        case 2:
+          dropItem = new AutomaticRifle();
+          break;
+        case 3:
+          dropItem = new WeirdFlex();
+          break;
+        case 4:
+          dropItem = new Hammertime();
+          break;
+        default:
+          dropItem = new Grit();
+          break;
+      }
+      const dropId: number = this.getNewDropId();
+      this.drops[dropId] = new Drop(dropItem, positions[i], dropId);
+    }
   }
 
-  pickupWeapon(playerId: string, weaponId: string){
-    const avatar = this.getPlayer(playerId).avatar
-    if (avatar instanceof Human){
-      avatar.heldWeapon = this.getWeapon(weaponId);
+  pickupWeapon(playerId: string, dropId: number) {
+    const avatar = this.getPlayer(playerId).avatar;
+    if (avatar instanceof Human) {
+      const pickedUpItem = this.getDrop(dropId).item;
+      delete this.drops[dropId];
+      if (pickedUpItem instanceof Weapon) {
+        const dropId = this.getNewDropId();
+        const newDrop: Drop =
+          new Drop(avatar.heldWeapon, avatar.position, dropId);
+        this.drops[dropId] = newDrop;
+        avatar.heldWeapon = pickedUpItem;
+      }
     }
-    // TODO Do something with the item being dropped and keeping track of the current location of the dropped object
   }
 
   /**
@@ -137,18 +182,16 @@ export class Game {
    */
   movePlayer(playerId: string, movementData: MovementData) {
     console.assert(
-        typeof (movementData.xDelta) === 'number',
-        'xDelta attribute is not a number');
+      typeof (movementData.xDelta) === 'number',
+      'xDelta attribute is not a number');
     console.assert(
-        typeof (movementData.yDelta) === 'number',
-        'yDelta attribute is not a number');
+      typeof (movementData.yDelta) === 'number',
+      'yDelta attribute is not a number');
     this.players[playerId].avatar.move(
-        movementData.xDelta, movementData.yDelta);
+      movementData.xDelta, movementData.yDelta);
   }
 
-  playerKilled(playerId: string, killedPlayerId: string){
-    
-  }
+  playerKilled(playerId: string, killedPlayerId: string) { }
 } /*
 -----------------------------------------------------------
 */
@@ -160,38 +203,45 @@ export class Game {
  */
 export function getRandomChoice(min: number, max: number): integer {
   console.assert(
-      Number.isInteger(min), 'The minimum provided is not an integer');
+    Number.isInteger(min), 'The minimum provided is not an integer');
   console.assert(
-      Number.isInteger(max), 'The maximum provided is not an integer');
+    Number.isInteger(max), 'The maximum provided is not an integer');
   console.assert(
-      min <= max, 'The minimum must be less than or equal to the maximum');
+    min <= max, 'The minimum must be less than or equal to the maximum');
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 export function getRandomPosition(min: XY, max: XY): XY {
   console.assert(
-      Number.isInteger(max[0]) && Number.isInteger(max[1]),
-      'The maximum position is not a set of integers');
+    Number.isInteger(max[0]) && Number.isInteger(max[1]),
+    'The maximum position is not a set of integers');
   console.assert(
-      Number.isInteger(min[0]) && Number.isInteger(min[1]),
-      'The minimum position is not a set of integers');
+    Number.isInteger(min[0]) && Number.isInteger(min[1]),
+    'The minimum position is not a set of integers');
   console.assert(
-      min[0] <= max[0] && min[1] <= max[1],
-      'The minimum position must be smaller than the maximum position');
-  const xCoord = getRandomChoice(min[0], max[0]);
-  const yCoord = getRandomChoice(min[1], max[1]);
-  return [xCoord, yCoord];
+    min[0] <= max[0] && min[1] <= max[1],
+    'The minimum position must be smaller than the maximum position');
+  const x = getRandomChoice(min[0], max[0]);
+  const y = getRandomChoice(min[1], max[1]);
+  return [x, y];
 }
 
 export function generateRandomPositions(
-    chunkSize: number, boardWidth: integer, boardHeight: integer) {
-  let positions: XY[] = [];
+  chunkSize: number, boardWidth: integer, boardHeight: integer) {
+  const positions: XY[] = [];
   for (let i = 0; i < Math.floor(boardHeight / chunkSize); i++) {
     for (let j = 0; j < Math.floor(boardWidth / chunkSize); j++) {
       positions.push(getRandomPosition(
-          [j * chunkSize, i * chunkSize],
-          [chunkSize * (j + 1), chunkSize * (i + 1)]));
+        [j * chunkSize, i * chunkSize],
+        [chunkSize * (j + 1), chunkSize * (i + 1)]));
     }
   }
   return positions;
+}
+
+export function shuffleArray(array: XY[]) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
 }

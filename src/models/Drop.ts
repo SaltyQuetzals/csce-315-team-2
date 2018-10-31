@@ -10,8 +10,10 @@ export class Drop {
   item!: Weapon|PowerUp;
   position!: XY;
   type!: DropType;
+  id: number;
 
-  constructor(item: Weapon|PowerUp, position: XY) {
+  constructor(item: Weapon|PowerUp, position: XY, id: number) {
+    this.id = id;
     this.item = item;
     this.position = position;
     if (this.item instanceof Weapon) {

@@ -53,14 +53,13 @@ server.listen(3000, () => {
 
 io.on('connection', socket => {
 
-  socket.emit('server socketId', socket.id);
-
   socket.on('join room', data => {
+    socket.emit('serverSocketId', {id: socket.id});
     const { roomId, name } = data;  // TODO: Use name as key in `names` field
     socket.join(roomId);
     roomController.addPlayerToRoom(roomId, socket.id, socket.id);
-    const game = roomController.getGame(roomId);
-    socket.to(roomId).emit('new player', { id: socket.id, game });
+    const players = roomController.getNames(roomId);
+    io.in(roomId).emit('new player', { id: socket.id, players: players });
   });
 
   socket.on('start game', data => {
@@ -71,7 +70,7 @@ io.on('connection', socket => {
       if (!room.gameInProgress) {
         roomController.startGame(roomId);
         const game = roomController.getGame(roomId);
-        io.to(roomId).emit('start game', game);
+        socket.to(roomId).emit('start game', game);
       } else {
         console.log('Game already started');
       }
@@ -83,7 +82,7 @@ io.on('connection', socket => {
 
   socket.on('move', data => {
     const { roomId, movementDelta } = data;
-    console.log(JSON.stringify(data, null, 3));
+    // console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {

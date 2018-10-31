@@ -58,6 +58,7 @@ function preload() {
 
 var bg;
 var gun;
+var socket;
 
 function create() {
 
@@ -69,7 +70,6 @@ function create() {
     game.localPlayer = {}
     game.localPlayer.character = initAvatar('zombie_1', 100, 100, true);
     game.localPlayer.id = 0;
-    game.players[game.localPlayer.id] = game.localPlayer;
 
     //Controls
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -99,8 +99,8 @@ function create() {
         }
     }
 
+    socket = io.connect("http://localhost:3000/");
 }
-const socket = io.connect("http://localhost:3000/");
 
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
@@ -114,52 +114,79 @@ function startGame() {
     });
 }
 
-socket.on('start game', () => {
-    console.log('GAME STARTED');
-})
-
 if (startGameButton) {
     startGameButton.addEventListener('click', startGame);
-    console.log('The button definitely exists...');
 }
 
 
-socket.emit("join room", {
-    roomId
-});
 
-socket.on('new player', (message) => {
-    console.log('Another player has joined the room!');
-    let newPlayer = {
-        'character': initAvatar('zombie_1')
-    };
-    newPlayer.id = message.id;
-    game.players[newPlayer.id] = newPlayer;
-    console.log(newPlayer.id);
-})
-
-socket.on('player moved', (message) => {
-    console.log(JSON.stringify(message, null, 3));
-    avatar = game.players[message.id].character;
-    avatar.x = avatar.x + message.movementDelta.xDelta;
-    avatar.y = avatar.y + message.movementDelta.yDelta;
-})
-
-socket.on("err", ({
-    message
-}) => {
-    console.error(message);
-});
-
-socket.on("room full", () => {
-    const errorDialog = document.getElementById("room-full-dialog");
-    console.log(errorDialog);
-    if (errorDialog) {
-        errorDialog.style.display = "block";
-    }
-});
 
 function update() {
+    socket.on('connect', () => {
+
+        socket.on('start game', () => {
+            console.log('GAME STARTED');
+        })
+    
+        socket.on('serverSocketId', (message) => {
+            // console.log('serverSocketID = ' + message.id);
+            game.localPlayer.id = message.id;
+            game.players[game.localPlayer.id] = game.localPlayer;
+        })
+    
+        socket.on('new player', (message) => {
+            if (message.id === game.localPlayer.id) {
+                // create all preexisting players
+                for (var key in message.players) {
+                    if (key != game.localPlayer.id) {
+                        let newPlayer = {
+                            'character': initAvatar('zombie_1'), 
+                            'id' : key
+                        };
+                        game.players[newPlayer.id] = newPlayer;
+                    }
+                }
+            }
+            else {
+                // create only new player
+                console.log('Another player has joined the room!');
+                let newPlayer = {
+                    'character': initAvatar('zombie_1'),
+                    'id': message.id
+                };
+                game.players[newPlayer.id] = newPlayer;
+                console.log(newPlayer.id);
+            }
+        })
+    
+        
+        socket.emit("join room", {
+            roomId
+        });
+    
+        socket.on('player moved', (message) => {
+            // console.log(JSON.stringify(message, null, 3));
+            // console.log(game.players);
+            avatar = game.players[message.id].character;
+            avatar.x = avatar.x + message.movementDelta.xDelta;
+            avatar.y = avatar.y + message.movementDelta.yDelta;
+        })
+    
+        socket.on("err", ({
+            message
+        }) => {
+            console.error(message);
+        });
+    
+        socket.on("room full", () => {
+            const errorDialog = document.getElementById("room-full-dialog");
+            console.log(errorDialog);
+            if (errorDialog) {
+                errorDialog.style.display = "block";
+            }
+        });
+    })
+    
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
@@ -177,13 +204,6 @@ function movementHandler(avatar, keys, /*pos = {x: false,y: false}*/) {
     let eventShouldBeEmitted = false;
     const origZombieX = Number(avatar.x);
     const origZombieY = Number(avatar.y);
-
-    // if (pos && (pos.x || pos.y)) {
-    //     if (pos.x)
-    //         avatar.x = pos.x;
-    //     if (pos.y)
-    //         avatar.y = pos.y;
-    // }
 
     if (keys['left']) {
         avatar.x -= ZOMBIE_SPEED;

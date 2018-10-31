@@ -56,7 +56,6 @@ function preload() {
     );
 }
 
-var bg;
 var gun;
 var socket;
 
@@ -67,27 +66,17 @@ function create() {
     bg = game.add.tileSprite(0, 0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
     game.players = {};
+
     game.targets = game.add.group();
     game.physics.arcade.enable(game.targets);
 
-
     game.localPlayer = {}
     game.localPlayer.id = 0;
-    game.localPlayer.character = initAvatar('zombie_1', 100, 100, true);
+    game.localPlayer.character = initAvatar(0, 'zombie_1', 100, 100, true);
+    game.localPlayer.gun = initGun(game.localPlayer.character);
 
     //Controls
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
-
-    //Gun
-    game.localPlayer.gun = game.add.weapon(revolver._clipSize, 'bullet');
-    game.localPlayer.gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    game.localPlayer.gun.bulletAngleOffset = 0;
-    game.localPlayer.gun.fireAngle = Phaser.ANGLE_RIGHT;
-    game.localPlayer.gun.bulletSpeed = 1000;
-    game.localPlayer.gun.fireRate = revolver.fireRateMillis;
-    game.localPlayer.gun.trackSprite(game.localPlayer.character, 14, 14);
-  
 
 
     //Keyboard Events
@@ -144,9 +133,11 @@ function update() {
                 // create all preexisting players
                 for (var key in message.players) {
                     if (key != game.localPlayer.id) {
+                        character = initAvatar(key, 'zombie_1');
                         let newPlayer = {
-                            'character': initAvatar('zombie_1'), 
-                            'id' : key
+                            'character': character,
+                            'id' : key,
+                            'gun': initGun(character),
                         };
                         game.players[newPlayer.id] = newPlayer;
                     }
@@ -155,9 +146,11 @@ function update() {
             else {
                 // create only new player
                 console.log('Another player has joined the room!');
+                character = initAvatar(message.id, 'zombie_1');
                 let newPlayer = {
-                    'character': initAvatar('zombie_1'),
-                    'id': message.id
+                    'character': character,
+                    'id' : message.id,
+                    'gun': initGun(character),
                 };
                 game.players[newPlayer.id] = newPlayer;
                 console.log(newPlayer.id);
@@ -175,6 +168,19 @@ function update() {
             avatar = game.players[message.id].character;
             avatar.x = avatar.x + message.movementDelta.xDelta;
             avatar.y = avatar.y + message.movementDelta.yDelta;
+        })
+
+        socket.on('weapon fired', (message) => {
+            const { id, fireAngle } = message;
+            gun = game.players[id].gun;
+            gun.fireAngle = fireAngle;
+            gun.fire();
+        })
+
+        socket.on('player killed', (message) => {
+            const { id } = message;
+            avatar = game.players[id].character;
+            avatar.kill();
         })
     
         socket.on("err", ({
@@ -197,6 +203,10 @@ function update() {
     //Loop through players (move non-LocalPlayer)
     if (spacebar.isDown) {
         game.localPlayer.gun.fire();
+        socket.emit('fire', {
+            roomId,
+            fireAngle: game.localPlayer.gun.fireAngle
+        });
     }
 
     // Check collisions
@@ -209,7 +219,11 @@ function render() {
 }
 
 function bulletHitHandler(bullet, enemy) {
-    console.log("hit");
+    ///// Currently just kills sprites... need to implement health here
+    socket.emit('kill', {
+        roomId,
+        id: enemy.id
+    });
     bullet.kill();
     enemy.kill();
 }
@@ -285,13 +299,24 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
     }
 }
 
+function initGun(character) {
+    gun = game.add.weapon(revolver._clipSize, 'bullet');
+    gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    gun.bulletAngleOffset = 0;
+    gun.fireAngle = Phaser.ANGLE_RIGHT;
+    gun.bulletSpeed = 1000;
+    gun.fireRate = revolver.fireRateMillis;
+    gun.trackSprite(character, character.height/2, character.height/2);
+    return gun;
+}
 
-function initAvatar(spriteSheet, x = 100, y = 100) {
+function initAvatar(id, spriteSheet, x = 100, y = 100) {
     avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
+    avatar.id = id;
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
-    if (game.localPlayer.id != 0) {
+    if (avatar.id != 0) {
         game.targets.add(avatar);
     }
 

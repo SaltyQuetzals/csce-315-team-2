@@ -1,4 +1,4 @@
-import {Human, Position, Zombie} from '../models/Avatar';
+import {Human, Zombie} from '../models/Avatar';
 import {Weapon} from '../models/Guns';
 import {SquareObstacle} from '../models/Obstacle';
 import {Player} from '../models/Player';
@@ -67,14 +67,14 @@ export class Game {
   /**
    * Returns the weapon given by the specified weapon id
    */
-  getWeapon(weaponId: string): Weapon {
+  getWeapon(weaponId: string): Weapon{
     return this.weapons[weaponId];
   }
 
   /**
    * Assigns start position in the center of the board
    */
-  assignStartPosition(): Position {
+  assignStartPosition(): XY {
     return [this.boardHeight / 2, this.boardWidth / 2];
   }
 
@@ -118,16 +118,14 @@ export class Game {
 
   // TODO generate guns on the board randomly
   generateWeapons() {
-    const positions: Position[] = generateRandomPositions(333, this.boardWidth, this.boardHeight);
   }
 
-  pickupWeapon(playerId: string, weaponId: string) {
-    const avatar = this.getPlayer(playerId).avatar;
-    if (avatar instanceof Human) {
-      avatar.pickUp(this.getWeapon(weaponId));
+  pickupWeapon(playerId: string, weaponId: string){
+    const avatar = this.getPlayer(playerId).avatar
+    if (avatar instanceof Human){
+      avatar.heldWeapon = this.getWeapon(weaponId);
     }
-    // TODO Do something with the item being dropped and keeping track of the
-    // current location of the dropped object
+    // TODO Do something with the item being dropped and keeping track of the current location of the dropped object
   }
 
   /**
@@ -148,7 +146,9 @@ export class Game {
         movementData.xDelta, movementData.yDelta);
   }
 
-  playerKilled(playerId: string, killedPlayerId: string) {}
+  playerKilled(playerId: string, killedPlayerId: string){
+    
+  }
 } /*
 -----------------------------------------------------------
 */
@@ -168,7 +168,7 @@ export function getRandomChoice(min: number, max: number): integer {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export function getRandomPosition(min: Position, max: Position): Position {
+export function getRandomPosition(min: XY, max: XY): XY {
   console.assert(
       Number.isInteger(max[0]) && Number.isInteger(max[1]),
       'The maximum position is not a set of integers');
@@ -185,13 +185,12 @@ export function getRandomPosition(min: Position, max: Position): Position {
 
 export function generateRandomPositions(
     chunkSize: number, boardWidth: integer, boardHeight: integer) {
-  const positions: Position[] = [];
-  const CHUNKS_SIZE = 333;
-  for (let i = 0; i < Math.floor(boardHeight / CHUNKS_SIZE); i++) {
-    for (let j = 0; j < Math.floor(boardWidth / CHUNKS_SIZE); j++) {
+  let positions: XY[] = [];
+  for (let i = 0; i < Math.floor(boardHeight / chunkSize); i++) {
+    for (let j = 0; j < Math.floor(boardWidth / chunkSize); j++) {
       positions.push(getRandomPosition(
-          [j * CHUNKS_SIZE, i * CHUNKS_SIZE],
-          [CHUNKS_SIZE * (j + 1), CHUNKS_SIZE * (i + 1)]));
+          [j * chunkSize, i * chunkSize],
+          [chunkSize * (j + 1), chunkSize * (i + 1)]));
     }
   }
   return positions;

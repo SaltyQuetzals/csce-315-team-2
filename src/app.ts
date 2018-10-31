@@ -5,10 +5,10 @@ import http = require('http');
 import * as session from 'express-session';
 import {random} from './shared/functions';
 import bodyParser = require('body-parser');
-import {Game} from './models/Game';
 import {RoomController} from './controllers/RoomController';
 import {Human} from './models/Avatar';
 import {Player} from './models/Player';
+import {Game} from './models/Game';
 
 type RoomState = {
   roomLeader: string,
@@ -82,7 +82,6 @@ io.on('connection', socket => {
 
   socket.on('move', data => {
     const {roomId, movementDelta} = data;
-    console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
@@ -106,21 +105,30 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('activate', (data) => {
+    const {type} = data;
+    try {
+      // Remove PowerUp from gameboard, and activate it on the specific Player.
+    } catch (err) {
+      console.error('activate', err);
+      socket.emit('err', err);
+    }
+  });
   socket.on('weapon pickup', data => {
     const {roomId, weaponId} = data;
     console.log(JSON.stringify(data, null, 3));
-    try {
+    try{
       const room = roomController.getRoom(roomId);
-      if (room.gameInProgress) {
+      if (room.gameInProgress){
         const game = roomController.getGame(roomId);
         const player = game.getPlayer(socket.id);
-        if (player.avatar instanceof Human) {
+        if (player.avatar instanceof Human){
           game.pickupWeapon(socket.id, weaponId);
-          socket.emit(
-              'player pickup weapon', {id: socket.id, weapon: weaponId});
+          socket.emit('player pickup weapon', {id: socket.id, weapon: weaponId});
         }
       }
-    } catch (err) {
+    }
+    catch(err){
       console.error('weapon pickup', err);
       socket.emit('err', {message: err.message});
     }

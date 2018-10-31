@@ -1,12 +1,11 @@
-import {Position} from './Avatar';
 
 export class SquareObstacle {
-  position!: Position;
+  position!: XY;
   width!: number;
   height!: number;
 
 
-  constructor(position: Position, width: number, height: number) {
+  constructor(position: XY, width: number, height: number) {
     this.position = position;
     this.width = width;
     this.height = height;
@@ -18,7 +17,7 @@ export class SquareObstacle {
    * @param position Position type that corresponds to a given point on the game
    * board
    */
-  insideObstacle(position: Position): boolean {
+  insideObstacle(position: XY): boolean {
     if (position[0] > this.position[0] &&
         position[0] < this.position[0] + this.width &&
         position[1] > this.position[1] &&

@@ -1,0 +1,1 @@
+type XY = [number, number];

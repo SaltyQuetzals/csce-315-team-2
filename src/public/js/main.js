@@ -67,22 +67,27 @@ function create() {
     bg = game.add.tileSprite(0, 0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
 
     game.players = {};
+    game.targets = game.add.group();
+    game.physics.arcade.enable(game.targets);
+
+
     game.localPlayer = {}
-    game.localPlayer.character = initAvatar('zombie_1', 100, 100, true);
     game.localPlayer.id = 0;
+    game.localPlayer.character = initAvatar('zombie_1', 100, 100, true);
 
     //Controls
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
 
     //Gun
-    gun = game.add.weapon(revolver._clipSize, 'bullet');
-    gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    gun.bulletAngleOffset = 0;
-    gun.fireAngle = Phaser.ANGLE_RIGHT;
-    gun.bulletSpeed = 1000;
-    gun.fireRate = revolver.fireRateMillis;
-    gun.trackSprite(game.localPlayer.character, 14, 14);
+    game.localPlayer.gun = game.add.weapon(revolver._clipSize, 'bullet');
+    game.localPlayer.gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    game.localPlayer.gun.bulletAngleOffset = 0;
+    game.localPlayer.gun.fireAngle = Phaser.ANGLE_RIGHT;
+    game.localPlayer.gun.bulletSpeed = 1000;
+    game.localPlayer.gun.fireRate = revolver.fireRateMillis;
+    game.localPlayer.gun.trackSprite(game.localPlayer.character, 14, 14);
+  
 
 
     //Keyboard Events
@@ -188,19 +193,28 @@ function update() {
     })
     
     //LocalPlayer
-    movementHandler(game.localPlayer.character, game.localPlayer.keyboard);
+    movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (spacebar.isDown) {
-        gun.fire();
+        game.localPlayer.gun.fire();
     }
+
+    // Check collisions
+    game.physics.arcade.overlap(game.localPlayer.gun.bullets, game.targets, bulletHitHandler, null, game);
 }
 
 function render() {
     game.debug.spriteInfo(game.localPlayer.character, 20, 32);
-    gun.debug(20, 128);
+    game.localPlayer.gun.debug(20, 128);
 }
 
-function movementHandler(avatar, keys, /*pos = {x: false,y: false}*/) {
+function bulletHitHandler(bullet, enemy) {
+    console.log("hit");
+    bullet.kill();
+    enemy.kill();
+}
+
+function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
     let eventShouldBeEmitted = false;
     const origZombieX = Number(avatar.x);
     const origZombieY = Number(avatar.y);
@@ -277,6 +291,9 @@ function initAvatar(spriteSheet, x = 100, y = 100) {
     avatar.frame = 1;
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
+    if (game.localPlayer.id != 0) {
+        game.targets.add(avatar);
+    }
 
     avatar.animations.add(
         'down',

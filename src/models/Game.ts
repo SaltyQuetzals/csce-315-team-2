@@ -192,9 +192,7 @@ export class Game {
   }
 
   playerKilled(playerId: string, killedPlayerId: string) { }
-} /*
------------------------------------------------------------
-*/
+}
 
 /**
  * Returns a random integer between two numbers (namely, max and min)

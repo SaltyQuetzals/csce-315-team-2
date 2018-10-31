@@ -5,15 +5,7 @@ import http = require('http');
 import * as session from 'express-session';
 import {random} from './shared/functions';
 import bodyParser = require('body-parser');
-import {Game} from './models/Game';
 import {RoomController} from './controllers/RoomController';
-
-type RoomState = {
-  roomLeader: string,
-  game: Game,
-  gameInProgress: boolean,
-  names: {[socketid: string]: string}
-};
 
 const ROOM_CODE_LENGTH = 5;
 
@@ -80,7 +72,6 @@ io.on('connection', socket => {
 
   socket.on('move', data => {
     const {roomId, movementDelta} = data;
-    console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
@@ -101,6 +92,16 @@ io.on('connection', socket => {
       roomController.removePlayerFromRooms(socket.id);
     } catch (err) {
       console.error('disconnect', err);
+    }
+  });
+
+  socket.on('activate', (data) => {
+    const {type} = data;
+    try {
+      // Remove PowerUp from gameboard, and activate it on the specific Player.
+    } catch (err) {
+      console.error('activate', err);
+      socket.emit('err', err);
     }
   });
 });

@@ -85,9 +85,9 @@ class RoomController {
   startGame(roomId: string) {
     const room = this.getRoom(roomId);
     if (!room.gameInProgress) {
-      const playerData: Array<{name: string}> = [];
+      const playerData: Array<{id: string}> = [];
       for (const socketId of Object.keys(room.names)) {
-        playerData.push({name: room.names[socketId]});
+        playerData.push({id: room.names[socketId]});
       }
       room.game.generatePlayers(playerData);
       room.gameInProgress = true;

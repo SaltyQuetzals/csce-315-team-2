@@ -6,6 +6,16 @@ import * as session from 'express-session';
 import {random} from './shared/functions';
 import bodyParser = require('body-parser');
 import {RoomController} from './controllers/RoomController';
+import {Human} from './models/Avatar';
+import {Player} from './models/Player';
+import {Game} from './models/Game';
+
+type RoomState = {
+  roomLeader: string,
+  game: Game,
+  gameInProgress: boolean,
+  names: {[socketid: string]: string}
+};
 
 const ROOM_CODE_LENGTH = 5;
 
@@ -102,6 +112,60 @@ io.on('connection', socket => {
     } catch (err) {
       console.error('activate', err);
       socket.emit('err', err);
+    }
+  });
+  socket.on('weapon pickup', data => {
+    const {roomId, weaponId} = data;
+    console.log(JSON.stringify(data, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        const game = roomController.getGame(roomId);
+        const player = game.getPlayer(socket.id);
+        if (player.avatar instanceof Human) {
+          game.pickupWeapon(socket.id, weaponId);
+          socket.emit(
+              'player pickup weapon', {id: socket.id, weapon: weaponId});
+        }
+      }
+    } catch (err) {
+      console.error('weapon pickup', err);
+      socket.emit('err', {message: err.message});
+    }
+  });
+
+  socket.on('weapon fired', data => {
+    const {roomId} = data;
+    console.log(JSON.stringify(data, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        const game = roomController.getGame(roomId);
+        const player = game.getPlayer(socket.id);
+        if (player.avatar instanceof Human && player.avatar.heldWeapon) {
+          player.avatar.heldWeapon.fire();
+          socket.emit('player fired weapon', {id: socket.id});
+        }
+      }
+    } catch (err) {
+      console.error(err, {message: err});
+      socket.emit('err', {message: err.message});
+    }
+  });
+
+  socket.on('killed', data => {
+    const {roomId, killedPlayerId} = data;
+    console.log(JSON.stringify(data, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        const game = roomController.getGame(roomId);
+        game.playerKilled(socket.id, killedPlayerId);
+        socket.emit('player killed', {id: socket.id, killedPlayerId});
+      }
+    } catch (err) {
+      console.error(err, {message: err});
+      socket.emit('err', {message: err.message});
     }
   });
 });

@@ -8,7 +8,7 @@ const RESPAWN_RATE = 1000;
 export class Player {
   private _canMove!: boolean;
 
-  constructor(readonly name: string, public avatar: Avatar) {
+  constructor(readonly id: string, public avatar: Avatar) {
     this._canMove = true;
   }
 

@@ -1,4 +1,4 @@
-import {Weapon} from './Guns';
+import {Revolver, Weapon} from './Guns';
 
 export enum Direction {
   North = 1,
@@ -37,9 +37,9 @@ export class Zombie extends Avatar {
 }
 
 export class Human extends Avatar {
-  heldWeapon!: Weapon|null;
+  heldWeapon!: Weapon;
   constructor(position: XY) {
     super(HUMAN_MOVE_SPEED, position);
-    this.heldWeapon = null;
+    this.heldWeapon = new Revolver();
   }
 }

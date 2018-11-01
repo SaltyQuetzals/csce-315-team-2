@@ -136,6 +136,25 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('switch gun', data => {
+    const { roomId, gun } = data;
+    // console.log(JSON.stringify(id, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        socket.to(roomId).emit('switch gun', { 
+            id: socket.id,
+            gun: gun
+        });
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      console.error('switch gun', err);
+      socket.emit('err', { message: err.message });
+    }
+  });
+
   socket.on('disconnect', (data) => {
     try {
       roomController.removePlayerFromRooms(socket.id);

@@ -4,9 +4,9 @@ const GUNS = require("../../models/Guns.js")
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
 const ZOMBIE_SPEED = 8;
-// const ar = GUNS.AutomaticRifle;
+const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
-// const shotgun = GUNS.SawnOffShotgun;
+const shotgun = new GUNS.SawnOffShotgun();
 
 const KEYBOARD = {
     37: 'left',
@@ -16,7 +16,8 @@ const KEYBOARD = {
     87: 'W',
     65: 'A',
     83: 'S',
-    68: 'D'
+    68: 'D',
+    32: 'spacebar'
 }
 const PLR_KEYBOARD = {
     up: 0,
@@ -26,7 +27,8 @@ const PLR_KEYBOARD = {
     W: 0,
     A: 0,
     S: 0,
-    D: 0
+    D: 0,
+    spacebar: 0
 }
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
@@ -72,7 +74,7 @@ function create() {
 
     game.localPlayer = {}
     game.localPlayer.id = 0;
-    game.localPlayer.character = initAvatar(0, 'zombie_1', 100, 100, true);
+    game.localPlayer.character = initAvatar(0, 'zombie_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
     game.localPlayer.gun = initGun(game.localPlayer.character);
 
     //Controls
@@ -180,6 +182,12 @@ function update() {
             avatar = game.players[id].character;
             avatar.kill();
         })
+        
+        socket.on('switch gun', (message) => {
+            const { id, gun } = message;
+            player = game.players[id];
+            switchGun(player.gun, gun);
+        })
     
         socket.on("err", ({
             message
@@ -198,12 +206,16 @@ function update() {
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
-    if (spacebar.isDown) {
-        game.localPlayer.gun.fire();
-        socket.emit('fire', {
-            roomId,
-            fireAngle: game.localPlayer.gun.fireAngle
-        });
+    if (game.localPlayer.keyboard['spacebar']) {
+        if (game.localPlayer.gun.ammo > 0) {
+            if(game.localPlayer.gun.fire()) {
+                --game.localPlayer.gun.ammo;
+                socket.emit('fire', {
+                    roomId,
+                    fireAngle: game.localPlayer.gun.fireAngle
+                });
+            }
+        }
     }
 
     // Check collisions
@@ -264,6 +276,11 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
             gun.fireAngle = Phaser.ANGLE_NORTH_WEST;
         } else {
             gun.fireAngle = Phaser.ANGLE_UP;
+            switchGun(game.localPlayer.gun, ar);
+            socket.emit('switch gun', {
+                roomId,
+                gun: ar
+            })
         }
     } else if (keys['S']) {
         if (keys['D']) {
@@ -272,11 +289,21 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
             gun.fireAngle = Phaser.ANGLE_SOUTH_WEST;
         } else {
             gun.fireAngle = Phaser.ANGLE_DOWN;
+            switchGun(game.localPlayer.gun, revolver);
+            socket.emit('switch gun', {
+                roomId,
+                gun: revolver
+            })
         }
     } else if (keys['D']) {
         gun.fireAngle = Phaser.ANGLE_RIGHT;
     } else if (keys['A']) {
         gun.fireAngle = Phaser.ANGLE_LEFT;
+        switchGun(game.localPlayer.gun, shotgun);
+        socket.emit('switch gun', {
+            roomId,
+            gun: shotgun
+        })
     }
 
     if (any(keys) + any(keys) == 0) {
@@ -297,7 +324,8 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
 }
 
 function initGun(character) {
-    gun = game.add.weapon(revolver._clipSize, 'bullet');
+    gun = game.add.weapon(30, 'bullet');
+    gun.ammo = revolver._clipSize;
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
     gun.fireAngle = Phaser.ANGLE_RIGHT;
@@ -307,7 +335,13 @@ function initGun(character) {
     return gun;
 }
 
-function initAvatar(id, spriteSheet, x = 100, y = 100) {
+function switchGun(gun, type) {
+    gun.fireRate = type.fireRateMillis;
+    gun.ammo = type._clipSize;
+    return gun;
+}
+
+function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {
     avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = id;

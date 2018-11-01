@@ -119,7 +119,7 @@ export class Revolver extends Weapon {
 
 export class SawnOffShotgun extends Weapon {
   constructor(ammoRemaining = 2) {
-    const FIRE_RATE = 500;
+    const FIRE_RATE = 1000;
     const DAMAGE = 7;
     const CLIP_SIZE = 2;
     const RELOAD_RATE = 1000;

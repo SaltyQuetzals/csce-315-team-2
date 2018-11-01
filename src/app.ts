@@ -118,20 +118,21 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('kill', data => {
-    const { roomId, id } = data;
+  socket.on('hit', data => {
+    const { roomId, id, damage } = data;
     // console.log(JSON.stringify(id, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        socket.to(roomId).emit('player killed', { 
-            id: id
+        socket.to(roomId).emit('player hit', { 
+            id: id,
+            damage: damage
         });
       } else {
         console.log('Game not started');
       }
     } catch (err) {
-      console.error('kill', err);
+      console.error('hit', err);
       socket.emit('err', { message: err.message });
     }
   });

@@ -1,9 +1,9 @@
 const GUNS = require("../../models/Guns.js")
 
-
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
 const ZOMBIE_SPEED = 8;
+const PLAYER_HEALTH = Number(100);
 const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
 const shotgun = new GUNS.SawnOffShotgun();
@@ -20,15 +20,15 @@ const KEYBOARD = {
     32: 'spacebar'
 }
 const PLR_KEYBOARD = {
-    up: 0,
-    left: 0,
-    down: 0,
-    right: 0,
-    W: 0,
-    A: 0,
-    S: 0,
-    D: 0,
-    spacebar: 0
+    up: false,
+    left: false,
+    down: false,
+    right: false,
+    W: false,
+    A: false,
+    S: false,
+    D: false,
+    spacebar: false
 }
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
@@ -76,6 +76,7 @@ function create() {
     game.localPlayer.id = 0;
     game.localPlayer.character = initAvatar(0, 'zombie_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
     game.localPlayer.gun = initGun(game.localPlayer.character);
+    game.localPlayer.health = PLAYER_HEALTH;
 
     //Controls
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -87,12 +88,12 @@ function create() {
     };
     game.input.keyboard.onDownCallback = function (event) {
         if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
-            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = 1;
+            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = true;
         }
     }
     game.input.keyboard.onUpCallback = function (event) {
         if (KEYBOARD[event.keyCode] && game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
-            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = 0;
+            game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = false;
         }
     }
 
@@ -131,28 +132,18 @@ function update() {
         socket.on('new player', (message) => {
             if (message.id === game.localPlayer.id) {
                 // create all preexisting players
-                for (var key in message.players) {
-                    if (key != game.localPlayer.id) {
-                        character = initAvatar(key, 'zombie_1');
-                        let newPlayer = {
-                            'character': character,
-                            'id' : key,
-                            'gun': initGun(character),
-                        };
-                        game.players[newPlayer.id] = newPlayer;
+                for (var id in message.players) {
+                    if (id != game.localPlayer.id) {
+                        newPlayer = initPlayer(id);
+                        game.players[id] = newPlayer;
                     }
                 }
             }
             else {
                 // create only new player
                 console.log('Another player has joined the room!');
-                character = initAvatar(message.id, 'zombie_1');
-                let newPlayer = {
-                    'character': character,
-                    'id' : message.id,
-                    'gun': initGun(character),
-                };
-                game.players[newPlayer.id] = newPlayer;
+                newPlayer = initPlayer(message.id);
+                game.players[message.id] = newPlayer;
                 console.log(newPlayer.id);
             }
         })
@@ -177,10 +168,16 @@ function update() {
             gun.fire();
         })
 
-        socket.on('player killed', (message) => {
-            const { id } = message;
-            avatar = game.players[id].character;
-            avatar.kill();
+        socket.on('player hit', (message) => {
+            const { id, damage } = message;
+            player = game.players[id];
+            if (player.health <= damage) {
+                player.character.kill();
+            }
+            else {
+                player.health -= damage;
+                // animate HIT
+            }
         })
         
         socket.on('switch gun', (message) => {
@@ -228,13 +225,20 @@ function render() {
 }
 
 function bulletHitHandler(bullet, enemy) {
-    ///// Currently just kills sprites... need to implement health here
-    socket.emit('kill', {
+    /// Currently just kills sprites... need to implement health here
+
+    socket.emit('hit', {
         roomId,
-        id: enemy.id
+        id: enemy.id,
+        damage: game.localPlayer.gun.damage
     });
     bullet.kill();
-    enemy.kill();
+    if (game.localPlayer.gun.damage >= game.players[enemy.id].health) {
+        enemy.kill();
+    }
+    else {
+        game.players[enemy.id].health -= game.localPlayer.gun.damage;
+    }
 }
 
 function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
@@ -326,6 +330,7 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/) {
 function initGun(character) {
     gun = game.add.weapon(30, 'bullet');
     gun.ammo = revolver._clipSize;
+    gun.damage = Number(revolver._damage);
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
     gun.fireAngle = Phaser.ANGLE_RIGHT;
@@ -338,7 +343,19 @@ function initGun(character) {
 function switchGun(gun, type) {
     gun.fireRate = type.fireRateMillis;
     gun.ammo = type._clipSize;
+    gun.damage = Number(type._damage);
     return gun;
+}
+
+function initPlayer(id) {
+
+    var newPlayer = {};
+    newPlayer.character = initAvatar(id, 'zombie_1');
+    newPlayer.id = id;
+    newPlayer.gun = initGun(newPlayer.character);
+    newPlayer.health = PLAYER_HEALTH;
+
+    return newPlayer;
 }
 
 function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {

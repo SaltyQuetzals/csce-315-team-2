@@ -33,7 +33,7 @@ const PLR_KEYBOARD = {
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
     GAME_VIEW_HEIGHT,
-    Phaser.AUTO,
+    Phaser.CANVAS,
     '', {
         init: init,
         preload: preload,

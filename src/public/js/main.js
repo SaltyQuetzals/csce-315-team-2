@@ -2,11 +2,14 @@ const GUNS = require("../../models/Guns.js")
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
-const ZOMBIE_SPEED = 8;
+const ZOMBIE_SPEED = 4;
 const PLAYER_HEALTH = Number(100);
 const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
 const shotgun = new GUNS.SawnOffShotgun();
+var GAME_STARTED;
+var gun;
+var socket;
 
 const KEYBOARD = {
     37: 'left',
@@ -45,6 +48,7 @@ const game = new Phaser.Game(
 
 function init() {
     game.stage.disableVisibilityChange = true;
+    GAME_STARTED = false;
 }
 
 function preload() {
@@ -58,8 +62,6 @@ function preload() {
     );
 }
 
-var gun;
-var socket;
 
 function create() {
 
@@ -87,12 +89,14 @@ function create() {
         ...PLR_KEYBOARD
     };
     game.input.keyboard.onDownCallback = function (event) {
-        if (KEYBOARD[event.keyCode] && !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
+        if (GAME_STARTED && KEYBOARD[event.keyCode] && 
+            !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
             game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = true;
         }
     }
     game.input.keyboard.onUpCallback = function (event) {
-        if (KEYBOARD[event.keyCode] && game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
+        if (GAME_STARTED && KEYBOARD[event.keyCode] && 
+            game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
             game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = false;
         }
     }
@@ -110,6 +114,7 @@ function startGame() {
     socket.emit("start game", {
         roomId
     });
+    GAME_STARTED = true;
 }
 
 if (startGameButton) {

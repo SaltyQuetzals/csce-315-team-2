@@ -90,6 +90,8 @@ class RoomController {
         playerData.push({id: room.names[socketId]});
       }
       room.game.generatePlayers(playerData);
+      room.game.generateObstacles();
+      room.game.generateDrops();
       room.gameInProgress = true;
     }
   }

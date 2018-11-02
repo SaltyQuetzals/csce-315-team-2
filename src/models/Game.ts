@@ -1,10 +1,10 @@
-import { Human, Zombie } from '../models/Avatar';
-import { AutomaticRifle, Revolver, SawnOffShotgun, Weapon } from '../models/Guns';
-import { SquareObstacle } from '../models/Obstacle';
-import { Player } from '../models/Player';
+import {Human, Zombie} from '../models/Avatar';
+import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
+import {SquareObstacle} from '../models/Obstacle';
+import {Player} from '../models/Player';
 
-import { Drop } from './Drop';
-import { Grit, Hammertime, PowerUp, WeirdFlex } from './PowerUp';
+import {Drop} from './Drop';
+import {Grit, Hammertime, PowerUp, WeirdFlex} from './PowerUp';
 
 export type PlayerData = {
   id: string
@@ -16,9 +16,9 @@ export type MovementData = {
 };
 
 export class Game {
-  private players!: { [key: string]: Player };
+  private players!: {[key: string]: Player};
   private _obstacles!: SquareObstacle[];
-  private drops!: { [key: number]: Drop };
+  private drops!: {[key: number]: Drop};
   private dropCounter = 0;
   private readonly boardWidth!: number;
   private readonly boardHeight!: number;
@@ -80,7 +80,7 @@ export class Game {
     return this.drops[dropId];
   }
 
-  getDrops(): { [key: number]: Drop } {
+  getDrops(): {[key: number]: Drop} {
     return this.drops;
   }
 
@@ -119,19 +119,19 @@ export class Game {
   // be randomly generated
   generateObstacles() {
     const obstacle1 = new SquareObstacle([10, 10], 100, 100),
-      obstacle2 = new SquareObstacle([100, 100], 50, 50),
-      obstacle3 = new SquareObstacle([700, 200], 200, 300),
-      obstacle4 = new SquareObstacle([800, 800], 100, 100),
-      obstacle5 = new SquareObstacle([200, 800], 20, 200);
+          obstacle2 = new SquareObstacle([100, 100], 50, 50),
+          obstacle3 = new SquareObstacle([700, 200], 200, 300),
+          obstacle4 = new SquareObstacle([800, 800], 100, 100),
+          obstacle5 = new SquareObstacle([200, 800], 20, 200);
     this._obstacles = [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5];
   }
 
   generateDrops() {
-    const positions: XY[] =
-      generateRandomPositions(250, this.boardWidth, this.boardHeight);
+    const positions: XY[] = generateRandomPositions(
+        250, this.boardWidth, this.boardHeight, this._obstacles);
     shuffleArray(positions);
     for (let i = 0; i < positions.length; i++) {
-      let dropItem: Weapon | PowerUp;
+      let dropItem: Weapon|PowerUp;
 
       switch (i % 6) {
         case 0:
@@ -166,7 +166,7 @@ export class Game {
       if (pickedUpItem instanceof Weapon) {
         const dropId = this.getNewDropId();
         const newDrop: Drop =
-          new Drop(avatar.heldWeapon, avatar.position, dropId);
+            new Drop(avatar.heldWeapon, avatar.position, dropId);
         this.drops[dropId] = newDrop;
         avatar.heldWeapon = pickedUpItem;
       }
@@ -182,17 +182,19 @@ export class Game {
    */
   movePlayer(playerId: string, movementData: MovementData) {
     console.assert(
-      typeof (movementData.xDelta) === 'number',
-      'xDelta attribute is not a number');
+        typeof (movementData.xDelta) === 'number',
+        'xDelta attribute is not a number');
     console.assert(
-      typeof (movementData.yDelta) === 'number',
-      'yDelta attribute is not a number');
+        typeof (movementData.yDelta) === 'number',
+        'yDelta attribute is not a number');
     this.players[playerId].avatar.move(
-      movementData.xDelta, movementData.yDelta);
+        movementData.xDelta, movementData.yDelta);
   }
 
-  playerKilled(playerId: string, killedPlayerId: string) { }
-}
+  playerKilled(playerId: string, killedPlayerId: string) {}
+} /*
+-----------------------------------------------------------
+*/
 
 /**
  * Returns a random integer between two numbers (namely, max and min)
@@ -201,37 +203,48 @@ export class Game {
  */
 export function getRandomChoice(min: number, max: number): integer {
   console.assert(
-    Number.isInteger(min), 'The minimum provided is not an integer');
+      Number.isInteger(min), 'The minimum provided is not an integer');
   console.assert(
-    Number.isInteger(max), 'The maximum provided is not an integer');
+      Number.isInteger(max), 'The maximum provided is not an integer');
   console.assert(
-    min <= max, 'The minimum must be less than or equal to the maximum');
+      min <= max, 'The minimum must be less than or equal to the maximum');
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 export function getRandomPosition(min: XY, max: XY): XY {
   console.assert(
-    Number.isInteger(max[0]) && Number.isInteger(max[1]),
-    'The maximum position is not a set of integers');
+      Number.isInteger(max[0]) && Number.isInteger(max[1]),
+      'The maximum position is not a set of integers');
   console.assert(
-    Number.isInteger(min[0]) && Number.isInteger(min[1]),
-    'The minimum position is not a set of integers');
+      Number.isInteger(min[0]) && Number.isInteger(min[1]),
+      'The minimum position is not a set of integers');
   console.assert(
-    min[0] <= max[0] && min[1] <= max[1],
-    'The minimum position must be smaller than the maximum position');
+      min[0] <= max[0] && min[1] <= max[1],
+      'The minimum position must be smaller than the maximum position');
   const x = getRandomChoice(min[0], max[0]);
   const y = getRandomChoice(min[1], max[1]);
   return [x, y];
 }
 
 export function generateRandomPositions(
-  chunkSize: number, boardWidth: integer, boardHeight: integer) {
+    chunkSize: number, boardWidth: integer, boardHeight: integer,
+    obstacles: SquareObstacle[]) {
   const positions: XY[] = [];
+  //Goes through the board in square chunks and generates a random point within the square chunk
   for (let i = 0; i < Math.floor(boardHeight / chunkSize); i++) {
     for (let j = 0; j < Math.floor(boardWidth / chunkSize); j++) {
-      positions.push(getRandomPosition(
-        [j * chunkSize, i * chunkSize],
-        [chunkSize * (j + 1), chunkSize * (i + 1)]));
+      let position;
+      //Checks whether the random position that is generated is inside of an obstacle and regenerates otherwise
+      while (true) {
+        position = getRandomPosition(
+            [j * chunkSize, i * chunkSize],
+            [chunkSize * (j + 1), chunkSize * (i + 1)]);
+        for (const obstacle of obstacles) {
+          if (obstacle.insideObstacle(position)) break;
+        }
+        break;
+      }
+      positions.push(position);
     }
   }
   return positions;

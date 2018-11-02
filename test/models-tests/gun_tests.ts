@@ -13,14 +13,6 @@ describe('Fire function', () => {
     revolver.fire();
     expect(revolver.ammoNotLoaded).to.equal(currentAmmo);
   });
-
-  it('Should be able to fire after cooling down', async () => {
-    const revolver = new Revolver();
-    await revolver.fire();
-    const currentAmmo = revolver.shotsInClip;
-    await revolver.fire();
-    expect(revolver.shotsInClip).to.equal(currentAmmo - 1);
-  });
 });
 
 describe('Reload function', () => {

@@ -3,18 +3,18 @@ import path = require('path');
 import * as socketio from 'socket.io';
 import http = require('http');
 import * as session from 'express-session';
-import {random} from './shared/functions';
+import { random } from './shared/functions';
 import bodyParser = require('body-parser');
-import {RoomController} from './controllers/RoomController';
-import {Human} from './models/Avatar';
-import {Player} from './models/Player';
-import {Game} from './models/Game';
+import { RoomController } from './controllers/RoomController';
+import { Human } from './models/Avatar';
+import { Player } from './models/Player';
+import { Game } from './models/Game';
 
 type RoomState = {
   roomLeader: string,
   game: Game,
   gameInProgress: boolean,
-  names: {[socketid: string]: string}
+  names: { [socketid: string]: string }
 };
 
 const ROOM_CODE_LENGTH = 5;
@@ -22,13 +22,13 @@ const ROOM_CODE_LENGTH = 5;
 const STATIC_DIR = path.join(__dirname, 'public');
 
 const sessionMiddleware =
-    session({resave: true, saveUninitialized: true, secret: 'baboon'});
+  session({ resave: true, saveUninitialized: true, secret: 'baboon' });
 
 const app = express();
 
 app.use(express.static(STATIC_DIR));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(sessionMiddleware);
 
 app.get('/', (_req, res) => {
@@ -54,18 +54,15 @@ server.listen(3000, () => {
 });
 
 io.on('connection', socket => {
-
-  socket.on('join room', data => {
-    socket.emit('serverSocketId', {id: socket.id});
-    const { roomId, name } = data;  // TODO: Use name as key in `names` field
-    socket.join(roomId);
-    roomController.addPlayerToRoom(roomId, socket.id, socket.id);
-    const players = roomController.getNames(roomId);
-    io.in(roomId).emit('new player', { id: socket.id, players: players });
-  });
+  const { roomId } = socket.handshake.query;
+  socket.join(roomId);
+  console.log(JSON.stringify(io.sockets.adapter.rooms[roomId], null, 3));
+  roomController.addPlayerToRoom(roomId, socket.id, socket.id);
+  const players = roomController.getNames(roomId);
+  io.in(roomId).emit('new player', { id: socket.id, players: players });
 
   socket.on('start game', data => {
-    const {roomId} = data;
+    const { roomId } = data;
     console.log('Received request to start game');
     try {
       const room = roomController.getRoom(roomId);
@@ -78,7 +75,7 @@ io.on('connection', socket => {
       }
     } catch (err) {
       console.error('start game', err);
-      socket.emit('err', {message: err.message});
+      socket.emit('err', { message: err.message });
     }
   });
 
@@ -87,15 +84,15 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        const game = roomController.getGame(roomId);
-        game.movePlayer(socket.id, movementDelta);
-        socket.to(roomId).emit('player moved', {id: socket.id, movementDelta});
+      const game = roomController.getGame(roomId);
+      game.movePlayer(socket.id, movementDelta);
+      socket.to(roomId).emit('player moved', { id: socket.id, movementDelta });
       } else {
-        console.log('Game not started');
+      console.log('Game not started');
       }
     } catch (err) {
       console.error('move', err);
-      socket.emit('err', {message: err.message});
+      socket.emit('err', { message: err.message });
     }
   });
 
@@ -105,10 +102,10 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        socket.to(roomId).emit('weapon fired', { 
-            id: socket.id,
-            fireAngle: fireAngle
-          });
+        socket.to(roomId).emit('weapon fired', {
+          id: socket.id,
+          fireAngle: fireAngle
+        });
       } else {
         console.log('Game not started');
       }
@@ -185,7 +182,7 @@ io.on('connection', socket => {
   });
 
   socket.on('activate', (data) => {
-    const {type} = data;
+    const { type } = data;
     try {
       // Remove PowerUp from gameboard, and activate it on the specific Player.
     } catch (err) {
@@ -194,7 +191,7 @@ io.on('connection', socket => {
     }
   });
   socket.on('weapon pickup', data => {
-    const {roomId, weaponId} = data;
+    const { roomId, weaponId } = data;
     console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
@@ -204,17 +201,17 @@ io.on('connection', socket => {
         if (player.avatar instanceof Human) {
           game.pickupWeapon(socket.id, weaponId);
           socket.emit(
-              'player pickup weapon', {id: socket.id, weapon: weaponId});
+            'player pickup weapon', { id: socket.id, weapon: weaponId });
         }
       }
     } catch (err) {
       console.error('weapon pickup', err);
-      socket.emit('err', {message: err.message});
+      socket.emit('err', { message: err.message });
     }
   });
 
   socket.on('weapon fired', data => {
-    const {roomId} = data;
+    const { roomId } = data;
     console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
@@ -223,28 +220,28 @@ io.on('connection', socket => {
         const player = game.getPlayer(socket.id);
         if (player.avatar instanceof Human && player.avatar.heldWeapon) {
           player.avatar.heldWeapon.fire();
-          socket.emit('player fired weapon', {id: socket.id});
+          socket.emit('player fired weapon', { id: socket.id });
         }
       }
     } catch (err) {
-      console.error(err, {message: err});
-      socket.emit('err', {message: err.message});
+      console.error(err, { message: err });
+      socket.emit('err', { message: err.message });
     }
   });
 
   socket.on('killed', data => {
-    const {roomId, killedPlayerId} = data;
+    const { roomId, killedPlayerId } = data;
     console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
         game.playerKilled(socket.id, killedPlayerId);
-        socket.emit('player killed', {id: socket.id, killedPlayerId});
+        socket.emit('player killed', { id: socket.id, killedPlayerId });
       }
     } catch (err) {
-      console.error(err, {message: err});
-      socket.emit('err', {message: err.message});
+      console.error(err, { message: err });
+      socket.emit('err', { message: err.message });
     }
   });
 });

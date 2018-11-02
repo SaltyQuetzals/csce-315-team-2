@@ -2,6 +2,8 @@ const GUNS = require("../../models/Guns.js")
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
+const GAME_WIDTH = 2400;
+const GAME_HEIGHT = 1800;
 const ZOMBIE_SPEED = 4;
 const PLAYER_HEALTH = Number(100);
 const ar = new GUNS.AutomaticRifle();
@@ -67,7 +69,8 @@ function create() {
 
     console.log("Creating");
     game.physics.startSystem(Phaser.Physics.Arcade);
-    bg = game.add.tileSprite(0, 0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 'bg');
+    game.world.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    bg = game.add.tileSprite(0, 0, GAME_WIDTH, GAME_HEIGHT, 'bg');
 
     game.players = {};
 
@@ -79,6 +82,8 @@ function create() {
     game.localPlayer.character = initAvatar(0, 'zombie_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
     game.localPlayer.gun = initGun(game.localPlayer.character);
     game.localPlayer.health = PLAYER_HEALTH;
+    game.camera.follow(game.localPlayer.character);
+
 
     //Controls
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -177,12 +182,22 @@ function update() {
             const { id, damage } = message;
             player = game.players[id];
             if (player.health <= damage) {
+                if (id === game.localPlayer.id) {
+                    // Disable movement
+                    socket.emit('died', {
+                        roomId
+                    })
+                }
                 player.character.kill();
             }
             else {
                 player.health -= damage;
                 // animate HIT
             }
+        })
+
+        socket.on('respawn', (message) => {
+            // Redraw zombie sprite and reset health
         })
         
         socket.on('switch gun', (message) => {

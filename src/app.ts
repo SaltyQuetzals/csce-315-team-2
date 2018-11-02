@@ -118,6 +118,26 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('died', data => {
+    const { roomId } = data;
+    // console.log(JSON.stringify(data, null, 3));
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        /*
+          Please fill this out and call
+          socket.emit('respawn')
+
+        */
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      console.error('fire', err);
+      socket.emit('err', { message: err.message });
+    }
+  })
+
   socket.on('hit', data => {
     const { roomId, id, damage } = data;
     // console.log(JSON.stringify(id, null, 3));

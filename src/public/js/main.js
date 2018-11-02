@@ -121,7 +121,6 @@ function startGame() {
     socket.emit("start game", {
         roomId
     });
-    GAME_STARTED = true;
 }
 
 if (startGameButton) {
@@ -133,7 +132,7 @@ function update() {
         game.localPlayer.id = socket.id;
         game.players[game.localPlayer.id] = game.localPlayer;
         socket.on('start game', () => {
-            console.log('GAME STARTED');
+            GAME_STARTED = true;
         })
 
         socket.on('new player', (message) => {

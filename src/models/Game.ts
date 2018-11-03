@@ -124,7 +124,8 @@ export class Game {
           obstacle4 = new SquareObstacle([800, 800], 100, 100),
           obstacle5 = new SquareObstacle([200, 800], 20, 200),
           obstacle6 = new SquareObstacle([1500, 1500], 200, 200);
-    this._obstacles = [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obstacle6];
+    this._obstacles =
+        [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obstacle6];
   }
 
   generateDrops() {
@@ -231,11 +232,13 @@ export function generateRandomPositions(
     chunkSize: number, boardWidth: integer, boardHeight: integer,
     obstacles: SquareObstacle[]) {
   const positions: XY[] = [];
-  //Goes through the board in square chunks and generates a random point within the square chunk
+  // Goes through the board in square chunks and generates a random point within
+  // the square chunk
   for (let i = 0; i < Math.floor(boardHeight / chunkSize); i++) {
     for (let j = 0; j < Math.floor(boardWidth / chunkSize); j++) {
       let position;
-      //Checks whether the random position that is generated is inside of an obstacle and regenerates otherwise
+      // Checks whether the random position that is generated is inside of an
+      // obstacle and regenerates otherwise
       while (true) {
         position = getRandomPosition(
             [j * chunkSize, i * chunkSize],

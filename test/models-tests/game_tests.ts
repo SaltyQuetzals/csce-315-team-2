@@ -32,7 +32,7 @@ describe('Generate Obstacles Function', () => {
   const game = new Game(1000, 1000);
   it('Should generate obstacles and return the obstacles in the game', () => {
     game.generateObstacles();
-    expect(game.getObstacles()).to.have.lengthOf(5);
+    expect(game.getObstacles()).to.have.lengthOf(6);
   });
 });
 
@@ -67,9 +67,9 @@ describe('Add obstacle function', () => {
     const game = new Game(1000, 1000);
     game.generateObstacles();
     game.addObstacle(new SquareObstacle([0, 0], 100, 100));
-    expect(game.getObstacles()).to.have.lengthOf(6);
-    game.addObstacle(new SquareObstacle([100, 100], 200, 200));
     expect(game.getObstacles()).to.have.lengthOf(7);
+    game.addObstacle(new SquareObstacle([100, 100], 200, 200));
+    expect(game.getObstacles()).to.have.lengthOf(8);
   });
 });
 

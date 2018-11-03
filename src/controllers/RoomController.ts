@@ -53,7 +53,8 @@ class RoomController {
       throw Error(`Room "${roomId}" is full.`);
     }
     if (room.gameInProgress) {
-      // throw Error(`Room "${roomId}"'s game is in progress. Try again later.`);
+      // throw Error(`Room "${roomId}"'s game is in progress. Try again
+      // later.`);
     }
     room.names[socketId] = name;
   }
@@ -77,7 +78,7 @@ class RoomController {
     return this.getRoom(roomId).game;
   }
 
-  
+
   /**
    * Returns the names in a room, given the `roomId`.
    * @param roomId The unique identifier of the room.

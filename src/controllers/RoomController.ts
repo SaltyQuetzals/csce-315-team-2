@@ -30,7 +30,7 @@ class RoomController {
       names[socketId] = name;
       this.rooms[roomId] = {
         roomLeader: socketId,
-        game: new Game(1000, 1000),
+        game: new Game(2400, 1800),
         gameInProgress: false,
         names
       };

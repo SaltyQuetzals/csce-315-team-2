@@ -122,8 +122,9 @@ export class Game {
           obstacle2 = new SquareObstacle([100, 100], 50, 50),
           obstacle3 = new SquareObstacle([700, 200], 200, 300),
           obstacle4 = new SquareObstacle([800, 800], 100, 100),
-          obstacle5 = new SquareObstacle([200, 800], 20, 200);
-    this._obstacles = [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5];
+          obstacle5 = new SquareObstacle([200, 800], 20, 200),
+          obstacle6 = new SquareObstacle([1500, 1500], 200, 200);
+    this._obstacles = [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obstacle6];
   }
 
   generateDrops() {

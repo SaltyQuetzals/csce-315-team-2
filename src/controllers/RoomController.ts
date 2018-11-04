@@ -70,6 +70,11 @@ class RoomController {
     return this.rooms[roomId];
   }
 
+  getRoomHost(roomId: string){
+    const room = this.getRoom(roomId);
+    return room.roomLeader;
+  }
+
   /**
    * Returns the game in a specific room, given the `roomId`.
    * @param roomId The unique identifier of the room.

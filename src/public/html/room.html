@@ -3,18 +3,32 @@
 
 <head>
     <link rel='stylesheet' type='text/css' href='../css/room.css' />
+    <link rel="stylesheet" type='text/css' href='../css/index.css'/>
     <script src="/socket.io/socket.io.js"></script>
     <script src="../js/lib/phaser.min.js"></script>
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+    <link href="https://fonts.googleapis.com/css?family=Annie+Use+Your+Telescope" rel="stylesheet">
 </head>
 
 <body id="noPad">
+    <div id="background" class="background-wrapper" style="z-index: 5">
+    </div>
+    <div id="waiting-room-overlay" class="center-container" style="z-index: 10">
+        <h1>Untitled Zombie Game ... 3?</h1>
+        <div style="display: flex" class="access-code-container">
+            <h3>ACCESS CODE:&nbsp;</h3>
+            <h3 style="letter-spacing: 2px" id="accessCode"></h3>
+        </div>
+        <h2>Players</h2>
+        <ul id="player-list">
+        </ul>
+        <button id="start">Start Game</button>
+    </div>
     <div id="room-full-dialog" style="display: none">
+        <h1>Access Code</h1>
         The room you are trying to enter is full. Please try again later.
 
         <button onclick="location.href='/'">Return to Main Menu</button>
     </div>
-    <button id="start">Start Game</button>
     <script src="../js/main.js"></script>
 </body>
 

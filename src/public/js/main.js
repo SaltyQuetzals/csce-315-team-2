@@ -1,4 +1,6 @@
+const waiting = require('./waiting.js');
 const GUNS = require("../../models/Guns.js")
+
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
@@ -10,12 +12,17 @@ const revolver = new GUNS.Revolver();
 const shotgun = new GUNS.SawnOffShotgun();
 
 var ZOMBIE_SPEED = 200;
+
+const playerList = document.getElementById('player-list');
+
 var GAME_STARTED;
 var gun;
 var socket;
+var roomHost;
 
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
+waiting.updateAccessCodeBox();
 
 const KEYBOARD = {
     37: 'left',
@@ -164,10 +171,33 @@ function create() {
         }
     }
 
-    socket = io.connect("http://localhost:3000/", {
+    socket = io.connect("/", {
         query: `roomId=${roomId}`
     });
+}
 
+const startGameButton = document.getElementById('start');
+startGameButton.style.display = "none";
+
+function startGame() {
+    document.getElementById('waiting-room-overlay').style.display = "none";
+    document.getElementById('background').style.display = "none";
+    socket.emit("start game", {
+        roomId
+    });
+}
+
+function startGame() {
+    socket.emit("start game", {
+        roomId
+    });
+}
+
+if (startGameButton) {
+    startGameButton.addEventListener('click', startGame);
+}
+
+function update() {
     socket.on('connect', () => {
         console.log('Connected successfully.');
         game.localPlayer.id = socket.id;
@@ -180,10 +210,13 @@ function create() {
             initDrops(message.drops);
 
             GAME_STARTED = true;
+            document.getElementById('waiting-room-overlay').style.display = "none";
+            document.getElementById('background').style.display = "none";
         })
     
         socket.on('new player', (message) => {
-            // console.log(JSON.stringify(Object.keys(game.players), null, 3));
+            if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
+            console.log(JSON.stringify(Object.keys(game.players), null, 3));
             if (message.id === game.localPlayer.id) {
                 // create all preexisting players
                 for (var id in message.players) {
@@ -202,6 +235,7 @@ function create() {
                 game.numSurvivors++;
                 console.log(newPlayer.id);
             }
+            waiting.updatePlayerList(game.players);
         })
     
         socket.on('player moved', (message) => {
@@ -284,7 +318,6 @@ function create() {
         socket.on('switch gun', (message) => {
             const { id, gun } = message;
             player = game.players[id];
-
             switch (gun) {
                 case 'revolver': 
                     switchGun(player.gun, revolver);
@@ -296,6 +329,13 @@ function create() {
                     switchGun(player.gun, ar);
                     break;
             }
+        });
+
+        socket.on('player left', (message) => {
+            const {id} = message;
+            delete game.players[id];
+            waiting.updatePlayerList(game.players);
+            if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
         })
     
         socket.on("err", ({
@@ -337,17 +377,6 @@ function create() {
 
 const startGameButton = document.getElementById('start');
 
-function startGame() {
-    socket.emit("start game", {
-        roomId
-    });
-}
-
-if (startGameButton) {
-    startGameButton.addEventListener('click', startGame);
-}
-
-function update() {
     //LocalPlayer
     movementHandler(game.localPlayer, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)

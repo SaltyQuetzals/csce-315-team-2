@@ -120,8 +120,10 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
-        game.playerDied(socket.id);
         socket.emit('died', {id: socket.id});
+        game.playerDied(socket.id).then(() => {
+          socket.emit('respawned', {id: socket.id});
+        });
       } else {
         console.log('Game not started');
       }

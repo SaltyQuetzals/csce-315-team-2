@@ -174,30 +174,7 @@ function create() {
     socket = io.connect("/", {
         query: `roomId=${roomId}`
     });
-}
 
-const startGameButton = document.getElementById('start');
-startGameButton.style.display = "none";
-
-function startGame() {
-    document.getElementById('waiting-room-overlay').style.display = "none";
-    document.getElementById('background').style.display = "none";
-    socket.emit("start game", {
-        roomId
-    });
-}
-
-function startGame() {
-    socket.emit("start game", {
-        roomId
-    });
-}
-
-if (startGameButton) {
-    startGameButton.addEventListener('click', startGame);
-}
-
-function update() {
     socket.on('connect', () => {
         console.log('Connected successfully.');
         game.localPlayer.id = socket.id;
@@ -375,8 +352,24 @@ function update() {
     game.HUD.survivors.fixedToCamera = true;
 }
 
-const startGameButton = document.getElementById('start');
 
+const startGameButton = document.getElementById('start');
+startGameButton.style.display = "none";
+
+function startGame() {
+    document.getElementById('waiting-room-overlay').style.display = "none";
+    document.getElementById('background').style.display = "none";
+    socket.emit("start game", {
+        roomId
+    });
+}
+
+
+if (startGameButton) {
+    startGameButton.addEventListener('click', startGame);
+}
+
+function update() {
     //LocalPlayer
     movementHandler(game.localPlayer, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)

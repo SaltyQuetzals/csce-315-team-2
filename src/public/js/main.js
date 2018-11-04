@@ -9,7 +9,7 @@ const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
 const shotgun = new GUNS.SawnOffShotgun();
 
-var ZOMBIE_SPEED = 300;
+var ZOMBIE_SPEED = 200;
 var GAME_STARTED;
 var gun;
 var socket;
@@ -430,7 +430,7 @@ function pickupDrop (character, dropSprite) {
                 })
                 break;
             case 'Hammertime':
-                ZOMBIE_SPEED += 50;
+                ZOMBIE_SPEED = 300;
                 break;
             case 'Jackpot':
                 player.gun.ammo += player.gun.clipSize;

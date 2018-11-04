@@ -104,27 +104,17 @@ function create() {
     game.obstacles = game.add.group();
     game.physics.arcade.enable(game.obstacles);
 
-    game.localPlayer = {}
+    game.localPlayer = {};
     game.localPlayer.id = 0;
-    game.localPlayer.character = initAvatar(0, 'survivor_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
-    game.localPlayer.gun = initGun(game.localPlayer.character);
-    game.localPlayer.facing = {
-        x: 0,
-        y: 0
-    }
-    let character = game.localPlayer.character;
+    game.localPlayer = initPlayer(0);
+    game.camera.follow(game.localPlayer.character);
+
     //Field of View
     // game.localPlayer.fov = game.add.sprite(0, 0, 'field_of_view');
     // game.localPlayer.fov.scale.setTo(.1, .1);
     // game.localPlayer.fov.anchor.setTo(0.5, 0.5);
     // game.localPlayer.fov.offset.setTo(character.width/2, character.height/2)
     // game.localPlayer.character.addChild(game.localPlayer.fov);
-
-    game.localPlayer.hitbox = initHitbox(character);
-    game.localPlayer.health = PLAYER_HEALTH;
-    game.localPlayer.isZombie = false;
-    game.camera.follow(character);
-
 
     //Controls
     spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -214,12 +204,18 @@ function create() {
             player = game.players[id];
             if (player.health <= damage) {
                 if (id === game.localPlayer.id) {
-                    // Disable movement
+                    // Movement is disabled
+                    player.isDead = true;
                     socket.emit('died', {
                         roomId
                     })
                 }
-                player.character.kill();
+                if (player.isZombie) {
+                    player.character.kill();
+                }
+                else {
+                    player.character.kill();
+                }
             }
             else {
                 player.health -= damage;
@@ -227,8 +223,23 @@ function create() {
             }
         })
     
-        socket.on('respawn', (message) => {
+        socket.on('respawned', (message) => {
             // Redraw zombie sprite and reset health
+            const { id } = message;
+            player = game.players[id];
+
+            player.health = PLAYER_HEALTH;
+            if (player.isZombie) {
+                player.character.revive();
+            }
+            else {
+                player.isZombie = true;
+                const x = player.character.x;
+                const y = player.character.y;
+                player.character.destroy();           
+                player.character = initAvatar(player, 'zombie_1', x, y);
+            }
+            player.isDead = false;
         })
         
         socket.on('switch gun', (message) => {
@@ -318,6 +329,8 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     let avatar = player.character;
     let eventShouldBeEmitted = false;
 
+    if (player.isDead) { return; }
+
     if (keys['left']) {
         player.facing.x = DIRECTION.WEST;
         avatar.body.velocity.x = -ZOMBIE_SPEED;
@@ -338,7 +351,7 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
     else {
         avatar.body.velocity.x = 0;
-        if (player.facing.y != 0) {
+        if (keys['up'] || keys['down']) {
             player.facing.x = 0;
         }
     }
@@ -360,7 +373,7 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
     else {
         avatar.body.velocity.y = 0;
-        if (player.facing.x != 0) {
+        if (keys['left'] || keys['right']) {
             player.facing.y = 0;
         }
     }
@@ -418,35 +431,14 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
                 y: Number(avatar.body.y)
             }
         });
+        if (player.isZombie) {
+            shiftHitbox(player);
+        }
     }
 }
 
 function melee(player) {
-    const origHitboxX = player.hitbox.x;
-    const origHitboxY = player.hitbox.y;
-    
-    if (player.facing.x != 0) {
-        if (player.facing.x == DIRECTION.EAST) {
-            player.hitbox.x += player.character.width;
-        }
-        else {
-            player.hitbox.x -= player.character.width;
-        }
-    }
-
-    if (player.facing.y != 0) {
-        if (player.facing.y == DIRECTION.SOUTH) {
-            player.hitbox.y += player.character.height;
-        }
-        else {
-            player.hitbox.y -= player.character.height;
-        }
-    }
-
-    game.physics.arcade.overlap(game.localPlayer.hitbox, game.targets, meleeHit, null, game);
-
-    player.hitbox.x = origHitboxX;
-    player.hibox.y = origHitboxY;
+    game.physics.arcade.overlap(player.hitbox, game.targets, meleeHit, null, game);
 }
 
 function meleeHit(hitbox, enemy) {
@@ -457,7 +449,6 @@ function meleeHit(hitbox, enemy) {
         id: enemy.id,
         damage: meleeDamage
     });
-    bullet.kill();
     if (meleeDamage >= game.players[enemy.id].health) {
         enemy.kill();
     }
@@ -582,25 +573,35 @@ function orientGun(gun, direction){
 function initPlayer(id) {
 
     var newPlayer = {};
-    // newPlayer.character = initAvatar(id, 'zombie_1');
-    newPlayer.character = initAvatar(id, 'survivor_1');
     newPlayer.id = id;
+    // newPlayer.character = initAvatar(id, 'zombie_1');
+    newPlayer.character = initAvatar(newPlayer, 'survivor_1');
     newPlayer.gun = initGun(newPlayer.character);
     newPlayer.health = PLAYER_HEALTH;
     newPlayer.isZombie = false;
+    newPlayer.isDead = false;
 
-    newPlayer.gun.handle = game.add.sprite(0, 0, 'weapons');
     return newPlayer;
 }
 
-function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {
+function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {
     avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
-    avatar.id = id;
+    avatar.id = player.id;
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
-    if (avatar.id != 0) {
+    if (avatar.id != game.localPlayer.id) {
         game.targets.add(avatar);
+    }
+    else {
+        // Local player attributes
+        player.facing = {
+            x: 0,
+            y: 0
+        }
+        if (player.isZombie) {
+            player.hitbox = initHitbox(avatar);
+        }
     }
 
     avatar.animations.add(
@@ -657,6 +658,33 @@ function initHitbox(character) {
     character.addChild(hitbox);
 
     return hitbox;
+}
+
+function shiftHitbox(player) {
+
+    if (player.facing.x != 0) {
+        if (player.facing.x == DIRECTION.EAST) {
+            player.hitbox.x = player.character.width;
+        }
+        else {
+            player.hitbox.x = -player.character.width;
+        }
+    }
+    else {
+        player.hitbox.x = 0;
+    }
+
+    if (player.facing.y != 0) {
+        if (player.facing.y == DIRECTION.SOUTH) {
+            player.hitbox.y = player.character.height;
+        }
+        else  {
+            player.hitbox.y = -player.character.height;
+        }
+    }
+    else {
+        player.hitbox.y = 0;
+    }
 }
 
 function initObstacles(obstacles) {

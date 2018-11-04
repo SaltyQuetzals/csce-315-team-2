@@ -14,7 +14,9 @@ const HUMAN_MOVE_SPEED = 1;
 
 
 export abstract class Avatar {
+  type!: string;
   facingDirection!: Direction;
+
   constructor(readonly movementSpeed: number, private _position: XY) {
     this.facingDirection = INITIAL_DIRECTION;
   }
@@ -33,6 +35,7 @@ export abstract class Avatar {
 export class Zombie extends Avatar {
   constructor(position: XY) {
     super(ZOMBIE_MOVE_SPEED, position);
+    this.type = 'zombie';
   }
 }
 
@@ -41,5 +44,6 @@ export class Human extends Avatar {
   constructor(position: XY) {
     super(HUMAN_MOVE_SPEED, position);
     this.heldWeapon = new Revolver();
+    this.type = 'human';
   }
 }

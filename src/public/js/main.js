@@ -38,6 +38,16 @@ const PLR_KEYBOARD = {
     D: false,
     spacebar: false
 }
+
+const DIRECTION = {
+
+    NORTH: -1,
+    EAST: 1,
+    SOUTH: 1,
+    WEST: -1
+
+}
+
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
     GAME_VIEW_HEIGHT,
@@ -87,7 +97,13 @@ function create() {
     game.localPlayer.id = 0;
     game.localPlayer.character = initAvatar(0, 'zombie_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
     game.localPlayer.gun = initGun(game.localPlayer.character);
+    game.localPlayer.facing = {
+        x: 0,
+        y: 0
+    }
+    game.localPlayer.hitbox = initHitbox(game.localPlayer.character);
     game.localPlayer.health = PLAYER_HEALTH;
+    game.localPlayer.isZombie = false;
     game.camera.follow(game.localPlayer.character);
 
 
@@ -222,10 +238,15 @@ if (startGameButton) {
 
 function update() {
     //LocalPlayer
-    movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
+    movementHandler(game.localPlayer, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (game.localPlayer.keyboard['spacebar']) {
-        fireGun();
+        if (game.localPlayer.isZombie) {
+            melee(game.localPlayer);
+        }
+        else {
+            fireGun();
+        }
     }
 
     // Check collisions
@@ -234,6 +255,9 @@ function update() {
     game.physics.arcade.collide(game.localPlayer.gun.bullets, game.obstacles, killBullet, null, game);
 }
 
+function collide () {
+    console.log("collide");
+}
 
 function killBullet(bullet, obstacle) {
     bullet.kill();
@@ -261,16 +285,20 @@ function bulletHitHandler(bullet, enemy) {
     }
 }
 
-function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
+function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
+    let avatar = player.character;
     let eventShouldBeEmitted = false;
 
     if (keys['left']) {
+        player.facing.x = DIRECTION.WEST;
         avatar.body.velocity.x = -ZOMBIE_SPEED;
+        
         if (!(keys['down'])) {
             avatar.animations.play('left', true);
         }
         eventShouldBeEmitted = true;
     } else if (keys['right']) {
+        player.facing.x = DIRECTION.EAST;
         avatar.body.velocity.x = ZOMBIE_SPEED;
         if (!(keys['down'])) {
             avatar.animations.play('right', true);
@@ -279,21 +307,29 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
     else {
         avatar.body.velocity.x = 0;
+        if (player.facing.y != 0) {
+            player.facing.x = 0;
+        }
     }
 
     if (keys['up']) {
+        player.facing.y = DIRECTION.NORTH;
         avatar.body.velocity.y = -ZOMBIE_SPEED;
         if (!(keys['left'] || keys['right'])) {
             avatar.animations.play('up', true);
         }
         eventShouldBeEmitted = true;
     } else if (keys['down']) {
+        player.facing.y = DIRECTION.SOUTH
         avatar.body.velocity.y = ZOMBIE_SPEED;
         avatar.animations.play('down', true);
         eventShouldBeEmitted = true;
     }
     else {
         avatar.body.velocity.y = 0;
+        if (player.facing.x != 0) {
+            player.facing.y = 0;
+        }
     }
 
 
@@ -352,6 +388,51 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
 }
 
+function melee(player) {
+    const origHitboxX = player.hitbox.x;
+    const origHitboxY = player.hitbox.y;
+    
+    if (player.facing.x != 0) {
+        if (player.facing.x == DIRECTION.EAST) {
+            player.hitbox.x += player.character.width;
+        }
+        else {
+            player.hitbox.x -= player.character.width;
+        }
+    }
+
+    if (player.facing.y != 0) {
+        if (player.facing.y == DIRECTION.SOUTH) {
+            player.hitbox.y += player.character.height;
+        }
+        else {
+            player.hitbox.y -= player.character.height;
+        }
+    }
+
+    game.physics.arcade.overlap(game.localPlayer.hitbox, game.targets, meleeHit, null, game);
+
+    player.hitbox.x = origHitboxX;
+    player.hibox.y = origHitboxY;
+}
+
+function meleeHit(hitbox, enemy) {
+    const meleeDamage = 100;
+
+    socket.emit('hit', {
+        roomId,
+        id: enemy.id,
+        damage: meleeDamage
+    });
+    bullet.kill();
+    if (meleeDamage >= game.players[enemy.id].health) {
+        enemy.kill();
+    }
+    else {
+        game.players[enemy.id].health -= meleeDamage;
+    }
+}
+
 function initGun(character) {
     gun = game.add.weapon(30, 'bullet');
     gun.ammo = revolver._clipSize;
@@ -391,6 +472,7 @@ function initPlayer(id) {
     newPlayer.id = id;
     newPlayer.gun = initGun(newPlayer.character);
     newPlayer.health = PLAYER_HEALTH;
+    newPlayer.isZombie = false;
 
     return newPlayer;
 }
@@ -436,6 +518,19 @@ function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_
         false
     );
     return avatar;
+}
+
+function initHitbox(character) {
+    let hitbox = game.add.graphics(0, 0);
+    hitbox.lineStyle(2, 0x5ff0000, 1);
+    hitbox.drawRect(0, 0, character.width, character.height);
+    hitbox.boundsPadding = 0;
+
+    game.physics.arcade.enable(hitbox);
+    
+    character.addChild(hitbox);
+
+    return hitbox;
 }
 
 function initObstacles(obstacles) {

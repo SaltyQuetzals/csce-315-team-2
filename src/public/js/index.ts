@@ -73,7 +73,7 @@ window.onload = () => {
     joinSubmitButton.addEventListener('click', event => {
       event.preventDefault();
       window.location.replace(
-          `/rooms/${(accessCodeForm as HTMLInputElement).value}`);
+          `/waiting/${(accessCodeForm as HTMLInputElement).value}`);
     });
   }
 };

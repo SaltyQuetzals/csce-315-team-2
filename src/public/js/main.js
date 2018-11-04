@@ -115,35 +115,18 @@ function create() {
     socket = io.connect("http://localhost:3000/", {
         query: `roomId=${roomId}`
     });
-}
 
-const startGameButton = document.getElementById('start');
-
-function startGame() {
-    console.log('BARRRA');
-    socket.emit("start game", {
-        roomId
-    });
-}
-
-if (startGameButton) {
-    startGameButton.addEventListener('click', startGame);
-}
-
-function update() {
     socket.on('connect', () => {
+        console.log('Connected successfully.');
         game.localPlayer.id = socket.id;
         game.players[game.localPlayer.id] = game.localPlayer;
-
         socket.on('start game', (message) => {
-            // const { game } = message;
-            
-            console.log(message);
+            console.log('Received start game event');
             initObstacles(message._obstacles);
 
             GAME_STARTED = true;
         })
-
+    
         socket.on('new player', (message) => {
             // console.log(JSON.stringify(Object.keys(game.players), null, 3));
             if (message.id === game.localPlayer.id) {
@@ -152,7 +135,7 @@ function update() {
                     if (id != game.localPlayer.id) {
                         newPlayer = initPlayer(id);
                         game.players[id] = newPlayer;
-
+    
                     }
                 }
             } else {
@@ -163,15 +146,14 @@ function update() {
                 console.log(newPlayer.id);
             }
         })
-
+    
         socket.on('player moved', (message) => {
-            console.log(JSON.stringify(message, null, 3));
             // console.log(game.players);
             avatar = game.players[message.id].character;
             avatar.x = message.location.x;
             avatar.y = message.location.y;
         })
-
+    
         socket.on('weapon fired', (message) => {
             const {
                 id,
@@ -181,7 +163,7 @@ function update() {
             gun.fireAngle = fireAngle;
             gun.fire();
         })
-
+    
         socket.on('player hit', (message) => {
             const { id, damage } = message;
             player = game.players[id];
@@ -199,7 +181,7 @@ function update() {
                 // animate HIT
             }
         })
-
+    
         socket.on('respawn', (message) => {
             // Redraw zombie sprite and reset health
         })
@@ -209,13 +191,13 @@ function update() {
             player = game.players[id];
             switchGun(player.gun, gun);
         })
-
+    
         socket.on("err", ({
             message
         }) => {
             console.error(message);
         });
-
+    
         socket.on("room full", () => {
             const errorDialog = document.getElementById("room-full-dialog");
             console.log(errorDialog);
@@ -224,6 +206,21 @@ function update() {
             }
         });
     });
+}
+
+const startGameButton = document.getElementById('start');
+
+function startGame() {
+    socket.emit("start game", {
+        roomId
+    });
+}
+
+if (startGameButton) {
+    startGameButton.addEventListener('click', startGame);
+}
+
+function update() {
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)

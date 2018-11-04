@@ -12,12 +12,13 @@ export class Player {
     this._canMove = true;
   }
 
-  async kill(): Promise<void> {
+  async died(): Promise<void> {
     const deathLocation = this.avatar.position;
     this._canMove = false;
-    await delay(RESPAWN_RATE);
     if (this.avatar instanceof Human) {
       this.avatar = new Zombie(deathLocation);
+    } else {
+      await delay(RESPAWN_RATE);
     }
     this._canMove = true;
   }

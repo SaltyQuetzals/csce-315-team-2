@@ -12,7 +12,7 @@ describe('Player.kill', () => {
   it('Should replace the player\'s Human with a Zombie', async () => {
     const player = new Player(genericName, new Human(spawnPoint));
     expect(player.avatar).to.be.a.instanceof(Human);
-    await player.kill();
+    await player.died();
     expect(player.avatar).to.be.a.instanceof(Zombie);
   });
 
@@ -20,7 +20,7 @@ describe('Player.kill', () => {
     const player = new Player(genericName, new Zombie(spawnPoint));
     expect(player.avatar).to.be.a.instanceof(Zombie);
     const originalAvatar = player.avatar;
-    await player.kill();
+    await player.died();
     expect(player.avatar).to.equal(originalAvatar);
   });
 });

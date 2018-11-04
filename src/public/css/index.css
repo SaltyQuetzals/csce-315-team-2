@@ -7,6 +7,14 @@ html {
   margin: 0px;
 }
 
+span{
+  font-size: 2rem;
+}
+
+input{
+  font-size: 1.5rem;
+}
+
 .background-wrapper{
   background: url(../assets/dark-background-min.jpg) no-repeat center center; 
   -webkit-background-size: cover;
@@ -87,3 +95,7 @@ button, input{
   z-index: 1;
   position: relative;
 }
+
+input::-webkit-input-placeholder {
+  color: white !important;
+  }

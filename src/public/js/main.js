@@ -225,15 +225,7 @@ function update() {
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (game.localPlayer.keyboard['spacebar']) {
-        if (game.localPlayer.gun.ammo > 0) {
-            if(game.localPlayer.gun.fire()) {
-                --game.localPlayer.gun.ammo;
-                socket.emit('fire', {
-                    roomId,
-                    fireAngle: game.localPlayer.gun.fireAngle
-                });
-            }
-        }
+        fireGun();
     }
 
     // Check collisions
@@ -371,6 +363,18 @@ function initGun(character) {
     gun.fireRate = revolver.fireRateMillis;
     gun.trackSprite(character, character.height / 2, character.height / 2);
     return gun;
+}
+
+function fireGun() {
+    if (game.localPlayer.gun.ammo > 0) {
+        if (game.localPlayer.gun.fire()) {
+            --game.localPlayer.gun.ammo;
+            socket.emit('fire', {
+                roomId,
+                fireAngle: game.localPlayer.gun.fireAngle
+            });
+        }
+    }
 }
 
 function switchGun(gun, type) {

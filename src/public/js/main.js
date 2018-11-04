@@ -120,7 +120,7 @@ function create() {
         console.log('Connected successfully.');
         game.localPlayer.id = socket.id;
         game.players[game.localPlayer.id] = game.localPlayer;
-        socket.on('start game', () => {
+        socket.on('start game', (message) => {
             console.log('Received start game event');
             initObstacles(message._obstacles);
 
@@ -148,7 +148,6 @@ function create() {
         })
     
         socket.on('player moved', (message) => {
-            console.log(JSON.stringify(message, null, 3));
             // console.log(game.players);
             avatar = game.players[message.id].character;
             avatar.x = message.location.x;

@@ -46,7 +46,3 @@ npm test
 Source code for the application can be located in the `src/` directory. For unit tests, see the `test/` directory.
 
 Front-end source code can be found in the `src/public/js/` directory.
-
-
-## Functional Specification
-Check it out [here](https://github.com/SaltyQuetzals/multiplayer-game/wiki/Functional-Specification)!

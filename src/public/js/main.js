@@ -132,6 +132,8 @@ function create() {
     game.localPlayer = initPlayer(0);
     game.camera.follow(game.localPlayer.character);
 
+    game.numSurvivors = 0;
+
     //Field of View
     // game.localPlayer.fov = game.add.sprite(0, 0, 'field_of_view');
     // game.localPlayer.fov.scale.setTo(.1, .1);
@@ -193,6 +195,7 @@ function create() {
             if (message.id === game.localPlayer.id) {
                 // create all preexisting players
                 for (var id in message.players) {
+                    game.numSurvivors++;
                     if (id != game.localPlayer.id) {
                         newPlayer = initPlayer(id);
                         game.players[id] = newPlayer;
@@ -204,6 +207,7 @@ function create() {
                 console.log('Another player has joined the room!');
                 newPlayer = initPlayer(message.id);
                 game.players[message.id] = newPlayer;
+                game.numSurvivors++;
                 console.log(newPlayer.id);
             }
         })
@@ -229,6 +233,7 @@ function create() {
             const { id, damage } = message;
             let player = game.players[id];
             if (player.health <= damage) {
+                player.health = 0;
                 if (id === game.localPlayer.id) {
                     // Movement is disabled
                     player.isDead = true;
@@ -236,12 +241,7 @@ function create() {
                         roomId
                     })
                 }
-                if (player.isZombie) {
-                    player.character.kill();
-                }
-                else {
-                    player.character.kill();
-                }
+                player.character.kill();
             }
             else {
                 player.health -= damage;
@@ -257,10 +257,12 @@ function create() {
             player = game.players[id];
 
             player.health = PLAYER_HEALTH;
+
             if (player.isZombie) {
                 player.character.revive();
             }
             else {
+                game.numSurvivors--;
                 player.isZombie = true;
                 const x = player.character.x;
                 const y = player.character.y;
@@ -318,6 +320,27 @@ function create() {
             }
         });
     });
+
+    game.HUD = {};
+    game.HUD.ammo = game.add.text(10, GAME_VIEW_HEIGHT-50, "Ammo: ", {
+        font: "bold 24px Arial",
+        fill: "#004887",
+        align: "center"
+    });
+    game.HUD.health = game.add.text(GAME_VIEW_WIDTH/2 - 100, GAME_VIEW_HEIGHT-50, "Health: ", {
+        font: "bold 24px Arial",
+        fill: "#af0000",
+        align: "center"
+    });
+    game.HUD.survivors = game.add.text(GAME_VIEW_WIDTH - 200, GAME_VIEW_HEIGHT-50, "Survivors: ", {
+        font: "bold 24px Arial",
+        fill: "#004887",
+        align: "center"
+    });
+
+    game.HUD.ammo.fixedToCamera = true;
+    game.HUD.health.fixedToCamera = true;
+    game.HUD.survivors.fixedToCamera = true;
 }
 
 const startGameButton = document.getElementById('start');
@@ -353,8 +376,14 @@ function update() {
 }
 
 function render() {
-    game.debug.spriteInfo(game.localPlayer.character, 20, 32);
-    game.localPlayer.gun.debug(20, 128);
+    // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
+    // game.localPlayer.gun.debug(20, 128);
+
+    game.HUD.ammo.setText("Ammo: " + game.localPlayer.gun.ammo);
+    game.HUD.health.setText("Health: " + game.localPlayer.health);
+    game.HUD.survivors.setText("Survivors: " + game.numSurvivors);
+
+
 }
 
 function collide (character, drop) {

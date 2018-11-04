@@ -132,6 +132,17 @@ function startGame() {
     });
 }
 
+function startGame() {
+    socket.emit("start game", {
+        roomId
+    });
+}
+
+if (startGameButton) {
+    startGameButton.addEventListener('click', startGame);
+}
+
+function update() {
     socket.on('connect', () => {
         console.log('Connected successfully.');
         game.localPlayer.id = socket.id;
@@ -230,21 +241,7 @@ function startGame() {
             }
         });
     });
-}
 
-const startGameButton = document.getElementById('start');
-
-function startGame() {
-    socket.emit("start game", {
-        roomId
-    });
-}
-
-if (startGameButton) {
-    startGameButton.addEventListener('click', startGame);
-}
-
-function update() {
     //LocalPlayer
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)

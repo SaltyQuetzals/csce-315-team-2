@@ -35,14 +35,18 @@ app.get('/', (_req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'index.html'));
 });
 
-app.post('/rooms', (req, res) => {
-  const roomCode = random(ROOM_CODE_LENGTH);
-  res.redirect(`/rooms/${roomCode}`);
-});
-
 app.get('/rooms/:roomCode', (_req, res) => {
   res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
 });
+
+app.post('/waiting', (req, res) => {
+  const roomCode = random(ROOM_CODE_LENGTH);
+  res.redirect(`/waiting/${roomCode}`);
+})
+
+app.get('/waiting/:roomCode', (_req, res) => {
+  res.sendFile(path.join(STATIC_DIR, '/html/waiting.html'));
+})
 
 const server = new http.Server(app);
 const io = socketio(server);

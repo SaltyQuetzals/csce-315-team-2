@@ -60,8 +60,18 @@ function preload() {
     console.log("preloading");
     game.load.image('bg', '../assets/bg.png');
     game.load.image('bullet', '../assets/bullet.png');
+    game.load.spritesheet('weapons',
+        '../assets/WeaponsSpriteSheet.png',
+        64, // frame width
+        64, // frame height
+    );
     game.load.spritesheet('zombie_1',
         '../assets/ZombieWalkingSpriteSheet2.png',
+        64, // frame width
+        64, // frame height
+    );
+    game.load.spritesheet('survivor_1',
+        '../assets/SurvivorWalkingSpriteSheet.png',
         64, // frame width
         64, // frame height
     );
@@ -85,7 +95,7 @@ function create() {
 
     game.localPlayer = {}
     game.localPlayer.id = 0;
-    game.localPlayer.character = initAvatar(0, 'zombie_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
+    game.localPlayer.character = initAvatar(0, 'survivor_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
     game.localPlayer.gun = initGun(game.localPlayer.character);
     game.localPlayer.health = PLAYER_HEALTH;
     game.camera.follow(game.localPlayer.character);
@@ -103,6 +113,10 @@ function create() {
         if (GAME_STARTED && KEYBOARD[event.keyCode] && 
             !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
             game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = true;
+        }
+        //Alternate Guns for testing purposes
+        if (event.keyCode == Phaser.Keyboard.Z){
+            alternateGuns(game.localPlayer, shotgun);
         }
     }
     game.input.keyboard.onUpCallback = function (event) {
@@ -161,7 +175,7 @@ function create() {
             } = message;
             gun = game.players[id].gun;
             gun.fireAngle = fireAngle;
-            gun.fire();
+            gun.shoot();
         })
     
         socket.on('player hit', (message) => {
@@ -225,9 +239,9 @@ function update() {
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (game.localPlayer.keyboard['spacebar']) {
-        console.log(game.obstacles);
+        // console.log(game.obstacles);
         if (game.localPlayer.gun.ammo > 0) {
-            if(game.localPlayer.gun.fire()) {
+            if(game.localPlayer.gun.shoot()) {
                 --game.localPlayer.gun.ammo;
                 socket.emit('fire', {
                     roomId,
@@ -353,16 +367,55 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
 }
 
-function initGun(character) {
-    gun = game.add.weapon(30, 'bullet');
-    gun.ammo = revolver._clipSize;
-    gun.damage = Number(revolver._damage);
+function initGun(character, weapon=revolver) {
+    let baseFrame = 0;
+    console.log(weapon.constructor.name);
+    console.log('kaba');
+    switch(weapon.constructor.name){
+        case 'Revolver':
+            baseFrame = 0;
+            break;
+        case 'SawnOffShotgun':
+            baseFrame = 5;
+            break;
+        case 'AutomaticRifle':
+            baseFrame = 10;
+            break;
+    }
+    console.log(baseFrame);
+    gun = game.add.weapon(30, 'weapons');
+    gun.addBulletAnimation(name = "bullet", 
+        frames = [15, 16, 17, 18, 19],
+        frameRate = 60,
+        loop = true
+    );
+    gun.handle = game.add.sprite(32, 32, 'weapons');
+    gun.handle.animations.add(
+        'fire',
+        [baseFrame, baseFrame + 1, baseFrame + 2, baseFrame + 3, baseFrame + 4],
+        10,
+        false
+    )
+    gun.handle.frame = 0;
+    gun.handle.anchor.setTo(0, 0.5);
+    character.addChild(gun.handle);
+    gun.bulletAnimation = 'bullet';
+    gun.ammo = weapon._clipSize;
+    gun.damage = Number(weapon._damage);
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
     gun.fireAngle = Phaser.ANGLE_RIGHT;
     gun.bulletSpeed = 1000;
-    gun.fireRate = revolver.fireRateMillis;
-    gun.trackSprite(character, character.height / 2, character.height / 2);
+    gun.fireRate = weapon.fireRateMillis;
+    gun.trackSprite(gun.handle, gun.handle.width / 2, -gun.handle.height / 2);
+
+    gun.shoot = function(){
+        if (gun.fire()){
+            gun.handle.animations.play('fire');
+            return true;
+        }
+        return false;
+    }
     return gun;
 }
 
@@ -373,10 +426,27 @@ function switchGun(gun, type) {
     return gun;
 }
 
+function alternateGuns(player, type){
+    switch(type.constructor.name){
+        case 'Revolver':
+            player.gun.destroy();
+            initGun(player.character, SawnOffShotgun);
+            break;
+        case 'SawnOffShotgun':
+            player.gun.destroy();
+            initGun(player.character, AutomaticRifle);
+            break;
+        case 'AutomaticRifle':
+            player.gun.destroy();
+            initGun(player.character, Revolver);
+            break;
+    }
+}
 function initPlayer(id) {
 
     var newPlayer = {};
-    newPlayer.character = initAvatar(id, 'zombie_1');
+    // newPlayer.character = initAvatar(id, 'zombie_1');
+    newPlayer.character = initAvatar(id, 'survivor_1');
     newPlayer.id = id;
     newPlayer.gun = initGun(newPlayer.character);
     newPlayer.health = PLAYER_HEALTH;
@@ -402,28 +472,38 @@ function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_
     );
     avatar.animations.add(
         'right',
-        [4, 5, 6, 7],
+        [5, 6, 7, 8],
         10,
         false
     );
     avatar.animations.add(
         'up',
-        [8, 9, 10, 11],
+        [10, 11, 12, 13],
         10,
         false
     );
     avatar.animations.add(
         'left',
-        [12, 13, 14, 15],
+        [15, 16, 17, 18],
         10,
         false
     );
     avatar.animations.add(
         'idle',
-        [16, 17, 18, 19],
+        [20],
         10,
         false
     );
+    avatar.animations.add(
+        'hurt',
+        [20, 21, 22, 23, 24],
+        10,
+        false
+    );
+    avatar.animations.add(
+        'attack',
+        [14, 19, 4, 9]
+    )
     return avatar;
 }
 

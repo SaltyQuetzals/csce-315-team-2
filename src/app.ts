@@ -80,6 +80,7 @@ io.on('connection', socket => {
   });
 
   socket.on('move', data => {
+<<<<<<< HEAD
     const {roomId, location} = data;
     try {
       const room = roomController.getRoom(roomId);
@@ -87,6 +88,15 @@ io.on('connection', socket => {
         const game = roomController.getGame(roomId);
         // game.movePlayer(socket.id, location);
         socket.to(roomId).emit('player moved', {id: socket.id, location});
+=======
+    const { roomId, location } = data;
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+      const game = roomController.getGame(roomId);
+      // game.movePlayer(socket.id, location);
+      socket.to(roomId).emit('player moved', { id: socket.id, location });
+>>>>>>> c215e7ae467cc8f9a89cab780d758e03afd7a658
       } else {
         console.log('Game not started');
       }

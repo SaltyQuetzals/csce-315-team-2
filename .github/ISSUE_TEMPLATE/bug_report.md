@@ -33,3 +33,6 @@ If applicable, add screenshots to help explain your problem.
 
 **Additional context**
 Add any other context about the problem here.
+
+**Estimated Points**
+REQUIRED: The number of man-hours you estimate this task to take to complete.

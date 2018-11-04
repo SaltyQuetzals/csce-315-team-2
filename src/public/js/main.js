@@ -355,7 +355,7 @@ function create() {
         fill: "#004887",
         align: "center"
     });
-    game.HUD.health =   (GAME_VIEW_WIDTH/2 - 100, GAME_VIEW_HEIGHT-50, "Health: ", {
+    game.HUD.health = game.add.text(GAME_VIEW_WIDTH/2 - 100, GAME_VIEW_HEIGHT-50, "Health: ", {
         font: "bold 24px Arial",
         fill: "#af0000",
         align: "center"

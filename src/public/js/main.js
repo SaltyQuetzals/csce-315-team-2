@@ -690,7 +690,7 @@ function initPlayer(id) {
 }
 
 function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {
-    avatar = game.add.sprite(x, y, spriteSheet);
+    let avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = player.id;
     game.physics.arcade.enable(avatar);
@@ -745,7 +745,7 @@ function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_V
         10,
         false
     );
-    hurt.onComplete.add((sprite, animation)=>{
+    avatar.animations.currentAnim.onComplete.add(()=>{
         avatar.animating = false;
     }, this);
     avatar.animations.add(

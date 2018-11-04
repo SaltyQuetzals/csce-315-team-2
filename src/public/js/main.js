@@ -271,6 +271,13 @@ function create() {
                 const y = player.character.y;
                 player.character.destroy();           
                 player.character = initAvatar(player, 'zombie_1', x, y);
+                if(game.numSurvivors === 0){
+                    socket.emit('end game',{
+                        zombies: true,
+                        survivors: false,
+                        roomId: roomId,
+                    });
+                }
             }
             player.isDead = false;
         })
@@ -328,6 +335,18 @@ function create() {
                 errorDialog.style.display = "block";
             }
         });
+
+        socket.on("end game", data => {
+            let {zombies, survivors} = data;
+            if(zombies){
+                game.EndGame.setText("Zombies win!");
+                console.log("ZOMBIES WIN");
+            }
+            else{
+                game.EndGame.setText("Survivors win!");
+                console.log("SURVIVORS WIN");
+            }
+        });
     });
 
     game.HUD = {};
@@ -336,7 +355,7 @@ function create() {
         fill: "#004887",
         align: "center"
     });
-    game.HUD.health = game.add.text(GAME_VIEW_WIDTH/2 - 100, GAME_VIEW_HEIGHT-50, "Health: ", {
+    game.HUD.health =   (GAME_VIEW_WIDTH/2 - 100, GAME_VIEW_HEIGHT-50, "Health: ", {
         font: "bold 24px Arial",
         fill: "#af0000",
         align: "center"
@@ -350,6 +369,14 @@ function create() {
     game.HUD.ammo.fixedToCamera = true;
     game.HUD.health.fixedToCamera = true;
     game.HUD.survivors.fixedToCamera = true;
+
+    
+    game.EndGame = game.add.text(GAME_VIEW_WIDTH/2, GAME_VIEW_HEIGHT/2, "", {
+        font: "bold 24px Arial",
+        fill: "#af0000",
+        align: "center"
+    });
+    game.EndGame.fixedToCamera = true;
 }
 
 

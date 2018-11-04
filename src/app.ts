@@ -80,6 +80,15 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('end game', data => {
+    const {zombies, survivors, roomId} = data;
+    const room = roomController.getRoom(roomId);
+    if (room.gameInProgress){
+      room.gameInProgress = false;
+      io.in(roomId).emit('end game', {zombies: zombies, survivors: survivors});
+    }
+  });
+
   socket.on('move', data => {
     const { roomId, location } = data;
     try {
@@ -115,14 +124,15 @@ io.on('connection', socket => {
 
   socket.on('died', data => {
     const {roomId} = data;
-    // console.log(JSON.stringify(data, null, 3));
+    console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
         socket.emit('died', {id: socket.id});
         game.playerDied(socket.id).then(() => {
-          socket.emit('respawn', {id: socket.id});
+          io.in(roomId).emit('respawned', {id: socket.id});
+          // socket.emit('respawn', {id: socket.id});
         });
       } else {
         console.log('Game not started');
@@ -247,4 +257,5 @@ io.on('connection', socket => {
       socket.emit('err', {message: err.message});
     }
   });
+
 });

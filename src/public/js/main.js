@@ -103,17 +103,9 @@ function create() {
     game.obstacles = game.add.group();
     game.physics.arcade.enable(game.obstacles);
 
-    game.localPlayer = {}
+    game.localPlayer = {};
     game.localPlayer.id = 0;
-    game.localPlayer.character = initAvatar(0, 'survivor_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
-    game.localPlayer.gun = initGun(game.localPlayer.character);
-    game.localPlayer.facing = {
-        x: 0,
-        y: 0
-    }
-    game.localPlayer.hitbox = initHitbox(game.localPlayer.character);
-    game.localPlayer.health = PLAYER_HEALTH;
-    game.localPlayer.isZombie = false;
+    game.localPlayer = initPlayer(0);
     game.camera.follow(game.localPlayer.character);
 
 
@@ -199,12 +191,18 @@ function create() {
             player = game.players[id];
             if (player.health <= damage) {
                 if (id === game.localPlayer.id) {
-                    // Disable movement
+                    // Movement is disabled
+                    player.isDead = true;
                     socket.emit('died', {
                         roomId
                     })
                 }
-                player.character.kill();
+                if (player.isZombie) {
+                    player.character.kill();
+                }
+                else {
+                    player.character.kill();
+                }
             }
             else {
                 player.health -= damage;
@@ -212,8 +210,23 @@ function create() {
             }
         })
     
-        socket.on('respawn', (message) => {
+        socket.on('respawned', (message) => {
             // Redraw zombie sprite and reset health
+            const { id } = message;
+            player = game.players[id];
+
+            player.health = PLAYER_HEALTH;
+            if (player.isZombie) {
+                player.character.revive();
+            }
+            else {
+                player.isZombie = true;
+                const x = player.character.x;
+                const y = player.character.y;
+                player.character.destroy();           
+                player.character = initAvatar(player, 'zombie_1', x, y);
+            }
+            player.isDead = false;
         })
         
         socket.on('switch gun', (message) => {
@@ -302,6 +315,8 @@ function bulletHitHandler(bullet, enemy) {
 function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     let avatar = player.character;
     let eventShouldBeEmitted = false;
+
+    if (player.isDead) { return; }
 
     if (keys['left']) {
         player.facing.x = DIRECTION.WEST;
@@ -399,7 +414,9 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
                 y: Number(avatar.body.y)
             }
         });
-        shiftHitbox(player);
+        if (player.isZombie) {
+            shiftHitbox(player);
+        }
     }
 }
 
@@ -513,24 +530,35 @@ function alternateGuns(player, type){
 function initPlayer(id) {
 
     var newPlayer = {};
-    // newPlayer.character = initAvatar(id, 'zombie_1');
-    newPlayer.character = initAvatar(id, 'survivor_1');
     newPlayer.id = id;
+    // newPlayer.character = initAvatar(id, 'zombie_1');
+    newPlayer.character = initAvatar(newPlayer, 'survivor_1');
     newPlayer.gun = initGun(newPlayer.character);
     newPlayer.health = PLAYER_HEALTH;
     newPlayer.isZombie = false;
+    newPlayer.isDead = false;
 
     return newPlayer;
 }
 
-function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {
+function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {
     avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
-    avatar.id = id;
+    avatar.id = player.id;
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
-    if (avatar.id != 0) {
+    if (avatar.id != game.localPlayer.id) {
         game.targets.add(avatar);
+    }
+    else {
+        // Local player attributes
+        player.facing = {
+            x: 0,
+            y: 0
+        }
+        if (player.isZombie) {
+            player.hitbox = initHitbox(avatar);
+        }
     }
 
     avatar.animations.add(

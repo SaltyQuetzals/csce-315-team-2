@@ -113,7 +113,7 @@ function create() {
     }
     game.localPlayer.hitbox = initHitbox(game.localPlayer.character);
     game.localPlayer.health = PLAYER_HEALTH;
-    game.localPlayer.isZombie = false;
+    game.localPlayer.isZombie = true;
     game.camera.follow(game.localPlayer.character);
 
 
@@ -321,7 +321,7 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
     else {
         avatar.body.velocity.x = 0;
-        if (player.facing.y != 0) {
+        if (keys['up'] || keys['down']) {
             player.facing.x = 0;
         }
     }
@@ -341,7 +341,7 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
     else {
         avatar.body.velocity.y = 0;
-        if (player.facing.x != 0) {
+        if (keys['left'] || keys['right']) {
             player.facing.y = 0;
         }
     }
@@ -399,35 +399,12 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
                 y: Number(avatar.body.y)
             }
         });
+        shiftHitbox(player);
     }
 }
 
 function melee(player) {
-    const origHitboxX = player.hitbox.x;
-    const origHitboxY = player.hitbox.y;
-    
-    if (player.facing.x != 0) {
-        if (player.facing.x == DIRECTION.EAST) {
-            player.hitbox.x += player.character.width;
-        }
-        else {
-            player.hitbox.x -= player.character.width;
-        }
-    }
-
-    if (player.facing.y != 0) {
-        if (player.facing.y == DIRECTION.SOUTH) {
-            player.hitbox.y += player.character.height;
-        }
-        else {
-            player.hitbox.y -= player.character.height;
-        }
-    }
-
-    game.physics.arcade.overlap(game.localPlayer.hitbox, game.targets, meleeHit, null, game);
-
-    player.hitbox.x = origHitboxX;
-    player.hibox.y = origHitboxY;
+    game.physics.arcade.overlap(player.hitbox, game.targets, meleeHit, null, game);
 }
 
 function meleeHit(hitbox, enemy) {
@@ -438,7 +415,6 @@ function meleeHit(hitbox, enemy) {
         id: enemy.id,
         damage: meleeDamage
     });
-    bullet.kill();
     if (meleeDamage >= game.players[enemy.id].health) {
         enemy.kill();
     }
@@ -611,6 +587,33 @@ function initHitbox(character) {
     character.addChild(hitbox);
 
     return hitbox;
+}
+
+function shiftHitbox(player) {
+
+    if (player.facing.x != 0) {
+        if (player.facing.x == DIRECTION.EAST) {
+            player.hitbox.x = player.character.width;
+        }
+        else {
+            player.hitbox.x = -player.character.width;
+        }
+    }
+    else {
+        player.hitbox.x = 0;
+    }
+
+    if (player.facing.y != 0) {
+        if (player.facing.y == DIRECTION.SOUTH) {
+            player.hitbox.y = player.character.height;
+        }
+        else  {
+            player.hitbox.y = -player.character.height;
+        }
+    }
+    else {
+        player.hitbox.y = 0;
+    }
 }
 
 function initObstacles(obstacles) {

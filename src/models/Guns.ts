@@ -3,6 +3,7 @@ import {delay} from '../shared/functions';
 export abstract class Weapon {
   readonly fireRateMillis!: number;
   readonly reloadRateMillis!: number;
+  readonly type!: string;
   protected readonly _damage!: number;
   protected readonly _clipSize!: number;
   protected _shotsInClip!: number;
@@ -10,10 +11,11 @@ export abstract class Weapon {
   ammoNotLoaded!: number;
 
   constructor(
-      fireRateMillis: number, reloadRateMillis: number, damage: number,
+      fireRateMillis: number, reloadRateMillis: number, type: string, damage: number,
       clipSize: number, ammoNotLoaded: number) {
     this.fireRateMillis = fireRateMillis;
     this.reloadRateMillis = reloadRateMillis;
+    this.type = type;
     this._damage = damage;
     this._clipSize = clipSize;
     this._canFire = true;
@@ -113,7 +115,8 @@ export class Revolver extends Weapon {
     const DAMAGE = 34;
     const CLIP_SIZE = 6;
     const RELOAD_RATE = 300;
-    super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
+    const TYPE = 'revolver';
+    super(FIRE_RATE, RELOAD_RATE, TYPE, DAMAGE, CLIP_SIZE, ammoRemaining);
   }
 }
 
@@ -123,8 +126,9 @@ export class SawnOffShotgun extends Weapon {
     const DAMAGE = 100;
     const CLIP_SIZE = 2;
     const RELOAD_RATE = 1000;
+    const TYPE = 'shotgun';
 
-    super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
+    super(FIRE_RATE, RELOAD_RATE, TYPE, DAMAGE, CLIP_SIZE, ammoRemaining);
   }
 }
 
@@ -134,7 +138,8 @@ export class AutomaticRifle extends Weapon {
     const DAMAGE = 20;
     const CLIP_SIZE = 60;
     const RELOAD_RATE = 500;
+    const TYPE = 'automatic rifle';
 
-    super(FIRE_RATE, RELOAD_RATE, DAMAGE, CLIP_SIZE, ammoRemaining);
+    super(FIRE_RATE, RELOAD_RATE, TYPE, DAMAGE, CLIP_SIZE, ammoRemaining);
   }
 }

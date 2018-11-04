@@ -173,14 +173,21 @@ io.on('connection', socket => {
   });
 
   socket.on('activate', (data) => {
-    const {type} = data;
+    // Remove PowerUp from gameboard, and activate it on the specific Player.
+    const { roomId, id } = data;
     try {
-      // Remove PowerUp from gameboard, and activate it on the specific Player.
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        socket.to(roomId).emit('activated drop', {id});
+      } else {
+        console.log('Game not started');
+      }
     } catch (err) {
       console.error('activate', err);
       socket.emit('err', err);
     }
   });
+
   socket.on('weapon pickup', data => {
     const {roomId, weaponId} = data;
     console.log(JSON.stringify(data, null, 3));

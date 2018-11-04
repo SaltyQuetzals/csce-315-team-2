@@ -4,11 +4,12 @@ const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
 const GAME_WIDTH = 2400;
 const GAME_HEIGHT = 1800;
-const ZOMBIE_SPEED = 300;
 const PLAYER_HEALTH = Number(100);
 const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
 const shotgun = new GUNS.SawnOffShotgun();
+
+var ZOMBIE_SPEED = 300;
 var GAME_STARTED;
 var gun;
 var socket;
@@ -27,6 +28,7 @@ const KEYBOARD = {
     68: 'D',
     32: 'spacebar'
 }
+
 const PLR_KEYBOARD = {
     up: false,
     left: false,
@@ -46,6 +48,16 @@ const DIRECTION = {
     SOUTH: 1,
     WEST: -1
 
+}
+
+const DROPIMAGES = {
+    'automatic rifle': 'p1',
+    'revolver': 'p1',
+    'shotgun': 'p1',
+    'WeirdFlex': 'p1',
+    'Grit': 'p1',
+    'Hammertime': 'p1',
+    'Jackpot': 'p1'
 }
 
 const game = new Phaser.Game(
@@ -70,6 +82,10 @@ function preload() {
     console.log("preloading");
     game.load.image('bg', '../assets/bg.png');
     game.load.image('bullet', '../assets/bullet.png');
+    game.load.image('p1', '../assets/bullet.png');
+    game.load.image('p2', '../assets/bullet.png');
+    game.load.image('p3', '../assets/bullet.png');
+    game.load.image('p4', '../assets/bullet.png');
     game.load.spritesheet('weapons',
         '../assets/WeaponsSpriteSheet.png',
         64, // frame width
@@ -97,12 +113,16 @@ function create() {
     bg = game.add.tileSprite(0, 0, GAME_WIDTH, GAME_HEIGHT, 'bg');
 
     game.players = {};
+    game.drops = {};
 
     game.targets = game.add.group();
     game.physics.arcade.enable(game.targets);
 
     game.obstacles = game.add.group();
     game.physics.arcade.enable(game.obstacles);
+
+    game.dropSprites = game.add.group();
+    game.physics.arcade.enable(game.dropSprites);
 
     game.localPlayer = {};
     game.localPlayer.id = 0;
@@ -155,9 +175,12 @@ function create() {
         console.log('Connected successfully.');
         game.localPlayer.id = socket.id;
         game.players[game.localPlayer.id] = game.localPlayer;
+
         socket.on('start game', (message) => {
             console.log('Received start game event');
+            // console.log(message);
             initObstacles(message._obstacles);
+            initDrops(message.drops);
 
             GAME_STARTED = true;
         })
@@ -243,6 +266,17 @@ function create() {
             }
             player.isDead = false;
         })
+
+        socket.on('activated drop', (message) => {
+            const { id } = message;
+
+            drop = game.drops[id];
+            drop.sprite.destroy();
+        })
+
+        socket.on('powerup expired', (message) => {
+            // Reset stats
+        })
         
         socket.on('switch gun', (message) => {
             const { id, gun } = message;
@@ -295,19 +329,64 @@ function update() {
     game.physics.arcade.overlap(game.localPlayer.gun.bullets, game.targets, bulletHitHandler, null, game);
     game.physics.arcade.collide(game.localPlayer.character, game.obstacles, null, null, game);
     game.physics.arcade.collide(game.localPlayer.gun.bullets, game.obstacles, killBullet, null, game);
-}
-
-function collide () {
-    console.log("collide");
-}
-
-function killBullet(bullet, obstacle) {
-    bullet.kill();
+    game.physics.arcade.collide(game.localPlayer.character, game.dropSprites, pickupDrop, null, game);
 }
 
 function render() {
     game.debug.spriteInfo(game.localPlayer.character, 20, 32);
     game.localPlayer.gun.debug(20, 128);
+}
+
+function collide (character, drop) {
+    console.log("collide");
+    drop.kill();
+}
+
+function pickupDrop (character, dropSprite) {
+    drop = game.drops[dropSprite.id];
+    dropSprite.destroy();
+
+    let player = game.localPlayer;
+
+    if (drop.type == 'Weapon') {
+        console.log(drop.item.type);
+        switch (drop.item.type) {
+            case 'revolver': 
+                switchGun(player.gun, revolver);
+                break;
+            case 'shotgun':
+                switchGun(player.gun, shotgun);
+                break;
+            case 'automatic rifle': 
+                switchGun(player.gun, ar);
+                break;
+        }
+    }
+    else {
+        let type = drop.item.type;
+        console.log(type);
+        if (type == 'WeirdFlex') {
+            player.gun.damage += 10;
+        }
+        else if (type == 'Grit') {
+            player.health += 100;
+        }
+        else if (type == 'Hammertime') {
+            ZOMBIE_SPEED += 50;
+        }
+        else {
+            // Jackpot
+            player.gun.ammo += player.gun.clipSize;
+        }
+    }
+    socket.emit('activate', {
+        roomId,
+        id: drop.id
+    });
+}
+
+function killBullet(bullet, obstacle) {
+    bullet.kill();
 }
 
 function bulletHitHandler(bullet, enemy) {
@@ -501,6 +580,7 @@ function initGun(character, weapon=revolver) {
     character.addChild(gun.handle);
 
     gun.ammo = revolver._clipSize;
+    gun.clipSize = revolver._clipSize;
     gun.damage = Number(revolver._damage);
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
@@ -535,6 +615,7 @@ function switchGun(gun, type) {
     gun.name = type.constructor.name;
     gun.fireRate = type.fireRateMillis;
     gun.ammo = type._clipSize;
+    gun.clipSize = type._clipSize;
     gun.damage = Number(type._damage);
     switch(gun.name){
         case 'Revolver':
@@ -552,24 +633,28 @@ function switchGun(gun, type) {
 function orientGun(gun, direction){
     switch(direction){
         case 'left':
+            gun.fireAngle = Phaser.ANGLE_LEFT;
             gun.handle.angle = 0;
             gun.handle.scale.x = -1;
             gun.handle.scale.y = 1;
             gun.handle.anchor.setTo(0.5, 0);
             break;
         case 'right':
+            gun.fireAngle = Phaser.ANGLE_RIGHT;
             gun.handle.angle = 0;
             gun.handle.scale.x = 1;
             gun.handle.scale.y = 1;
             gun.handle.anchor.setTo(-0.5, 0);
             break;
         case 'up':
+            gun.fireAngle = Phaser.ANGLE_UP;
             gun.handle.angle = 90;
             gun.handle.scale.x = -1;
             gun.handle.scale.y = 1;
             gun.handle.anchor.setTo(.9, .8);
             break;
         case 'down':
+            gun.fireAngle = Phaser.ANGLE_DOWN;
             gun.handle.angle = 90;
             gun.handle.scale.x = 1;
             gun.handle.scale.y = 1;
@@ -577,6 +662,7 @@ function orientGun(gun, direction){
             break;
     }
 }
+
 function initPlayer(id) {
 
     var newPlayer = {};
@@ -713,6 +799,31 @@ function initObstacles(obstacles) {
         obstacle.body.immovable = true;
 
         game.obstacles.add(obstacle);
+    }
+}
+
+function initDrops(drops) {
+    for (var key in drops) {
+        if (drops.hasOwnProperty(key)) {
+            var drop = drops[key];
+        }
+
+        var image;
+        if (drop.type == "Weapon") {
+            image = DROPIMAGES[drop.item.type];
+        }
+        else {
+            image = DROPIMAGES[drop.item.type];
+        }
+
+        
+        drop.sprite = game.add.sprite(drop.position[0], drop.position[1], image);
+        drop.sprite.id = drop.id;
+
+        game.physics.arcade.enable(drop.sprite);
+
+        game.drops[drop.id] = drop;
+        game.dropSprites.add(drop.sprite);
     }
 }
 

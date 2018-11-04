@@ -113,7 +113,7 @@ function create() {
     }
     game.localPlayer.hitbox = initHitbox(game.localPlayer.character);
     game.localPlayer.health = PLAYER_HEALTH;
-    game.localPlayer.isZombie = true;
+    game.localPlayer.isZombie = false;
     game.camera.follow(game.localPlayer.character);
 
 

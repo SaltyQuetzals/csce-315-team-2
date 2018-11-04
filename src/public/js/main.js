@@ -201,7 +201,7 @@ function create() {
     
         socket.on('player hit', (message) => {
             const { id, damage } = message;
-            player = game.players[id];
+            let player = game.players[id];
             if (player.health <= damage) {
                 if (id === game.localPlayer.id) {
                     // Movement is disabled
@@ -220,6 +220,8 @@ function create() {
             else {
                 player.health -= damage;
                 // animate HIT
+                player.character.animating = true;
+                player.character.animations.play('hurt', 20, false);
             }
         })
     
@@ -322,6 +324,10 @@ function bulletHitHandler(bullet, enemy) {
     }
     else {
         game.players[enemy.id].health -= game.localPlayer.gun.damage;
+        //animate HIT
+        let target = game.players[enemy.id];
+        target.character.animating = true;
+        target.character.animations.play('hurt', 20, false);
     }
 }
 
@@ -330,54 +336,54 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     let eventShouldBeEmitted = false;
 
     if (player.isDead) { return; }
+    if (!avatar.animating){
+        if (keys['left']) {
+            player.facing.x = DIRECTION.WEST;
+            avatar.body.velocity.x = -ZOMBIE_SPEED;
+            
+            if (!(keys['down'])) {
+                avatar.animations.play('left', true);
+                orientGun(gun, 'left');
+            }
+            eventShouldBeEmitted = true;
+        } else if (keys['right']) {
+            player.facing.x = DIRECTION.EAST;
+            avatar.body.velocity.x = ZOMBIE_SPEED;
+            if (!(keys['down'])) {
+                avatar.animations.play('right', true);
+                orientGun(gun, 'right');
+            }
+            eventShouldBeEmitted = true;
+        }
+        else {
+            avatar.body.velocity.x = 0;
+            if (keys['up'] || keys['down']) {
+                player.facing.x = 0;
+            }
+        }
 
-    if (keys['left']) {
-        player.facing.x = DIRECTION.WEST;
-        avatar.body.velocity.x = -ZOMBIE_SPEED;
-        
-        if (!(keys['down'])) {
-            avatar.animations.play('left', true);
-            orientGun(gun, 'left');
+        if (keys['up']) {
+            player.facing.y = DIRECTION.NORTH;
+            avatar.body.velocity.y = -ZOMBIE_SPEED;
+            if (!(keys['left'] || keys['right'])) {
+                avatar.animations.play('up', true);
+                orientGun(gun, 'up');
+            }
+            eventShouldBeEmitted = true;
+        } else if (keys['down']) {
+            player.facing.y = DIRECTION.SOUTH
+            avatar.body.velocity.y = ZOMBIE_SPEED;
+            avatar.animations.play('down', true);
+            orientGun(gun, 'down');
+            eventShouldBeEmitted = true;
         }
-        eventShouldBeEmitted = true;
-    } else if (keys['right']) {
-        player.facing.x = DIRECTION.EAST;
-        avatar.body.velocity.x = ZOMBIE_SPEED;
-        if (!(keys['down'])) {
-            avatar.animations.play('right', true);
-            orientGun(gun, 'right');
-        }
-        eventShouldBeEmitted = true;
-    }
-    else {
-        avatar.body.velocity.x = 0;
-        if (keys['up'] || keys['down']) {
-            player.facing.x = 0;
+        else {
+            avatar.body.velocity.y = 0;
+            if (keys['left'] || keys['right']) {
+                player.facing.y = 0;
+            }
         }
     }
-
-    if (keys['up']) {
-        player.facing.y = DIRECTION.NORTH;
-        avatar.body.velocity.y = -ZOMBIE_SPEED;
-        if (!(keys['left'] || keys['right'])) {
-            avatar.animations.play('up', true);
-            orientGun(gun, 'up');
-        }
-        eventShouldBeEmitted = true;
-    } else if (keys['down']) {
-        player.facing.y = DIRECTION.SOUTH
-        avatar.body.velocity.y = ZOMBIE_SPEED;
-        avatar.animations.play('down', true);
-        orientGun(gun, 'down');
-        eventShouldBeEmitted = true;
-    }
-    else {
-        avatar.body.velocity.y = 0;
-        if (keys['left'] || keys['right']) {
-            player.facing.y = 0;
-        }
-    }
-
 
     if (keys['W']) {
         if (keys['D']) {
@@ -418,7 +424,8 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
 
     if (any(keys) + any(keys) == 0) {
         // No keys pressed - stop animations
-        avatar.animations.stop();
+        if(!avatar.animating)
+            avatar.animations.stop();
         avatar.body.velocity.x = 0;
         avatar.body.velocity.y = 0;
         //zombie.anims.play('idle');
@@ -580,7 +587,7 @@ function initPlayer(id) {
     newPlayer.health = PLAYER_HEALTH;
     newPlayer.isZombie = false;
     newPlayer.isDead = false;
-
+    newPlayer.character.animating = false;//Added for anim priority
     return newPlayer;
 }
 
@@ -634,16 +641,19 @@ function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_V
         10,
         false
     );
-    avatar.animations.add(
+    let hurt = avatar.animations.add(
         'hurt',
         [20, 21, 22, 23, 24],
         10,
         false
     );
+    hurt.onComplete.add((sprite, animation)=>{
+        avatar.animating = false;
+    }, this);
     avatar.animations.add(
         'attack',
         [14, 19, 4, 9]
-    )
+    );
     return avatar;
 }
 

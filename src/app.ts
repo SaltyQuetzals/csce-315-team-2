@@ -87,7 +87,11 @@ io.on('connection', socket => {
         const game = roomController.getGame(roomId);
         const player = game.getPlayer(socket.id);
         game.movePlayer(socket.id, movementDelta);
-        socket.to(roomId).emit('player moved', {id: socket.id, x: player.avatar.position[0], y: player.avatar.position[1]});
+        socket.to(roomId).emit('player moved', {
+          id: socket.id,
+          x: player.avatar.position[0],
+          y: player.avatar.position[1]
+        });
       } else {
         console.log('Game not started');
       }

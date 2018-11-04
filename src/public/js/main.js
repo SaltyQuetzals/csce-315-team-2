@@ -279,9 +279,21 @@ function create() {
         })
         
         socket.on('switch gun', (message) => {
+            console.log(message);
             const { id, gun } = message;
             player = game.players[id];
-            switchGun(player.gun, gun);
+
+            switch (gun) {
+                case 'revolver': 
+                    switchGun(player.gun, revolver);
+                    break;
+                case 'shotgun':
+                    switchGun(player.gun, shotgun);
+                    break;
+                case 'automatic rifle': 
+                    switchGun(player.gun, ar);
+                    break;
+            }
         })
     
         socket.on("err", ({
@@ -361,6 +373,10 @@ function pickupDrop (character, dropSprite) {
                 switchGun(player.gun, ar);
                 break;
         }
+        socket.emit('switch gun', {
+            roomId,
+            gun: drop.item.type
+        })
     }
     else {
         let type = drop.item.type;

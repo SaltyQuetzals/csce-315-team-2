@@ -17,6 +17,8 @@ export class Player {
     this._canMove = false;
     if (this.avatar instanceof Human) {
       this.avatar = new Zombie(deathLocation);
+    } else {
+      await delay(RESPAWN_RATE);
     }
     else{
       await delay(RESPAWN_RATE);

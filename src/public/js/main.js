@@ -38,6 +38,16 @@ const PLR_KEYBOARD = {
     D: false,
     spacebar: false
 }
+
+const DIRECTION = {
+
+    NORTH: -1,
+    EAST: 1,
+    SOUTH: 1,
+    WEST: -1
+
+}
+
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
     GAME_VIEW_HEIGHT,
@@ -97,7 +107,13 @@ function create() {
     game.localPlayer.id = 0;
     game.localPlayer.character = initAvatar(0, 'survivor_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
     game.localPlayer.gun = initGun(game.localPlayer.character);
+    game.localPlayer.facing = {
+        x: 0,
+        y: 0
+    }
+    game.localPlayer.hitbox = initHitbox(game.localPlayer.character);
     game.localPlayer.health = PLAYER_HEALTH;
+    game.localPlayer.isZombie = false;
     game.camera.follow(game.localPlayer.character);
 
 
@@ -236,28 +252,29 @@ if (startGameButton) {
 
 function update() {
     //LocalPlayer
-    movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
+    movementHandler(game.localPlayer, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (game.localPlayer.keyboard['spacebar']) {
-        // console.log(game.obstacles);
-        if (game.localPlayer.gun.ammo > 0) {
-            if(game.localPlayer.gun.shoot()) {
-                --game.localPlayer.gun.ammo;
-                socket.emit('fire', {
-                    roomId,
-                    fireAngle: game.localPlayer.gun.fireAngle
-                });
-            }
+        if (game.localPlayer.isZombie) {
+            melee(game.localPlayer);
+        }
+        else {
+            fireGun();
         }
     }
 
     // Check collisions
     game.physics.arcade.overlap(game.localPlayer.gun.bullets, game.targets, bulletHitHandler, null, game);
-    game.physics.arcade.collide(game.localPlayer.character, game.obstacles, graphicCollide, null, game);
+    game.physics.arcade.collide(game.localPlayer.character, game.obstacles, null, null, game);
+    game.physics.arcade.collide(game.localPlayer.gun.bullets, game.obstacles, killBullet, null, game);
 }
 
-function graphicCollide() {
+function collide () {
     console.log("collide");
+}
+
+function killBullet(bullet, obstacle) {
+    bullet.kill();
 }
 
 function render() {
@@ -282,33 +299,51 @@ function bulletHitHandler(bullet, enemy) {
     }
 }
 
-function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
+function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
+    let avatar = player.character;
     let eventShouldBeEmitted = false;
 
     if (keys['left']) {
+        player.facing.x = DIRECTION.WEST;
         avatar.body.velocity.x = -ZOMBIE_SPEED;
+        
         if (!(keys['down'])) {
             avatar.animations.play('left', true);
         }
         eventShouldBeEmitted = true;
     } else if (keys['right']) {
+        player.facing.x = DIRECTION.EAST;
         avatar.body.velocity.x = ZOMBIE_SPEED;
         if (!(keys['down'])) {
             avatar.animations.play('right', true);
         }
         eventShouldBeEmitted = true;
     }
+    else {
+        avatar.body.velocity.x = 0;
+        if (player.facing.y != 0) {
+            player.facing.x = 0;
+        }
+    }
 
     if (keys['up']) {
+        player.facing.y = DIRECTION.NORTH;
         avatar.body.velocity.y = -ZOMBIE_SPEED;
         if (!(keys['left'] || keys['right'])) {
             avatar.animations.play('up', true);
         }
         eventShouldBeEmitted = true;
     } else if (keys['down']) {
+        player.facing.y = DIRECTION.SOUTH
         avatar.body.velocity.y = ZOMBIE_SPEED;
         avatar.animations.play('down', true);
         eventShouldBeEmitted = true;
+    }
+    else {
+        avatar.body.velocity.y = 0;
+        if (player.facing.x != 0) {
+            player.facing.y = 0;
+        }
     }
 
 
@@ -367,6 +402,51 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
 }
 
+function melee(player) {
+    const origHitboxX = player.hitbox.x;
+    const origHitboxY = player.hitbox.y;
+    
+    if (player.facing.x != 0) {
+        if (player.facing.x == DIRECTION.EAST) {
+            player.hitbox.x += player.character.width;
+        }
+        else {
+            player.hitbox.x -= player.character.width;
+        }
+    }
+
+    if (player.facing.y != 0) {
+        if (player.facing.y == DIRECTION.SOUTH) {
+            player.hitbox.y += player.character.height;
+        }
+        else {
+            player.hitbox.y -= player.character.height;
+        }
+    }
+
+    game.physics.arcade.overlap(game.localPlayer.hitbox, game.targets, meleeHit, null, game);
+
+    player.hitbox.x = origHitboxX;
+    player.hibox.y = origHitboxY;
+}
+
+function meleeHit(hitbox, enemy) {
+    const meleeDamage = 100;
+
+    socket.emit('hit', {
+        roomId,
+        id: enemy.id,
+        damage: meleeDamage
+    });
+    bullet.kill();
+    if (meleeDamage >= game.players[enemy.id].health) {
+        enemy.kill();
+    }
+    else {
+        game.players[enemy.id].health -= meleeDamage;
+    }
+}
+
 function initGun(character, weapon=revolver) {
     let baseFrame = 0;
     console.log(weapon.constructor.name);
@@ -400,8 +480,8 @@ function initGun(character, weapon=revolver) {
     gun.handle.anchor.setTo(0, 0.5);
     character.addChild(gun.handle);
     gun.bulletAnimation = 'bullet';
-    gun.ammo = weapon._clipSize;
-    gun.damage = Number(weapon._damage);
+    gun.ammo = revolver._clipSize;
+    gun.damage = Number(revolver._damage);
     gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     gun.bulletAngleOffset = 0;
     gun.fireAngle = Phaser.ANGLE_RIGHT;
@@ -417,6 +497,18 @@ function initGun(character, weapon=revolver) {
         return false;
     }
     return gun;
+}
+
+function fireGun() {
+    if (game.localPlayer.gun.ammo > 0) {
+        if (game.localPlayer.gun.fire()) {
+            --game.localPlayer.gun.ammo;
+            socket.emit('fire', {
+                roomId,
+                fireAngle: game.localPlayer.gun.fireAngle
+            });
+        }
+    }
 }
 
 function switchGun(gun, type) {
@@ -450,6 +542,7 @@ function initPlayer(id) {
     newPlayer.id = id;
     newPlayer.gun = initGun(newPlayer.character);
     newPlayer.health = PLAYER_HEALTH;
+    newPlayer.isZombie = false;
 
     return newPlayer;
 }
@@ -507,34 +600,36 @@ function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_
     return avatar;
 }
 
+function initHitbox(character) {
+    let hitbox = game.add.graphics(0, 0);
+    hitbox.lineStyle(2, 0x5ff0000, 1);
+    hitbox.drawRect(0, 0, character.width, character.height);
+    hitbox.boundsPadding = 0;
+
+    game.physics.arcade.enable(hitbox);
+    
+    character.addChild(hitbox);
+
+    return hitbox;
+}
+
 function initObstacles(obstacles) {
-    // let shapeGr = game.add.graphics();
-    // shapeGr.lineStyle(2, 0x000000, 1);
-    // shapeGr.moveTo(250, 100);
-    // shapeGr.lineTo(250, 0);
-    // shapeGr.boundsPadding = 0;
 
-    // shapeSprite = game.add.sprite(0, 0);
-    // shapeSprite.addChild(shapeGr);
+    for (var i = 0; i < obstacles.length; ++i) {
 
-    // game.obstacles.add(shapeSprite);
+        let obstacle = game.add.graphics(obstacles[i].position[0], obstacles[i].position[1]);
+        obstacle.lineStyle(2, 0x5b5b5b, 1);
+        obstacle.beginFill(0x5b5b5b, 1);
+        obstacle.drawRect(0, 0,
+            obstacles[i].width, obstacles[i].height);
+        obstacle.endFill();
+        obstacle.boundsPadding = 0;
 
-    // for (var i = 0; i < obstacles.length; ++i) {
+        game.physics.arcade.enable(obstacle);
+        obstacle.body.immovable = true;
 
-    //     let obstacle = game.add.graphics();
-    //     obstacle.lineStyle(2, 0x000000, 1);
-    //     obstacle.beginFill(0x000000, 1);
-    //     obstacle.drawRect(obstacles[i].position[0], obstacles[i].position[1], 
-    //         obstacles[i].width, obstacles[i].height);
-    //     obstacle.endFill();
-
-    //     game.physics.arcade.enable(obstacle);
-    //     obstacle.body.enable = true;
-    //     obstacle.body.immovable = true;
-
-    //     game.obstacles.add(obstacle);
-    // }
-    // console.log('finished obstacles');
+        game.obstacles.add(obstacle);
+    }
 }
 
 function any(dict) {

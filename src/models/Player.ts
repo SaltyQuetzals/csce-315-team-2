@@ -20,9 +20,6 @@ export class Player {
     } else {
       await delay(RESPAWN_RATE);
     }
-    else{
-      await delay(RESPAWN_RATE);
-    }
     this._canMove = true;
   }
 }

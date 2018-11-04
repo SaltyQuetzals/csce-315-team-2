@@ -225,7 +225,6 @@ function update() {
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (game.localPlayer.keyboard['spacebar']) {
-        console.log(game.obstacles);
         if (game.localPlayer.gun.ammo > 0) {
             if(game.localPlayer.gun.fire()) {
                 --game.localPlayer.gun.ammo;
@@ -239,11 +238,13 @@ function update() {
 
     // Check collisions
     game.physics.arcade.overlap(game.localPlayer.gun.bullets, game.targets, bulletHitHandler, null, game);
-    game.physics.arcade.collide(game.localPlayer.character, game.obstacles, graphicCollide, null, game);
+    game.physics.arcade.collide(game.localPlayer.character, game.obstacles, null, null, game);
+    game.physics.arcade.collide(game.localPlayer.gun.bullets, game.obstacles, killBullet, null, game);
 }
 
-function graphicCollide() {
-    console.log("collide");
+
+function killBullet(bullet, obstacle) {
+    bullet.kill();
 }
 
 function render() {
@@ -284,6 +285,9 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
         }
         eventShouldBeEmitted = true;
     }
+    else {
+        avatar.body.velocity.x = 0;
+    }
 
     if (keys['up']) {
         avatar.body.velocity.y = -ZOMBIE_SPEED;
@@ -295,6 +299,9 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
         avatar.body.velocity.y = ZOMBIE_SPEED;
         avatar.animations.play('down', true);
         eventShouldBeEmitted = true;
+    }
+    else {
+        avatar.body.velocity.y = 0;
     }
 
 
@@ -428,33 +435,22 @@ function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_
 }
 
 function initObstacles(obstacles) {
-    // let shapeGr = game.add.graphics();
-    // shapeGr.lineStyle(2, 0x000000, 1);
-    // shapeGr.moveTo(250, 100);
-    // shapeGr.lineTo(250, 0);
-    // shapeGr.boundsPadding = 0;
 
-    // shapeSprite = game.add.sprite(0, 0);
-    // shapeSprite.addChild(shapeGr);
+    for (var i = 0; i < obstacles.length; ++i) {
 
-    // game.obstacles.add(shapeSprite);
+        let obstacle = game.add.graphics(obstacles[i].position[0], obstacles[i].position[1]);
+        obstacle.lineStyle(2, 0x5b5b5b, 1);
+        obstacle.beginFill(0x5b5b5b, 1);
+        obstacle.drawRect(0, 0,
+            obstacles[i].width, obstacles[i].height);
+        obstacle.endFill();
+        obstacle.boundsPadding = 0;
 
-    // for (var i = 0; i < obstacles.length; ++i) {
+        game.physics.arcade.enable(obstacle);
+        obstacle.body.immovable = true;
 
-    //     let obstacle = game.add.graphics();
-    //     obstacle.lineStyle(2, 0x000000, 1);
-    //     obstacle.beginFill(0x000000, 1);
-    //     obstacle.drawRect(obstacles[i].position[0], obstacles[i].position[1], 
-    //         obstacles[i].width, obstacles[i].height);
-    //     obstacle.endFill();
-
-    //     game.physics.arcade.enable(obstacle);
-    //     obstacle.body.enable = true;
-    //     obstacle.body.immovable = true;
-
-    //     game.obstacles.add(obstacle);
-    // }
-    // console.log('finished obstacles');
+        game.obstacles.add(obstacle);
+    }
 }
 
 function any(dict) {

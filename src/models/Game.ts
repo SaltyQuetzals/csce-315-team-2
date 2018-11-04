@@ -193,7 +193,10 @@ export class Game {
         movementData.xDelta, movementData.yDelta);
   }
 
-  playerKilled(playerId: string, killedPlayerId: string) {}
+  async playerDied(playerId: string): Promise<void> {
+    const player = this.getPlayer(playerId);
+    await player.died();
+  }
 } /*
 -----------------------------------------------------------
 */

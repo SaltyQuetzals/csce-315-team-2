@@ -273,8 +273,6 @@ function bulletHitHandler(bullet, enemy) {
 
 function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     let eventShouldBeEmitted = false;
-    const origZombieX = Number(avatar.body.x);
-    const origZombieY = Number(avatar.body.y);
 
     if (keys['left']) {
         avatar.body.velocity.x = -ZOMBIE_SPEED;
@@ -348,12 +346,11 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
         //zombie.anims.play('idle');
     }
     if (eventShouldBeEmitted) {
-        console.log(avatar.body.x - origZombieX);
         socket.emit("move", {
             roomId,
             location: {
-                x: avatar.body.x,
-                y: avatar.body.y
+                x: Number(avatar.body.x),
+                y: Number(avatar.body.y)
             }
         });
     }

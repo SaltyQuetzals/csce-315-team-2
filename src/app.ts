@@ -188,6 +188,25 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('change health', (data) => {
+    // Remove PowerUp from gameboard, and activate it on the specific Player.
+    const { roomId, change } = data;
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        socket.to(roomId).emit('change health', {
+          id: socket.id,
+          change: change
+        });
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      console.error('change health', err);
+      socket.emit('err', err);
+    }
+  });
+
   socket.on('weapon pickup', data => {
     const {roomId, weaponId} = data;
     console.log(JSON.stringify(data, null, 3));

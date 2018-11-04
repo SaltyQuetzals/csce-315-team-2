@@ -274,12 +274,17 @@ function create() {
             drop.sprite.destroy();
         })
 
+        socket.on('change health', (message) => {
+            const { id, change } = message;
+            player = game.players[id];
+            player.health += change;
+        })
+
         socket.on('powerup expired', (message) => {
             // Reset stats
         })
         
         socket.on('switch gun', (message) => {
-            console.log(message);
             const { id, gun } = message;
             player = game.players[id];
 
@@ -381,18 +386,23 @@ function pickupDrop (character, dropSprite) {
     else {
         let type = drop.item.type;
         console.log(type);
-        if (type == 'WeirdFlex') {
-            player.gun.damage += 10;
-        }
-        else if (type == 'Grit') {
-            player.health += 100;
-        }
-        else if (type == 'Hammertime') {
-            ZOMBIE_SPEED += 50;
-        }
-        else {
-            // Jackpot
-            player.gun.ammo += player.gun.clipSize;
+        switch (type) {
+            case 'WeirdFlex':
+                player.gun.damage += 10;
+                break;
+            case 'Grit':
+                player.health += 100;
+                socket.emit('change health', {
+                    roomId,
+                    change: 100
+                })
+                break;
+            case 'Hammertime':
+                ZOMBIE_SPEED += 50;
+                break;
+            case 'Jackpot':
+                player.gun.ammo += player.gun.clipSize;
+                break;
         }
     }
     socket.emit('activate', {

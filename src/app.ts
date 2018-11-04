@@ -39,13 +39,9 @@ app.get('/rooms/:roomCode', (_req, res) => {
   res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
 });
 
-app.post('/waiting', (req, res) => {
+app.post('/rooms', (req, res) => {
   const roomCode = random(ROOM_CODE_LENGTH);
-  res.redirect(`/waiting/${roomCode}`);
-})
-
-app.get('/waiting/:roomCode', (_req, res) => {
-  res.sendFile(path.join(STATIC_DIR, '/html/waiting.html'));
+  res.redirect(`/rooms/${roomCode}`);
 })
 
 const server = new http.Server(app);
@@ -63,7 +59,8 @@ io.on('connection', socket => {
   console.log(JSON.stringify(io.sockets.adapter.rooms[roomId], null, 3));
   roomController.addPlayerToRoom(roomId, socket.id, socket.id);
   const players = roomController.getNames(roomId);
-  io.in(roomId).emit('new player', {id: socket.id, players});
+  const roomHost = roomController.getRoomHost(roomId);
+  io.in(roomId).emit('new player', {id: socket.id, players, roomHost});
 
   socket.on('start game', data => {
     const {roomId} = data;
@@ -176,6 +173,7 @@ io.on('connection', socket => {
   socket.on('disconnect', (data) => {
     try {
       roomController.removePlayerFromRooms(socket.id);
+      socket.to(roomId).emit('player left', {id: socket.id});
     } catch (err) {
       console.error('disconnect', err);
     }

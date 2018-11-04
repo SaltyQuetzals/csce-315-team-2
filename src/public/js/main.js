@@ -1,4 +1,6 @@
+const waiting = require('./waiting.js');
 const GUNS = require("../../models/Guns.js")
+
 
 const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
@@ -9,12 +11,15 @@ const PLAYER_HEALTH = Number(100);
 const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
 const shotgun = new GUNS.SawnOffShotgun();
+const playerList = document.getElementById('player-list');
 var GAME_STARTED;
 var gun;
 var socket;
+var roomHost;
 
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
+waiting.updateAccessCodeBox();
 
 const KEYBOARD = {
     37: 'left',
@@ -38,6 +43,8 @@ const PLR_KEYBOARD = {
     D: false,
     spacebar: false
 }
+
+
 const game = new Phaser.Game(
     GAME_VIEW_WIDTH,
     GAME_VIEW_HEIGHT,
@@ -115,9 +122,11 @@ function create() {
 }
 
 const startGameButton = document.getElementById('start');
+startGameButton.style.display = "none";
 
 function startGame() {
-    console.log('BARRRA');
+    document.getElementById('waiting-room-overlay').style.display = "none";
+    document.getElementById('background').style.display = "none";
     socket.emit("start game", {
         roomId
     });
@@ -133,9 +142,12 @@ function update() {
         game.players[game.localPlayer.id] = game.localPlayer;
         socket.on('start game', () => {
             GAME_STARTED = true;
+            document.getElementById('waiting-room-overlay').style.display = "none";
+            document.getElementById('background').style.display = "none";
         })
 
         socket.on('new player', (message) => {
+            if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
             console.log(JSON.stringify(Object.keys(game.players), null, 3));
             if (message.id === game.localPlayer.id) {
                 // create all preexisting players
@@ -153,6 +165,7 @@ function update() {
                 game.players[message.id] = newPlayer;
                 console.log(newPlayer.id);
             }
+            waiting.updatePlayerList(game.players);
         })
 
         socket.on('player moved', (message) => {
@@ -199,6 +212,13 @@ function update() {
             const { id, gun } = message;
             player = game.players[id];
             switchGun(player.gun, gun);
+        });
+
+        socket.on('player left', (message) => {
+            const {id} = message;
+            delete game.players[id];
+            waiting.updatePlayerList(game.players);
+            if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
         })
 
         socket.on("err", ({

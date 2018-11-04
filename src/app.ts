@@ -56,7 +56,7 @@ server.listen(3000, () => {
 io.on('connection', socket => {
   const { roomId } = socket.handshake.query;
   socket.join(roomId);
-  console.log(JSON.stringify(io.sockets.adapter.rooms[roomId], null, 3));
+  // console.log(JSON.stringify(io.sockets.adapter.rooms[roomId], null, 3));
   roomController.addPlayerToRoom(roomId, socket.id, socket.id);
   const players = roomController.getNames(roomId);
   io.in(roomId).emit('new player', { id: socket.id, players });
@@ -80,13 +80,13 @@ io.on('connection', socket => {
   });
 
   socket.on('move', data => {
-    const { roomId, movementDelta } = data;
+    const { roomId, location } = data;
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
       const game = roomController.getGame(roomId);
-      game.movePlayer(socket.id, movementDelta);
-      socket.to(roomId).emit('player moved', { id: socket.id, movementDelta });
+      // game.movePlayer(socket.id, location);
+      socket.to(roomId).emit('player moved', { id: socket.id, location });
       } else {
       console.log('Game not started');
       }

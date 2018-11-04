@@ -4,7 +4,7 @@ const GAME_VIEW_WIDTH = 800;
 const GAME_VIEW_HEIGHT = 600;
 const GAME_WIDTH = 2400;
 const GAME_HEIGHT = 1800;
-const ZOMBIE_SPEED = 4;
+const ZOMBIE_SPEED = 300;
 const PLAYER_HEALTH = Number(100);
 const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
@@ -80,6 +80,9 @@ function create() {
     game.targets = game.add.group();
     game.physics.arcade.enable(game.targets);
 
+    game.obstacles = game.add.group();
+    game.physics.arcade.enable(game.obstacles);
+
     game.localPlayer = {}
     game.localPlayer.id = 0;
     game.localPlayer.character = initAvatar(0, 'zombie_1', GAME_VIEW_WIDTH/2 - 200, GAME_VIEW_HEIGHT/2 - 200, true);
@@ -131,12 +134,18 @@ function update() {
     socket.on('connect', () => {
         game.localPlayer.id = socket.id;
         game.players[game.localPlayer.id] = game.localPlayer;
-        socket.on('start game', () => {
+
+        socket.on('start game', (message) => {
+            // const { game } = message;
+            
+            console.log(message);
+            initObstacles(message._obstacles);
+
             GAME_STARTED = true;
         })
 
         socket.on('new player', (message) => {
-            console.log(JSON.stringify(Object.keys(game.players), null, 3));
+            // console.log(JSON.stringify(Object.keys(game.players), null, 3));
             if (message.id === game.localPlayer.id) {
                 // create all preexisting players
                 for (var id in message.players) {
@@ -156,11 +165,11 @@ function update() {
         })
 
         socket.on('player moved', (message) => {
-            // console.log(JSON.stringify(message, null, 3));
+            console.log(JSON.stringify(message, null, 3));
             // console.log(game.players);
             avatar = game.players[message.id].character;
-            avatar.x = avatar.x + message.movementDelta.xDelta;
-            avatar.y = avatar.y + message.movementDelta.yDelta;
+            avatar.x = message.location.x;
+            avatar.y = message.location.y;
         })
 
         socket.on('weapon fired', (message) => {
@@ -219,6 +228,7 @@ function update() {
     movementHandler(game.localPlayer.character, game.localPlayer.gun, game.localPlayer.keyboard);
     //Loop through players (move non-LocalPlayer)
     if (game.localPlayer.keyboard['spacebar']) {
+        console.log(game.obstacles);
         if (game.localPlayer.gun.ammo > 0) {
             if(game.localPlayer.gun.fire()) {
                 --game.localPlayer.gun.ammo;
@@ -232,6 +242,11 @@ function update() {
 
     // Check collisions
     game.physics.arcade.overlap(game.localPlayer.gun.bullets, game.targets, bulletHitHandler, null, game);
+    game.physics.arcade.collide(game.localPlayer.character, game.obstacles, graphicCollide, null, game);
+}
+
+function graphicCollide() {
+    console.log("collide");
 }
 
 function render() {
@@ -258,17 +273,17 @@ function bulletHitHandler(bullet, enemy) {
 
 function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     let eventShouldBeEmitted = false;
-    const origZombieX = Number(avatar.x);
-    const origZombieY = Number(avatar.y);
+    const origZombieX = Number(avatar.body.x);
+    const origZombieY = Number(avatar.body.y);
 
     if (keys['left']) {
-        avatar.x -= ZOMBIE_SPEED;
+        avatar.body.velocity.x = -ZOMBIE_SPEED;
         if (!(keys['down'])) {
             avatar.animations.play('left', true);
         }
         eventShouldBeEmitted = true;
     } else if (keys['right']) {
-        avatar.x += ZOMBIE_SPEED;
+        avatar.body.velocity.x = ZOMBIE_SPEED;
         if (!(keys['down'])) {
             avatar.animations.play('right', true);
         }
@@ -276,13 +291,13 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     }
 
     if (keys['up']) {
-        avatar.y -= ZOMBIE_SPEED;
+        avatar.body.velocity.y = -ZOMBIE_SPEED;
         if (!(keys['left'] || keys['right'])) {
             avatar.animations.play('up', true);
         }
         eventShouldBeEmitted = true;
     } else if (keys['down']) {
-        avatar.y += ZOMBIE_SPEED;
+        avatar.body.velocity.y = ZOMBIE_SPEED;
         avatar.animations.play('down', true);
         eventShouldBeEmitted = true;
     }
@@ -328,15 +343,17 @@ function movementHandler(avatar, gun, keys, /*pos = {x: false,y: false}*/ ) {
     if (any(keys) + any(keys) == 0) {
         // No keys pressed - stop animations
         avatar.animations.stop();
+        avatar.body.velocity.x = 0;
+        avatar.body.velocity.y = 0;
         //zombie.anims.play('idle');
-
     }
     if (eventShouldBeEmitted) {
+        console.log(avatar.body.x - origZombieX);
         socket.emit("move", {
             roomId,
-            movementDelta: {
-                xDelta: avatar.x - origZombieX,
-                yDelta: avatar.y - origZombieY
+            location: {
+                x: avatar.body.x,
+                y: avatar.body.y
             }
         });
     }
@@ -414,6 +431,36 @@ function initAvatar(id, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_
         false
     );
     return avatar;
+}
+
+function initObstacles(obstacles) {
+    // let shapeGr = game.add.graphics();
+    // shapeGr.lineStyle(2, 0x000000, 1);
+    // shapeGr.moveTo(250, 100);
+    // shapeGr.lineTo(250, 0);
+    // shapeGr.boundsPadding = 0;
+
+    // shapeSprite = game.add.sprite(0, 0);
+    // shapeSprite.addChild(shapeGr);
+
+    // game.obstacles.add(shapeSprite);
+
+    // for (var i = 0; i < obstacles.length; ++i) {
+
+    //     let obstacle = game.add.graphics();
+    //     obstacle.lineStyle(2, 0x000000, 1);
+    //     obstacle.beginFill(0x000000, 1);
+    //     obstacle.drawRect(obstacles[i].position[0], obstacles[i].position[1], 
+    //         obstacles[i].width, obstacles[i].height);
+    //     obstacle.endFill();
+
+    //     game.physics.arcade.enable(obstacle);
+    //     obstacle.body.enable = true;
+    //     obstacle.body.immovable = true;
+
+    //     game.obstacles.add(obstacle);
+    // }
+    // console.log('finished obstacles');
 }
 
 function any(dict) {

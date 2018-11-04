@@ -22,10 +22,6 @@ const KEYBOARD = {
     38: 'up',
     39: 'right',
     40: 'down',
-    87: 'W',
-    65: 'A',
-    83: 'S',
-    68: 'D',
     32: 'spacebar'
 }
 
@@ -34,10 +30,6 @@ const PLR_KEYBOARD = {
     left: false,
     down: false,
     right: false,
-    W: false,
-    A: false,
-    S: false,
-    D: false,
     spacebar: false
 }
 
@@ -154,16 +146,16 @@ function create() {
             !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
             game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = true;
         }
-        //Alternate Guns for testing purposes
-        if (event.keyCode == Phaser.Keyboard.Z){
-            switchGun(game.localPlayer.gun, shotgun);
-        }
-        if (event.keyCode == Phaser.Keyboard.X){
-            switchGun(game.localPlayer.gun, ar);
-        }
-        if (event.keyCode == Phaser.Keyboard.C){
-            switchGun(game.localPlayer.gun, revolver);
-        }
+        // //Alternate Guns for testing purposes
+        // if (event.keyCode == Phaser.Keyboard.Z){
+        //     switchGun(game.localPlayer.gun, shotgun);
+        // }
+        // if (event.keyCode == Phaser.Keyboard.X){
+        //     switchGun(game.localPlayer.gun, ar);
+        // }
+        // if (event.keyCode == Phaser.Keyboard.C){
+        //     switchGun(game.localPlayer.gun, revolver);
+        // }
     }
     game.input.keyboard.onUpCallback = function (event) {
         if (GAME_STARTED && KEYBOARD[event.keyCode] && 
@@ -383,7 +375,6 @@ function render() {
     game.HUD.health.setText("Health: " + game.localPlayer.health);
     game.HUD.survivors.setText("Survivors: " + game.numSurvivors);
 
-
 }
 
 function collide (character, drop) {
@@ -520,43 +511,6 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
                 player.facing.y = 0;
             }
         }
-    }
-
-    if (keys['W']) {
-        if (keys['D']) {
-            gun.fireAngle = Phaser.ANGLE_NORTH_EAST;
-        } else if (keys['A']) {
-            gun.fireAngle = Phaser.ANGLE_NORTH_WEST;
-        } else {
-            gun.fireAngle = Phaser.ANGLE_UP;
-            switchGun(game.localPlayer.gun, ar);
-            socket.emit('switch gun', {
-                roomId,
-                gun: ar
-            })
-        }
-    } else if (keys['S']) {
-        if (keys['D']) {
-            gun.fireAngle = Phaser.ANGLE_SOUTH_EAST;
-        } else if (keys['A']) {
-            gun.fireAngle = Phaser.ANGLE_SOUTH_WEST;
-        } else {
-            gun.fireAngle = Phaser.ANGLE_DOWN;
-            switchGun(game.localPlayer.gun, revolver);
-            socket.emit('switch gun', {
-                roomId,
-                gun: revolver
-            })
-        }
-    } else if (keys['D']) {
-        gun.fireAngle = Phaser.ANGLE_RIGHT;
-    } else if (keys['A']) {
-        gun.fireAngle = Phaser.ANGLE_LEFT;
-        switchGun(game.localPlayer.gun, shotgun);
-        socket.emit('switch gun', {
-            roomId,
-            gun: shotgun
-        })
     }
 
     if (any(keys) + any(keys) == 0) {
@@ -803,7 +757,7 @@ function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_V
 
 function initHitbox(character) {
     let hitbox = game.add.graphics(0, 0);
-    hitbox.lineStyle(2, 0x5ff0000, 1);
+    // hitbox.lineStyle(2, 0x5ff0000, 1);
     hitbox.drawRect(0, 0, character.width, character.height);
     hitbox.boundsPadding = 0;
 

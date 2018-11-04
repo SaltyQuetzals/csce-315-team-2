@@ -51,13 +51,13 @@ const DIRECTION = {
 }
 
 const DROPIMAGES = {
-    'automatic rifle': 'p1',
-    'revolver': 'p1',
-    'shotgun': 'p1',
+    'automatic rifle': 'Automatic Rifle',
+    'revolver': 'Revolver',
+    'shotgun': 'Shotgun',
     'WeirdFlex': 'p1',
-    'Grit': 'p1',
-    'Hammertime': 'p1',
-    'Jackpot': 'p1'
+    'Grit': 'p2',
+    'Hammertime': 'p3',
+    'Jackpot': 'p4'
 }
 
 const game = new Phaser.Game(
@@ -82,10 +82,13 @@ function preload() {
     console.log("preloading");
     game.load.image('bg', '../assets/bg.png');
     game.load.image('bullet', '../assets/bullet.png');
-    game.load.image('p1', '../assets/bullet.png');
-    game.load.image('p2', '../assets/bullet.png');
-    game.load.image('p3', '../assets/bullet.png');
-    game.load.image('p4', '../assets/bullet.png');
+    game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
+    game.load.image('Revolver', '../assets/Revolver.png');
+    game.load.image('Shotgun', '../assets/Shotgun.png');
+    game.load.image('p1', '../assets/WeirdFlex.png');
+    game.load.image('p2', '../assets/Grit.png');
+    game.load.image('p3', '../assets/Hammertime.png');
+    game.load.image('p4', '../assets/Jackpot.png');
     game.load.spritesheet('weapons',
         '../assets/WeaponsSpriteSheet.png',
         64, // frame width

@@ -85,8 +85,9 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
+        const player = game.getPlayer(socket.id);
         game.movePlayer(socket.id, movementDelta);
-        socket.to(roomId).emit('player moved', {id: socket.id, movementDelta});
+        socket.to(roomId).emit('player moved', {id: socket.id, x: player.avatar.position[0], y: player.avatar.position[1]});
       } else {
         console.log('Game not started');
       }
@@ -118,11 +119,9 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        /*
-          Please fill this out and call
-          socket.emit('respawn')
-
-        */
+        const game = roomController.getGame(roomId);
+        game.playerDied(socket.id);
+        socket.emit('respawn');
       } else {
         console.log('Game not started');
       }

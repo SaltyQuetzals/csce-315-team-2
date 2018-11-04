@@ -193,7 +193,10 @@ export class Game {
         movementData.xDelta, movementData.yDelta);
   }
 
-  playerKilled(playerId: string, killedPlayerId: string) {}
+  playerDied(playerId: string) {
+    const player = this.getPlayer(playerId);
+    player.died();
+  }
 } /*
 -----------------------------------------------------------
 */

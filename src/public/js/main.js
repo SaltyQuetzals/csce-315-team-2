@@ -159,8 +159,8 @@ function update() {
             // console.log(JSON.stringify(message, null, 3));
             // console.log(game.players);
             avatar = game.players[message.id].character;
-            avatar.x = avatar.x + message.movementDelta.xDelta;
-            avatar.y = avatar.y + message.movementDelta.yDelta;
+            avatar.x = message.x;
+            avatar.y = message.y;
         })
 
         socket.on('weapon fired', (message) => {

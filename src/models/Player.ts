@@ -21,4 +21,11 @@ export class Player {
     }
     this._canMove = true;
   }
+
+  died(): void{
+    if (this.avatar instanceof Human){
+      const position = this.avatar.position;
+      this.avatar = new Zombie(position);
+    }
+  }
 }

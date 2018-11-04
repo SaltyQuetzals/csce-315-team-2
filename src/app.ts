@@ -121,7 +121,7 @@ io.on('connection', socket => {
       if (room.gameInProgress) {
         const game = roomController.getGame(roomId);
         game.playerDied(socket.id);
-        socket.emit('respawn');
+        socket.emit('died', {id: socket.id});
       } else {
         console.log('Game not started');
       }
@@ -212,22 +212,6 @@ io.on('connection', socket => {
           player.avatar.heldWeapon.fire();
           socket.emit('player fired weapon', {id: socket.id});
         }
-      }
-    } catch (err) {
-      console.error(err, {message: err});
-      socket.emit('err', {message: err.message});
-    }
-  });
-
-  socket.on('killed', data => {
-    const {roomId, killedPlayerId} = data;
-    console.log(JSON.stringify(data, null, 3));
-    try {
-      const room = roomController.getRoom(roomId);
-      if (room.gameInProgress) {
-        const game = roomController.getGame(roomId);
-        game.playerKilled(socket.id, killedPlayerId);
-        socket.emit('player killed', {id: socket.id, killedPlayerId});
       }
     } catch (err) {
       console.error(err, {message: err});

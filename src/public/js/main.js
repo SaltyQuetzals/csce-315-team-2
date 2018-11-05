@@ -201,6 +201,10 @@ function create() {
                     const [x, y] = avatar._position;
                     player.character.destroy();
                     player.character = initAvatar(player, 'zombie_1', x, y);
+                    if (player.id == game.localPlayer.id) {
+                        game.localPlayer = player;
+                        game.camera.follow(game.localPlayer.character);
+                    }
                 }
             }
             GAME_STARTED = true;
@@ -264,7 +268,7 @@ function create() {
                         roomId
                     })
                 }
-                player.character.kill();
+                player.character.destroy();
             } else {
                 player.health -= damage;
                 // animate HIT
@@ -283,7 +287,9 @@ function create() {
             player.health = PLAYER_HEALTH;
 
             if (player.isZombie) {
-                player.character.revive();
+                const x = player.character.x;
+                const y = player.character.y;
+                player.character = initAvatar(player, 'zombie_1', x, y);
             } else {
                 game.numSurvivors--;
                 player.isZombie = true;

@@ -129,7 +129,9 @@ function create() {
     game.localPlayer = {};
     game.localPlayer.id = 0;
     game.localPlayer = initPlayer(0);
-    game.camera.follow(game.localPlayer.character);
+    game.localPlayer.cameraSprite = game.add.sprite(game.localPlayer.character.x, game.localPlayer.character.y);
+
+    game.camera.follow(game.localPlayer.cameraSprite);
 
     game.numSurvivors = 0;
 
@@ -204,7 +206,6 @@ function create() {
                     player.character = initAvatar(player, 'zombie_1', x, y);
                     if (player.id == game.localPlayer.id) {
                         game.localPlayer = player;
-                        game.camera.follow(game.localPlayer.character);
                     }
                 }
             }
@@ -305,10 +306,6 @@ function create() {
                         roomId: roomId,
                     });
                 }
-            }
-
-            if (player.id == game.localPlayer.id) {
-                game.camera.follow(player.character);
             }
             player.isDead = false;
         })
@@ -450,6 +447,9 @@ function update() {
             fireGun();
         }
     }
+
+    game.localPlayer.cameraSprite.x = game.localPlayer.character.x;
+    game.localPlayer.cameraSprite.y = game.localPlayer.character.y;
 
     // Check collisions
     game.physics.arcade.overlap(game.localPlayer.gun.bullets, game.targets, bulletHitHandler, null, game);

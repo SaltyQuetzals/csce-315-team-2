@@ -306,6 +306,10 @@ function create() {
                     });
                 }
             }
+
+            if (player.id == game.localPlayer.id) {
+                game.camera.follow(player.character);
+            }
             player.isDead = false;
         })
 

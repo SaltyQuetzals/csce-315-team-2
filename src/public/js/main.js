@@ -298,8 +298,9 @@ function create() {
                 const y = player.character.y;
                 player.character.destroy();
                 player.character = initAvatar(player, 'zombie_1', x, y);
-                if (game.numSurvivors === 0) {
-                    socket.emit('end game', {
+                game.camera.follow(player.character);
+                if(game.numSurvivors === 0){
+                    socket.emit('end game',{
                         zombies: true,
                         survivors: false,
                         roomId: roomId,

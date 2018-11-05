@@ -198,7 +198,8 @@ function create() {
                     const player = game.players[socketId];
                     game.numSurvivors--;
                     player.isZombie = true;
-                    const [x, y] = avatar._position;
+                    const x = player.x;
+                    const y = player.y;
                     player.character.destroy();
                     player.character = initAvatar(player, 'zombie_1', x, y);
                     if (player.id == game.localPlayer.id) {

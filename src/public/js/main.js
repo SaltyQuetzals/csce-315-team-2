@@ -149,7 +149,7 @@ function create() {
         ...PLR_KEYBOARD
     };
     game.input.keyboard.onDownCallback = function (event) {
-        if (GAME_STARTED && KEYBOARD[event.keyCode] && 
+        if (GAME_STARTED && KEYBOARD[event.keyCode] &&
             !game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
             game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = true;
         }
@@ -165,7 +165,7 @@ function create() {
         // }
     }
     game.input.keyboard.onUpCallback = function (event) {
-        if (GAME_STARTED && KEYBOARD[event.keyCode] && 
+        if (GAME_STARTED && KEYBOARD[event.keyCode] &&
             game.localPlayer.keyboard[KEYBOARD[event.keyCode]]) {
             game.localPlayer.keyboard[KEYBOARD[event.keyCode]] = false;
         }
@@ -182,15 +182,37 @@ function create() {
 
         socket.on('start game', (message) => {
             console.log('Received start game event');
-            // console.log(message);
             initObstacles(message._obstacles);
             initDrops(message.drops);
 
+            const {
+                players: socketPlayers
+            } = message;
+
+            // HACK(SaltyQuetzals): Kills player that's supposed to be the zombie for starting the game.
+            for (const socketId in socketPlayers) {
+                if (socketPlayers[socketId].avatar.type === 'zombie') {
+                    const {
+                        avatar
+                    } = socketPlayers[socketId];
+                    const player = game.players[socketId];
+                    game.numSurvivors--;
+                    player.isZombie = true;
+                    const x = player.x;
+                    const y = player.y;
+                    player.character.destroy();
+                    player.character = initAvatar(player, 'zombie_1', x, y);
+                    if (player.id == game.localPlayer.id) {
+                        game.localPlayer = player;
+                        game.camera.follow(game.localPlayer.character);
+                    }
+                }
+            }
             GAME_STARTED = true;
             document.getElementById('waiting-room-overlay').style.display = "none";
             document.getElementById('background').style.display = "none";
         })
-    
+
         socket.on('new player', (message) => {
             if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
             console.log(JSON.stringify(Object.keys(game.players), null, 3));
@@ -201,7 +223,7 @@ function create() {
                     if (id != game.localPlayer.id) {
                         newPlayer = initPlayer(id);
                         game.players[id] = newPlayer;
-    
+
                     }
                 }
             } else {
@@ -214,14 +236,14 @@ function create() {
             }
             waiting.updatePlayerList(game.players);
         })
-    
+
         socket.on('player moved', (message) => {
             // console.log(game.players);
             avatar = game.players[message.id].character;
             avatar.x = message.location.x;
             avatar.y = message.location.y;
         })
-    
+
         socket.on('weapon fired', (message) => {
             const {
                 id,
@@ -231,9 +253,12 @@ function create() {
             gun.fireAngle = fireAngle;
             gun.shoot();
         })
-    
+
         socket.on('player hit', (message) => {
-            const { id, damage } = message;
+            const {
+                id,
+                damage
+            } = message;
             let player = game.players[id];
             if (player.health <= damage) {
                 player.health = 0;
@@ -244,32 +269,34 @@ function create() {
                         roomId
                     })
                 }
-                player.character.kill();
-            }
-            else {
+                player.character.destroy();
+            } else {
                 player.health -= damage;
                 // animate HIT
                 player.character.animating = true;
                 player.character.animations.play('hurt', 20, false);
             }
         })
-    
+
         socket.on('respawned', (message) => {
             // Redraw zombie sprite and reset health
-            const { id } = message;
+            const {
+                id
+            } = message;
             player = game.players[id];
 
             player.health = PLAYER_HEALTH;
 
             if (player.isZombie) {
-                player.character.revive();
-            }
-            else {
+                const x = player.character.x;
+                const y = player.character.y;
+                player.character = initAvatar(player, 'zombie_1', x, y);
+            } else {
                 game.numSurvivors--;
                 player.isZombie = true;
                 const x = player.character.x;
                 const y = player.character.y;
-                player.character.destroy();           
+                player.character.destroy();
                 player.character = initAvatar(player, 'zombie_1', x, y);
                 game.camera.follow(player.character);
                 if(game.numSurvivors === 0){
@@ -284,14 +311,19 @@ function create() {
         })
 
         socket.on('activated drop', (message) => {
-            const { id } = message;
+            const {
+                id
+            } = message;
 
             drop = game.drops[id];
             drop.sprite.destroy();
         })
 
         socket.on('change health', (message) => {
-            const { id, change } = message;
+            const {
+                id,
+                change
+            } = message;
             player = game.players[id];
             player.health += change;
         })
@@ -299,36 +331,41 @@ function create() {
         socket.on('powerup expired', (message) => {
             // Reset stats
         })
-        
+
         socket.on('switch gun', (message) => {
-            const { id, gun } = message;
+            const {
+                id,
+                gun
+            } = message;
             player = game.players[id];
             switch (gun) {
-                case 'revolver': 
+                case 'revolver':
                     switchGun(player.gun, revolver);
                     break;
                 case 'shotgun':
                     switchGun(player.gun, shotgun);
                     break;
-                case 'automatic rifle': 
+                case 'automatic rifle':
                     switchGun(player.gun, ar);
                     break;
             }
         });
 
         socket.on('player left', (message) => {
-            const {id} = message;
+            const {
+                id
+            } = message;
             delete game.players[id];
             waiting.updatePlayerList(game.players);
             if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
         })
-    
+
         socket.on("err", ({
             message
         }) => {
             console.error(message);
         });
-    
+
         socket.on("room full", () => {
             const errorDialog = document.getElementById("room-full-dialog");
             console.log(errorDialog);
@@ -338,12 +375,14 @@ function create() {
         });
 
         socket.on("end game", data => {
-            let {zombies, survivors} = data;
-            if(zombies){
+            let {
+                zombies,
+                survivors
+            } = data;
+            if (zombies) {
                 game.EndGame.setText("Zombies win!");
                 console.log("ZOMBIES WIN");
-            }
-            else{
+            } else {
                 game.EndGame.setText("Survivors win!");
                 console.log("SURVIVORS WIN");
             }
@@ -351,17 +390,17 @@ function create() {
     });
 
     game.HUD = {};
-    game.HUD.ammo = game.add.text(10, GAME_VIEW_HEIGHT-50, "Ammo: ", {
+    game.HUD.ammo = game.add.text(10, GAME_VIEW_HEIGHT - 50, "Ammo: ", {
         font: "bold 24px Arial",
         fill: "#004887",
         align: "center"
     });
-    game.HUD.health = game.add.text(GAME_VIEW_WIDTH/2 - 100, GAME_VIEW_HEIGHT-50, "Health: ", {
+    game.HUD.health = game.add.text(GAME_VIEW_WIDTH / 2 - 100, GAME_VIEW_HEIGHT - 50, "Health: ", {
         font: "bold 24px Arial",
         fill: "#af0000",
         align: "center"
     });
-    game.HUD.survivors = game.add.text(GAME_VIEW_WIDTH - 200, GAME_VIEW_HEIGHT-50, "Survivors: ", {
+    game.HUD.survivors = game.add.text(GAME_VIEW_WIDTH - 200, GAME_VIEW_HEIGHT - 50, "Survivors: ", {
         font: "bold 24px Arial",
         fill: "#004887",
         align: "center"
@@ -371,8 +410,8 @@ function create() {
     game.HUD.health.fixedToCamera = true;
     game.HUD.survivors.fixedToCamera = true;
 
-    
-    game.EndGame = game.add.text(GAME_VIEW_WIDTH/2, GAME_VIEW_HEIGHT/2, "", {
+
+    game.EndGame = game.add.text(GAME_VIEW_WIDTH / 2, GAME_VIEW_HEIGHT / 2, "", {
         font: "bold 24px Arial",
         fill: "#af0000",
         align: "center"
@@ -404,8 +443,7 @@ function update() {
     if (game.localPlayer.keyboard['spacebar']) {
         if (game.localPlayer.isZombie) {
             melee(game.localPlayer);
-        }
-        else {
+        } else {
             fireGun();
         }
     }
@@ -427,12 +465,12 @@ function render() {
 
 }
 
-function collide (character, drop) {
+function collide(character, drop) {
     console.log("collide");
     drop.kill();
 }
 
-function pickupDrop (character, dropSprite) {
+function pickupDrop(character, dropSprite) {
     drop = game.drops[dropSprite.id];
     dropSprite.destroy();
 
@@ -441,13 +479,13 @@ function pickupDrop (character, dropSprite) {
     if (drop.type == 'Weapon') {
         console.log(drop.item.type);
         switch (drop.item.type) {
-            case 'revolver': 
+            case 'revolver':
                 switchGun(player.gun, revolver);
                 break;
             case 'shotgun':
                 switchGun(player.gun, shotgun);
                 break;
-            case 'automatic rifle': 
+            case 'automatic rifle':
                 switchGun(player.gun, ar);
                 break;
         }
@@ -455,8 +493,7 @@ function pickupDrop (character, dropSprite) {
             roomId,
             gun: drop.item.type
         })
-    }
-    else {
+    } else {
         let type = drop.item.type;
         console.log(type);
         switch (type) {
@@ -499,8 +536,7 @@ function bulletHitHandler(bullet, enemy) {
     bullet.kill();
     if (game.localPlayer.gun.damage >= game.players[enemy.id].health) {
         enemy.kill();
-    }
-    else {
+    } else {
         game.players[enemy.id].health -= game.localPlayer.gun.damage;
         //animate HIT
         let target = game.players[enemy.id];
@@ -513,12 +549,14 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
     let avatar = player.character;
     let eventShouldBeEmitted = false;
 
-    if (player.isDead) { return; }
-    if (!avatar.animating){
+    if (player.isDead) {
+        return;
+    }
+    if (!avatar.animating) {
         if (keys['left']) {
             player.facing.x = DIRECTION.WEST;
             avatar.body.velocity.x = -ZOMBIE_SPEED;
-            
+
             if (!(keys['down'])) {
                 avatar.animations.play('left', true);
                 orientGun(gun, 'left');
@@ -532,8 +570,7 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
                 orientGun(gun, 'right');
             }
             eventShouldBeEmitted = true;
-        }
-        else {
+        } else {
             avatar.body.velocity.x = 0;
             if (keys['up'] || keys['down']) {
                 player.facing.x = 0;
@@ -554,8 +591,7 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
             avatar.animations.play('down', true);
             orientGun(gun, 'down');
             eventShouldBeEmitted = true;
-        }
-        else {
+        } else {
             avatar.body.velocity.y = 0;
             if (keys['left'] || keys['right']) {
                 player.facing.y = 0;
@@ -565,7 +601,7 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
 
     if (any(keys) + any(keys) == 0) {
         // No keys pressed - stop animations
-        if(!avatar.animating)
+        if (!avatar.animating)
             avatar.animations.stop();
         avatar.body.velocity.x = 0;
         avatar.body.velocity.y = 0;
@@ -599,18 +635,17 @@ function meleeHit(hitbox, enemy) {
     });
     if (meleeDamage >= game.players[enemy.id].health) {
         enemy.kill();
-    }
-    else {
+    } else {
         game.players[enemy.id].health -= meleeDamage;
     }
 }
 
-function initGun(character, weapon=revolver) {
+function initGun(character, weapon = revolver) {
     let gun = game.add.weapon(30, 'weapons');
     gun.name = weapon.constructor.name;
 
     //Create bullets
-    gun.addBulletAnimation(name = "bullet", 
+    gun.addBulletAnimation(name = "bullet",
         frames = [15, 16, 17, 18, 19],
         frameRate = 60,
         loop = true
@@ -649,10 +684,10 @@ function initGun(character, weapon=revolver) {
     gun.fireAngle = Phaser.ANGLE_RIGHT;
     gun.bulletSpeed = 1000;
     gun.fireRate = weapon.fireRateMillis;
-    gun.trackSprite(gun.handle, character.width/2, character.height/2);
+    gun.trackSprite(gun.handle, character.width / 2, character.height / 2);
 
-    gun.shoot = function(){
-        if (gun.fire()){
+    gun.shoot = function () {
+        if (gun.fire()) {
             gun.handle.animations.play(gun.name);
             return true;
         }
@@ -679,7 +714,7 @@ function switchGun(gun, type) {
     gun.ammo = type._clipSize;
     gun.clipSize = type._clipSize;
     gun.damage = Number(type._damage);
-    switch(gun.name){
+    switch (gun.name) {
         case 'Revolver':
             gun.handle.frame = 0;
             break;
@@ -692,8 +727,8 @@ function switchGun(gun, type) {
     return gun;
 }
 
-function orientGun(gun, direction){
-    switch(direction){
+function orientGun(gun, direction) {
+    switch (direction) {
         case 'left':
             gun.fireAngle = Phaser.ANGLE_LEFT;
             gun.handle.angle = 0;
@@ -735,11 +770,11 @@ function initPlayer(id) {
     newPlayer.health = PLAYER_HEALTH;
     newPlayer.isZombie = false;
     newPlayer.isDead = false;
-    newPlayer.character.animating = false;//Added for anim priority
+    newPlayer.character.animating = false; //Added for anim priority
     return newPlayer;
 }
 
-function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_VIEW_HEIGHT/2 - 200) {
+function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH / 2 - 200, y = GAME_VIEW_HEIGHT / 2 - 200) {
     let avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = player.id;
@@ -747,8 +782,7 @@ function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_V
     avatar.body.collideWorldBounds = true;
     if (avatar.id != game.localPlayer.id) {
         game.targets.add(avatar);
-    }
-    else {
+    } else {
         // Local player attributes
         player.facing = {
             x: 0,
@@ -795,7 +829,7 @@ function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH/2 - 200, y = GAME_V
         10,
         false
     );
-    avatar.animations.currentAnim.onComplete.add(()=>{
+    avatar.animations.currentAnim.onComplete.add(() => {
         avatar.animating = false;
     }, this);
     avatar.animations.add(
@@ -812,7 +846,7 @@ function initHitbox(character) {
     hitbox.boundsPadding = 0;
 
     game.physics.arcade.enable(hitbox);
-    
+
     character.addChild(hitbox);
 
     return hitbox;
@@ -823,24 +857,20 @@ function shiftHitbox(player) {
     if (player.facing.x != 0) {
         if (player.facing.x == DIRECTION.EAST) {
             player.hitbox.x = player.character.width;
-        }
-        else {
+        } else {
             player.hitbox.x = -player.character.width;
         }
-    }
-    else {
+    } else {
         player.hitbox.x = 0;
     }
 
     if (player.facing.y != 0) {
         if (player.facing.y == DIRECTION.SOUTH) {
             player.hitbox.y = player.character.height;
-        }
-        else  {
+        } else {
             player.hitbox.y = -player.character.height;
         }
-    }
-    else {
+    } else {
         player.hitbox.y = 0;
     }
 }
@@ -873,12 +903,11 @@ function initDrops(drops) {
         var image;
         if (drop.type == "Weapon") {
             image = DROPIMAGES[drop.item.type];
-        }
-        else {
+        } else {
             image = DROPIMAGES[drop.item.type];
         }
 
-        
+
         drop.sprite = game.add.sprite(drop.position[0], drop.position[1], image);
         drop.sprite.id = drop.id;
 

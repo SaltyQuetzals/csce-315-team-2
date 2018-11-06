@@ -7,15 +7,6 @@ import {random} from './shared/functions';
 import bodyParser = require('body-parser');
 import {RoomController} from './controllers/RoomController';
 import {Human} from './models/Avatar';
-import {Player} from './models/Player';
-import {Game} from './models/Game';
-
-type RoomState = {
-  roomLeader: string,
-  game: Game,
-  gameInProgress: boolean,
-  names: {[socketid: string]: string}
-};
 
 const ROOM_CODE_LENGTH = 5;
 

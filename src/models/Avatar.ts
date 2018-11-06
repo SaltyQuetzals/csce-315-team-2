@@ -1,4 +1,6 @@
 import {Revolver, Weapon} from './Guns';
+import { RectangularObject } from './RectangularObject';
+import * as constants from '../shared/constants';
 
 export enum Direction {
   North = 1,
@@ -13,22 +15,18 @@ const ZOMBIE_MOVE_SPEED = 3;
 const HUMAN_MOVE_SPEED = 1;
 
 
-export abstract class Avatar {
+export abstract class Avatar extends RectangularObject {
   type!: string;
   facingDirection!: Direction;
 
-  constructor(readonly movementSpeed: number, private _position: XY) {
+  constructor(readonly movementSpeed: number, location: XY) {
+    super(location, constants.AVATAR_WIDTH, constants.AVATAR_HEIGHT);
     this.facingDirection = INITIAL_DIRECTION;
   }
 
-
-  get position(): XY {
-    return this._position;
-  }
-
   move(xDelta: number, yDelta: number): void {
-    this._position[0] += xDelta;
-    this._position[1] += yDelta;
+    this.location[0] += xDelta;
+    this.location[1] += yDelta;
   }
 }
 

@@ -1,7 +1,8 @@
+import * as constants from '../shared/constants';
+
 import {Weapon} from './Guns';
 import {PowerUp} from './PowerUp';
-import { RectangularObject } from './RectangularObject';
-import * as constants from '../shared/constants';
+import {RectangularObject} from './RectangularObject';
 
 export enum DropType {
   WEAPON = 'Weapon',

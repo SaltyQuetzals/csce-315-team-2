@@ -1,16 +1,22 @@
-import { Obstacle } from "./Obstacle";
-import { Drop } from './Drop';
-import { Weapon, Revolver, SawnOffShotgun, AutomaticRifle } from './Guns';
-import {Grit, WeirdFlex, Hammertime, PowerUp} from './PowerUp';
-import { Player } from './Player';
-import { Human, Zombie, Avatar } from './Avatar';
 import * as constants from '../shared/constants';
-import { RectangularObject } from "./RectangularObject";
+
+import { Avatar, Human, Zombie } from './Avatar';
+import { Drop } from './Drop';
+import { AutomaticRifle, Revolver, SawnOffShotgun, Weapon } from './Guns';
+import { Obstacle } from './Obstacle';
+import { Player } from './Player';
+import { Grit, Hammertime, PowerUp, WeirdFlex } from './PowerUp';
+import { RectangularObject } from './RectangularObject';
 
 export type InitialState = {
   obstacles: Obstacle[],
   drops: { [dropId: number]: Drop },
-  players: { [socketId: string]: Player }
+  players: {
+    [socketId: string]: {
+      player: Player,
+      name: string
+    }
+  }
 };
 
 export type PlayerStats = {
@@ -18,14 +24,17 @@ export type PlayerStats = {
 };
 
 export class Leaderboard {
-  playerStats: { [socketId: string]: PlayerStats } = {};
+  players: { [socketId: string]: { stats: PlayerStats, name: string } } = {};
 
   /**
    * Adds a player to the leaderboard to be tracked.
    * @param socketId The unique socket identifier of the player.
    */
-  addPlayer(socketId: SocketId) {
-    this.playerStats[socketId] = { kills: 0, deaths: 0, isHuman: true };
+  addPlayer(socketId: SocketId, name: string) {
+    this.players[socketId] = {
+      stats: { kills: 0, deaths: 0, isHuman: true },
+      name
+    };
   }
 
   /**
@@ -33,7 +42,7 @@ export class Leaderboard {
    * @param socketId The unique socket identifier of the player.
    */
   removePlayer(socketId: SocketId): void {
-    delete this.playerStats[socketId];
+    delete this.players[socketId];
   }
 
   /**
@@ -42,22 +51,22 @@ export class Leaderboard {
    * @param victimId The victim's unique socket identifier
    */
   playerKilled(killerId: SocketId, victimId: SocketId): void {
-    if (!(killerId in this.playerStats)) {
+    if (!(killerId in this.players)) {
       throw Error(`The killerId provided (${killerId}) was not found.`);
     }
-    if (!(victimId in this.playerStats)) {
+    if (!(victimId in this.players)) {
       throw Error(`The victimId provided (${victimId}) was not found.`);
     }
-    this.playerStats[killerId].kills++;
-    this.playerStats[victimId].deaths++;
-    this.playerStats[victimId].isHuman = false;
+    this.players[killerId].stats.kills++;
+    this.players[victimId].stats.deaths++;
+    this.players[victimId].stats.isHuman = false;
   }
 
 
   get humansRemaining(): number {
     let humans = 0;
-    for (const socketId in this.playerStats) {
-      if (this.playerStats[socketId].isHuman) {
+    for (const socketId in this.players) {
+      if (this.players[socketId].stats.isHuman) {
         humans++;
       }
     }
@@ -67,42 +76,51 @@ export class Leaderboard {
   initialize(): InitialState {
     const obstacles = generateObstacles();
 
-    const playerIds = Object.keys(this.playerStats);
+    const playerIds = Object.keys(this.players);
     const zombieIndex = Math.floor(Math.random() * playerIds.length);
     const zombieSocketId = playerIds[zombieIndex];
-    this.playerStats[zombieSocketId].isHuman = false;
+    this.players[zombieSocketId].stats.isHuman = false;
 
-    const players: { [socketId: string]: Player } = {};
+    const initialPlayerData: {
+      [socketId: string]: {
+        player: Player,
+        name: string
+      }
+    } = {};
 
     const collidables: RectangularObject[] = [];
     collidables.concat(obstacles);
 
-    for (const socketId of Object.keys(this.playerStats)) {
+    for (const socketId of Object.keys(this.players)) {
       const position = generatePosition(collidables);
       let avatar: Avatar;
-      if (this.playerStats[socketId].isHuman) {
+      if (this.players[socketId].stats.isHuman) {
         avatar = new Human(position);
       } else {
         avatar = new Zombie(position);
       }
       collidables.push(avatar);
-      players[socketId] = new Player(socketId, avatar);
+      initialPlayerData[socketId] = {
+        player: new Player(socketId, avatar),
+        name: this.players[socketId].name
+      };
+
     }
-
     const drops = generateDrops(collidables);
-
-    return {
-      obstacles,
-      players,
-      drops
-    };
+    return { obstacles, players: initialPlayerData, drops };
   }
 }
 
 function generatePosition(collidables: RectangularObject[] = []): XY {
-  let position: XY = [Math.random() * constants.GAME_BOARD_WIDTH, Math.random() * constants.GAME_BOARD_HEIGHT]; 
+  let position: XY = [
+    Math.random() * constants.GAME_BOARD_WIDTH,
+    Math.random() * constants.GAME_BOARD_HEIGHT
+  ];
   while (collidesWithAny(collidables, position)) {
-    position = [Math.random() * constants.GAME_BOARD_WIDTH, Math.random() * constants.GAME_BOARD_HEIGHT];
+    position = [
+      Math.random() * constants.GAME_BOARD_WIDTH,
+      Math.random() * constants.GAME_BOARD_HEIGHT
+    ];
   }
   return position;
 }
@@ -130,9 +148,9 @@ function generateObstacles(): Obstacle[] {
 
 function generateDrops(collidables: RectangularObject[]): { [dropId: number]: Drop } {
   let dropId = 0;
-  const drops: {[dropId: number]: Drop} = {};
+  const drops: { [dropId: number]: Drop } = {};
   for (let i = 0; i < constants.NUM_INITIAL_DROPS; i++) {
-    let dropItem: Weapon|PowerUp;
+    let dropItem: Weapon | PowerUp;
 
     switch (i % 6) {
       case 0:

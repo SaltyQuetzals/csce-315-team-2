@@ -1,10 +1,12 @@
 import {Game, getRandomChoice} from '../models/Game';
+import { Leaderboard, InitialState } from '../models/Leaderboard';
 
 export type GameRoom = {
   roomLeader: string,
   game: Game,
   gameInProgress: boolean,
-  names: {[socketid: string]: string}
+  names: {[socketid: string]: string},
+  leaderboard: Leaderboard
 };
 
 class RoomController {
@@ -31,6 +33,7 @@ class RoomController {
       this.rooms[roomId] = {
         roomLeader: socketId,
         game: new Game(2400, 1800),
+        leaderboard: new Leaderboard(),
         gameInProgress: false,
         names
       };
@@ -97,18 +100,22 @@ class RoomController {
    * Starts the game of a given room.
    * @param roomId The unique identifier of the room.
    */
-  startGame(roomId: string) {
+  startGame(roomId: string): InitialState | undefined {
     const room = this.getRoom(roomId);
     if (!room.gameInProgress) {
       const playerData: Array<{id: string}> = [];
       for (const socketId of Object.keys(room.names)) {
         playerData.push({id: room.names[socketId]});
+        room.leaderboard.addPlayer(socketId, socketId);
       }
       room.game.generatePlayers(playerData);
       room.game.generateObstacles();
       room.game.generateDrops();
+      const initialState = room.leaderboard.initialize();
       room.gameInProgress = true;
+      return initialState;
     }
+    return;
   }
 
   /**

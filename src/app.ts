@@ -59,9 +59,10 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (!room.gameInProgress) {
-        roomController.startGame(roomId);
+        const initialState = roomController.startGame(roomId);
+        console.log(JSON.stringify(initialState, null, 3));
         const game = roomController.getGame(roomId);
-        io.in(roomId).emit('start game', game);
+        io.in(roomId).emit('start game', initialState);
       } else {
         console.log('Game already started');
       }

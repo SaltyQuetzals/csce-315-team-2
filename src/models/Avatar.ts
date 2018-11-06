@@ -1,6 +1,7 @@
-import {Revolver, Weapon} from './Guns';
-import { RectangularObject } from './RectangularObject';
 import * as constants from '../shared/constants';
+
+import {Revolver, Weapon} from './Guns';
+import {RectangularObject} from './RectangularObject';
 
 export enum Direction {
   North = 1,

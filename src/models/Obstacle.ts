@@ -1,4 +1,4 @@
-import { RectangularObject } from "./RectangularObject";
+import {RectangularObject} from './RectangularObject';
 
 export class Obstacle extends RectangularObject {
   constructor(location: XY, width: number, height: number) {

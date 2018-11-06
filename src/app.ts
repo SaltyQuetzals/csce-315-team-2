@@ -42,7 +42,7 @@ app.get('/rooms/:roomCode', (_req, res) => {
 app.post('/rooms', (req, res) => {
   const roomCode = random(ROOM_CODE_LENGTH);
   res.redirect(`/rooms/${roomCode}`);
-})
+});
 
 const server = new http.Server(app);
 const io = socketio(server);
@@ -83,20 +83,20 @@ io.on('connection', socket => {
   socket.on('end game', data => {
     const {zombies, survivors, roomId} = data;
     const room = roomController.getRoom(roomId);
-    if (room.gameInProgress){
+    if (room.gameInProgress) {
       room.gameInProgress = false;
-      io.in(roomId).emit('end game', {zombies: zombies, survivors: survivors});
+      io.in(roomId).emit('end game', {zombies, survivors});
     }
   });
 
   socket.on('move', data => {
-    const { roomId, location } = data;
+    const {roomId, location} = data;
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-      const game = roomController.getGame(roomId);
-      // game.movePlayer(socket.id, location);
-      socket.to(roomId).emit('player moved', { id: socket.id, location });
+        const game = roomController.getGame(roomId);
+        // game.movePlayer(socket.id, location);
+        socket.to(roomId).emit('player moved', {id: socket.id, location});
       } else {
         console.log('Game not started');
       }
@@ -186,7 +186,7 @@ io.on('connection', socket => {
 
   socket.on('activate', (data) => {
     // Remove PowerUp from gameboard, and activate it on the specific Player.
-    const { roomId, id } = data;
+    const {roomId, id} = data;
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
@@ -202,14 +202,11 @@ io.on('connection', socket => {
 
   socket.on('change health', (data) => {
     // Remove PowerUp from gameboard, and activate it on the specific Player.
-    const { roomId, change } = data;
+    const {roomId, change} = data;
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        socket.to(roomId).emit('change health', {
-          id: socket.id,
-          change: change
-        });
+        socket.to(roomId).emit('change health', {id: socket.id, change});
       } else {
         console.log('Game not started');
       }
@@ -257,5 +254,4 @@ io.on('connection', socket => {
       socket.emit('err', {message: err.message});
     }
   });
-
 });

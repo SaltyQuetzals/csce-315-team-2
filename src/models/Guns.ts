@@ -11,8 +11,8 @@ export abstract class Weapon {
   ammoNotLoaded!: number;
 
   constructor(
-      fireRateMillis: number, reloadRateMillis: number, type: string, damage: number,
-      clipSize: number, ammoNotLoaded: number) {
+      fireRateMillis: number, reloadRateMillis: number, type: string,
+      damage: number, clipSize: number, ammoNotLoaded: number) {
     this.fireRateMillis = fireRateMillis;
     this.reloadRateMillis = reloadRateMillis;
     this.type = type;

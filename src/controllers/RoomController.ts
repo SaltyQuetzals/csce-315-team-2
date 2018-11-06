@@ -70,7 +70,7 @@ class RoomController {
     return this.rooms[roomId];
   }
 
-  getRoomHost(roomId: string){
+  getRoomHost(roomId: string) {
     const room = this.getRoom(roomId);
     return room.roomLeader;
   }

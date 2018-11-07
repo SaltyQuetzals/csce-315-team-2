@@ -785,12 +785,24 @@ function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH / 2 - 200, y = GAME
     let avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = player.id;
+    
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
     if (avatar.id != game.localPlayer.id) {
         game.targets.add(avatar);
     } else {
         // Local player attributes
+        let userIndicator = game.add.graphics(0, 0);
+        userIndicator.lineStyle(2, 0x5ff0000, 1);
+        userIndicator.beginFill(0x5ff0000, 1);
+        userIndicator.drawTriangle(
+            [new Phaser.Point(avatar.width/2 - 10, -15), 
+            new Phaser.Point(avatar.width/2 + 10, -15), 
+            new Phaser.Point(avatar.width/2, -10)],
+            false);
+        userIndicator.endFill();
+        avatar.addChild(userIndicator);
+
         player.facing = {
             x: 0,
             y: 0

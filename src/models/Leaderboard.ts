@@ -1,22 +1,17 @@
 import * as constants from '../shared/constants';
 
-import { Avatar, Human, Zombie } from './Avatar';
-import { Drop } from './Drop';
-import { AutomaticRifle, Revolver, SawnOffShotgun, Weapon } from './Guns';
-import { Obstacle } from './Obstacle';
-import { Player } from './Player';
-import { Grit, Hammertime, PowerUp, WeirdFlex } from './PowerUp';
-import { RectangularObject } from './RectangularObject';
+import {Avatar, Human, Zombie} from './Avatar';
+import {Drop} from './Drop';
+import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from './Guns';
+import {Obstacle} from './Obstacle';
+import {Player} from './Player';
+import {Grit, Hammertime, PowerUp, WeirdFlex} from './PowerUp';
+import {RectangularObject} from './RectangularObject';
 
 export type InitialState = {
   obstacles: Obstacle[],
-  drops: { [dropId: number]: Drop },
-  players: {
-    [socketId: string]: {
-      player: Player,
-      name: string
-    }
-  }
+  drops: {[dropId: number]: Drop},
+  players: {[socketId: string]: {player: Player, name: string}}
 };
 
 export type PlayerStats = {
@@ -24,7 +19,7 @@ export type PlayerStats = {
 };
 
 export class Leaderboard {
-  players: { [socketId: string]: { stats: PlayerStats, name: string } } = {};
+  players: {[socketId: string]: {stats: PlayerStats, name: string}} = {};
 
   /**
    * Adds a player to the leaderboard to be tracked.
@@ -32,7 +27,7 @@ export class Leaderboard {
    */
   addPlayer(socketId: SocketId, name: string) {
     this.players[socketId] = {
-      stats: { kills: 0, deaths: 0, isHuman: true },
+      stats: {kills: 0, deaths: 0, isHuman: true},
       name
     };
   }
@@ -81,18 +76,15 @@ export class Leaderboard {
     const zombieSocketId = playerIds[zombieIndex];
     this.players[zombieSocketId].stats.isHuman = false;
 
-    const initialPlayerData: {
-      [socketId: string]: {
-        player: Player,
-        name: string
-      }
-    } = {};
+    const initialPlayerData:
+        {[socketId: string]: {player: Player, name: string}} = {};
 
     const collidables: RectangularObject[] = [];
     collidables.concat(obstacles);
 
     for (const socketId of Object.keys(this.players)) {
-      const position = generatePosition(collidables);
+      const position = generatePosition(
+          collidables, constants.AVATAR_WIDTH, constants.AVATAR_HEIGHT);
       let avatar: Avatar;
       if (this.players[socketId].stats.isHuman) {
         avatar = new Human(position);
@@ -104,22 +96,32 @@ export class Leaderboard {
         player: new Player(socketId, avatar),
         name: this.players[socketId].name
       };
-
     }
     const drops = generateDrops(collidables);
-    return { obstacles, players: initialPlayerData, drops };
+    for (const id of Object.keys(drops)) {
+      const drop = drops[Number(id)];
+      for (const obj of collidables) {
+        if (obj.collidesWith(drop.location, drop.width, drop.height)) {
+          if (obj !== drop) {
+          throw new Error(`${JSON.stringify(obj, null, 3)}, ${JSON.stringify(drop, null, 3)}`);
+          }
+        }
+      }
+    }
+    return {obstacles, players: initialPlayerData, drops};
   }
 }
 
-function generatePosition(collidables: RectangularObject[] = []): XY {
+function generatePosition(
+    collidables: RectangularObject[] = [], width: number, height: number): XY {
   let position: XY = [
-    Math.random() * constants.GAME_BOARD_WIDTH,
-    Math.random() * constants.GAME_BOARD_HEIGHT
+    Math.floor(Math.random() * constants.GAME_BOARD_WIDTH),
+    Math.floor(Math.random() * constants.GAME_BOARD_HEIGHT)
   ];
-  while (collidesWithAny(collidables, position)) {
+  while (collidesWithAny(collidables, position, width, height)) {
     position = [
-      Math.random() * constants.GAME_BOARD_WIDTH,
-      Math.random() * constants.GAME_BOARD_HEIGHT
+      Math.floor(Math.random() * constants.GAME_BOARD_WIDTH),
+      Math.floor(Math.random() * constants.GAME_BOARD_HEIGHT)
     ];
   }
   return position;
@@ -136,21 +138,23 @@ function generateObstacles(): Obstacle[] {
 
   const obstacles: Obstacle[] = [];
   for (let i = 0; i < 7; ++i) {
-    const position = generatePosition();
-
-    const width = Math.random() * MAX_OBSTACLE_WIDTH + MIN_OBSTACLE_WIDTH;
-    const height = Math.random() * MAX_OBSTACLE_HEIGHT + MIN_OBSTACLE_HEIGHT;
+    const width =
+        Math.floor(Math.random() * MAX_OBSTACLE_WIDTH + MIN_OBSTACLE_WIDTH);
+    const height =
+        Math.floor(Math.random() * MAX_OBSTACLE_HEIGHT + MIN_OBSTACLE_HEIGHT);
+    const position = generatePosition([], width, height);
 
     obstacles.push(new Obstacle(position, width, height));
   }
   return obstacles;
 }
 
-function generateDrops(collidables: RectangularObject[]): { [dropId: number]: Drop } {
+function generateDrops(collidables: RectangularObject[]):
+    {[dropId: number]: Drop} {
   let dropId = 0;
-  const drops: { [dropId: number]: Drop } = {};
+  const drops: {[dropId: number]: Drop} = {};
   for (let i = 0; i < constants.NUM_INITIAL_DROPS; i++) {
-    let dropItem: Weapon | PowerUp;
+    let dropItem: Weapon|PowerUp;
 
     switch (i % 6) {
       case 0:
@@ -173,16 +177,20 @@ function generateDrops(collidables: RectangularObject[]): { [dropId: number]: Dr
         break;
     }
 
-    const position = generatePosition(collidables);
+    const position = generatePosition(
+        collidables, constants.POWERUP_WIDTH, constants.POWERUP_HEIGHT);
     drops[dropId] = new Drop(dropItem, position, dropId);
+    collidables.push(drops[dropId]);
     dropId++;
   }
   return drops;
 }
 
-function collidesWithAny(collidables: RectangularObject[], position: XY) {
+function collidesWithAny(
+    collidables: RectangularObject[], position: XY, width: number,
+    height: number) {
   for (const obj of collidables) {
-    if (obj.collidesWith(position)) {
+    if (obj.collidesWith(position, width, height)) {
       return true;
     }
   }

@@ -60,7 +60,6 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (!room.gameInProgress) {
         const initialState = roomController.startGame(roomId);
-        console.log(JSON.stringify(initialState, null, 3));
         const game = roomController.getGame(roomId);
         io.in(roomId).emit('start game', initialState);
       } else {

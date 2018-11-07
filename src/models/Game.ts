@@ -247,7 +247,7 @@ export function generateRandomPositions(
             [j * chunkSize, i * chunkSize],
             [chunkSize * (j + 1), chunkSize * (i + 1)]);
         for (const obstacle of obstacles) {
-          if (obstacle.collidesWith(position)) break;
+          if (obstacle.collidesWith(position, 0, 0)) break;
         }
         break;
       }

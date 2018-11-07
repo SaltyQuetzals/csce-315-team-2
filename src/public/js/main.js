@@ -184,7 +184,7 @@ function create() {
 
         socket.on('start game', (message) => {
             console.log('Received start game event');
-            initObstacles(message._obstacles);
+            initObstacles(message.obstacles);
             initDrops(message.drops);
 
             const {
@@ -193,7 +193,7 @@ function create() {
 
             // HACK(SaltyQuetzals): Kills player that's supposed to be the zombie for starting the game.
             for (const socketId in socketPlayers) {
-                if (socketPlayers[socketId].avatar.type === 'zombie') {
+                if (socketPlayers[socketId].player.avatar.type === 'zombie') {
                     const {
                         avatar
                     } = socketPlayers[socketId];
@@ -882,7 +882,7 @@ function initObstacles(obstacles) {
 
     for (var i = 0; i < obstacles.length; ++i) {
 
-        let obstacle = game.add.graphics(obstacles[i].position[0], obstacles[i].position[1]);
+        let obstacle = game.add.graphics(obstacles[i].location[0], obstacles[i].location[1]);
         obstacle.lineStyle(2, 0x5b5b5b, 1);
         obstacle.beginFill(0x5b5b5b, 1);
         obstacle.drawRect(0, 0,
@@ -911,7 +911,7 @@ function initDrops(drops) {
         }
 
 
-        drop.sprite = game.add.sprite(drop.position[0], drop.position[1], image);
+        drop.sprite = game.add.sprite(drop.location[0], drop.location[1], image);
         drop.sprite.id = drop.id;
 
         game.physics.arcade.enable(drop.sprite);

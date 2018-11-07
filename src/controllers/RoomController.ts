@@ -1,5 +1,5 @@
 import {Game, getRandomChoice} from '../models/Game';
-import { Leaderboard, InitialState } from '../models/Leaderboard';
+import {InitialState, Leaderboard} from '../models/Leaderboard';
 
 export type GameRoom = {
   roomLeader: string,
@@ -100,7 +100,7 @@ class RoomController {
    * Starts the game of a given room.
    * @param roomId The unique identifier of the room.
    */
-  startGame(roomId: string): InitialState | undefined {
+  startGame(roomId: string): InitialState|undefined {
     const room = this.getRoom(roomId);
     if (!room.gameInProgress) {
       const playerData: Array<{id: string}> = [];

@@ -1,7 +1,5 @@
 export interface Players {
-    [key:string]: {
-        username: string
-    }
+  [key: string]: {username: string};
 }
 
 export function getAccessCode(): string {
@@ -16,16 +14,22 @@ export function updateAccessCodeBox(): void {
   if (accessCodeBox) accessCodeBox.innerHTML = accessCode;
 }
 
-export function updatePlayerList(players: Players): void{
-    let playerList = document.getElementById('player-list');
-    console.log("Players", players);
-    const newPlayerList = Object.keys(players).map((playerId) => {console.log(playerId); return '<li>'+players[playerId].username+'</li>'});
-    if (playerList) playerList.innerHTML = newPlayerList.join('');
+export function updatePlayerList(players: Players): void {
+  const playerList = document.getElementById('player-list');
+  console.log('Players', players);
+  const newPlayerList = Object.keys(players).map((playerId) => {
+    console.log(playerId);
+    return '<li>' + players[playerId].username + '</li>';
+  });
+  if (playerList) playerList.innerHTML = newPlayerList.join('');
 }
 
-export function getUserName(): string{
-    const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get('username');
-    if (username) return username;
-    else return "";
+export function getUserName(): string {
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get('username');
+  if (username) {
+    return username;
+  } else {
+    return '';
+  }
 }

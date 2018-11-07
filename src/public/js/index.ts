@@ -75,7 +75,8 @@ window.onload = () => {
       event.preventDefault();
       console.log(accessCodeForm as HTMLInputElement);
       window.location.replace(
-          `/rooms/${(accessCodeForm as HTMLInputElement).value}?username=${(userNameForm as HTMLInputElement).value}`);
+          `/rooms/${(accessCodeForm as HTMLInputElement).value}?username=${
+              (userNameForm as HTMLInputElement).value}`);
     });
   }
 };

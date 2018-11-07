@@ -4,7 +4,7 @@ import {expect} from 'chai';
 
 import {Obstacle} from '../../src/models/Obstacle';
 
-describe('Square Obstacle Tests', () => {
+describe('Obstacle Tests', () => {
   const obstacle = new Obstacle([0, 0], 100, 100);
   it('Should determine correctly whether the point is inside the obstacle',
      () => {

@@ -80,7 +80,9 @@ export class Leaderboard {
         {[socketId: string]: {player: Player, name: string}} = {};
 
     const collidables: RectangularObject[] = [];
-    collidables.concat(obstacles);
+    for (const obj of obstacles) {
+      collidables.push(obj);
+    }
 
     for (const socketId of Object.keys(this.players)) {
       const position = generatePosition(
@@ -98,16 +100,6 @@ export class Leaderboard {
       };
     }
     const drops = generateDrops(collidables);
-    for (const id of Object.keys(drops)) {
-      const drop = drops[Number(id)];
-      for (const obj of collidables) {
-        if (obj.collidesWith(drop.location, drop.width, drop.height)) {
-          if (obj !== drop) {
-          throw new Error(`${JSON.stringify(obj, null, 3)}, ${JSON.stringify(drop, null, 3)}`);
-          }
-        }
-      }
-    }
     return {obstacles, players: initialPlayerData, drops};
   }
 }
@@ -130,14 +122,14 @@ function generatePosition(
 
 function generateObstacles(): Obstacle[] {
   const MIN_OBSTACLE_WIDTH = 0.05 * constants.GAME_BOARD_WIDTH;
-  const MAX_OBSTACLE_WIDTH = 0.30 * constants.GAME_BOARD_WIDTH;
+  const MAX_OBSTACLE_WIDTH = 0.10 * constants.GAME_BOARD_WIDTH;
 
   const MIN_OBSTACLE_HEIGHT = 0.05 * constants.GAME_BOARD_HEIGHT;
-  const MAX_OBSTACLE_HEIGHT = 0.30 * constants.GAME_BOARD_HEIGHT;
+  const MAX_OBSTACLE_HEIGHT = 0.10 * constants.GAME_BOARD_HEIGHT;
 
 
   const obstacles: Obstacle[] = [];
-  for (let i = 0; i < 7; ++i) {
+  for (let i = 0; i < 5; ++i) {
     const width =
         Math.floor(Math.random() * MAX_OBSTACLE_WIDTH + MIN_OBSTACLE_WIDTH);
     const height =

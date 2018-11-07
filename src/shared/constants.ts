@@ -7,4 +7,4 @@ export const POWERUP_HEIGHT = 64;
 export const AVATAR_WIDTH = 30;
 export const AVATAR_HEIGHT = 30;
 
-export const NUM_INITIAL_DROPS = 20;
+export const NUM_INITIAL_DROPS = 10;

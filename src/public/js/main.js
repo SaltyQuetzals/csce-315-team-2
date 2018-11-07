@@ -480,7 +480,7 @@ function pickupDrop(character, dropSprite) {
     let player = game.localPlayer;
     if (!player.isZombie) {
         if (drop.type == 'Weapon') {
-            console.log(drop.item.type);
+            // console.log(drop.item.type);
             switch (drop.item.type) {
                 case 'revolver':
                     switchGun(player.gun, revolver);
@@ -498,7 +498,7 @@ function pickupDrop(character, dropSprite) {
             })
         } else {
             let type = drop.item.type;
-            console.log(type);
+            // console.log(type);
             switch (type) {
                 case 'WeirdFlex':
                     player.gun.damage += 20;
@@ -913,7 +913,6 @@ function initDrops(drops) {
         } else {
             image = DROPIMAGES[drop.item.type];
         }
-
 
         drop.sprite = game.add.sprite(drop.position[0], drop.position[1], image);
         drop.sprite.id = drop.id;

@@ -136,7 +136,7 @@ export class AutomaticRifle extends Weapon {
   constructor(ammoRemaining = 30) {
     const FIRE_RATE = 200;
     const DAMAGE = 20;
-    const CLIP_SIZE = 60;
+    const CLIP_SIZE = 30;
     const RELOAD_RATE = 500;
     const TYPE = 'automatic rifle';
 

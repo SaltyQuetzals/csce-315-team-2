@@ -111,7 +111,7 @@ export abstract class Weapon {
 
 export class Revolver extends Weapon {
   constructor(ammoRemaining = 2) {
-    const FIRE_RATE = 1000;
+    const FIRE_RATE = 500;
     const DAMAGE = 34;
     const CLIP_SIZE = 6;
     const RELOAD_RATE = 300;
@@ -134,9 +134,9 @@ export class SawnOffShotgun extends Weapon {
 
 export class AutomaticRifle extends Weapon {
   constructor(ammoRemaining = 30) {
-    const FIRE_RATE = 500;
+    const FIRE_RATE = 200;
     const DAMAGE = 20;
-    const CLIP_SIZE = 60;
+    const CLIP_SIZE = 30;
     const RELOAD_RATE = 500;
     const TYPE = 'automatic rifle';
 

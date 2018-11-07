@@ -11,7 +11,7 @@ const ar = new GUNS.AutomaticRifle();
 const revolver = new GUNS.Revolver();
 const shotgun = new GUNS.SawnOffShotgun();
 
-var ZOMBIE_SPEED = 200;
+var ZOMBIE_SPEED = 250;
 
 const playerList = document.getElementById('player-list');
 
@@ -322,10 +322,10 @@ function create() {
         socket.on('change health', (message) => {
             const {
                 id,
-                change
+                health
             } = message;
             player = game.players[id];
-            player.health += change;
+            player.health = health;
         })
 
         socket.on('powerup expired', (message) => {
@@ -478,44 +478,48 @@ function pickupDrop(character, dropSprite) {
     dropSprite.destroy();
 
     let player = game.localPlayer;
-
-    if (drop.type == 'Weapon') {
-        console.log(drop.item.type);
-        switch (drop.item.type) {
-            case 'revolver':
-                switchGun(player.gun, revolver);
-                break;
-            case 'shotgun':
-                switchGun(player.gun, shotgun);
-                break;
-            case 'automatic rifle':
-                switchGun(player.gun, ar);
-                break;
-        }
-        socket.emit('switch gun', {
-            roomId,
-            gun: drop.item.type
-        })
-    } else {
-        let type = drop.item.type;
-        console.log(type);
-        switch (type) {
-            case 'WeirdFlex':
-                player.gun.damage += 10;
-                break;
-            case 'Grit':
-                player.health += 100;
-                socket.emit('change health', {
-                    roomId,
-                    change: 100
-                })
-                break;
-            case 'Hammertime':
-                ZOMBIE_SPEED = 300;
-                break;
-            case 'Jackpot':
-                player.gun.ammo += player.gun.clipSize;
-                break;
+    if (!player.isZombie) {
+        if (drop.type == 'Weapon') {
+            // console.log(drop.item.type);
+            switch (drop.item.type) {
+                case 'revolver':
+                    switchGun(player.gun, revolver);
+                    break;
+                case 'shotgun':
+                    switchGun(player.gun, shotgun);
+                    break;
+                case 'automatic rifle':
+                    switchGun(player.gun, ar);
+                    break;
+            }
+            socket.emit('switch gun', {
+                roomId,
+                gun: drop.item.type
+            })
+        } else {
+            let type = drop.item.type;
+            // console.log(type);
+            switch (type) {
+                case 'WeirdFlex':
+                    player.gun.damage += 20;
+                    break;
+                case 'Grit':
+                    player.health += 100;
+                    if (player.health > 200) {
+                        player.health = 200;
+                    }
+                    socket.emit('change health', {
+                        roomId,
+                        health: player.health
+                    })
+                    break;
+                case 'Hammertime':
+                    ZOMBIE_SPEED = 300;
+                    break;
+                case 'Jackpot':
+                    player.gun.ammo += player.gun.clipSize;
+                    break;
+            }
         }
     }
     socket.emit('activate', {
@@ -781,12 +785,24 @@ function initAvatar(player, spriteSheet, x = GAME_VIEW_WIDTH / 2 - 200, y = GAME
     let avatar = game.add.sprite(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = player.id;
+    
     game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
     if (avatar.id != game.localPlayer.id) {
         game.targets.add(avatar);
     } else {
         // Local player attributes
+        let userIndicator = game.add.graphics(0, 0);
+        userIndicator.lineStyle(2, 0x5ff0000, 1);
+        userIndicator.beginFill(0x5ff0000, 1);
+        userIndicator.drawTriangle(
+            [new Phaser.Point(avatar.width/2 - 10, -15), 
+            new Phaser.Point(avatar.width/2 + 10, -15), 
+            new Phaser.Point(avatar.width/2, -10)],
+            false);
+        userIndicator.endFill();
+        avatar.addChild(userIndicator);
+
         player.facing = {
             x: 0,
             y: 0
@@ -909,7 +925,6 @@ function initDrops(drops) {
         } else {
             image = DROPIMAGES[drop.item.type];
         }
-
 
         drop.sprite = game.add.sprite(drop.position[0], drop.position[1], image);
         drop.sprite.id = drop.id;

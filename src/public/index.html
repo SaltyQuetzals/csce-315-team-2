@@ -16,7 +16,9 @@
     <div class="center-container">
         <h1>Untitled Zombie Game ... 3?</h1>
         <form method="POST" action="/rooms" id="create-form" style="display: none">
+            <input type="text" placeholder="Username" name="username"/>
             <div class="buttongroup" style="display: flex; flex-direction: row;">
+                <br/>
                 <div class="btn">
                     <input id="create-submit" type="submit" name="create" value="Create">
                 </div>
@@ -28,6 +30,7 @@
         <form id="join-form" style="display: flex; flex-direction: column;">
             <div style="display: flex; flex-direction: row">
                 <input id="access-code" type="text" placeholder="Access Code"/>
+                <input id="user-name" type="text" placeholder="Username"/>
                 <div class="btn">
                     <input id="join-submit" type="submit" name="join" value="→"/>
                 </div>

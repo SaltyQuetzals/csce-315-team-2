@@ -31,8 +31,9 @@ app.get('/rooms/:roomCode', (_req, res) => {
 });
 
 app.post('/rooms', (req, res) => {
-  const roomCode = random(ROOM_CODE_LENGTH);
-  res.redirect(`/rooms/${roomCode}`);
+  const {username} = req.body;
+  const roomCode = random(ROOM_CODE_LENGTH)
+  res.redirect(`/rooms/${roomCode}?username=${username}`);
 });
 
 const server = new http.Server(app);
@@ -45,10 +46,10 @@ server.listen(3000, () => {
 });
 
 io.on('connection', socket => {
-  const {roomId} = socket.handshake.query;
+  const {roomId, username} = socket.handshake.query;
   socket.join(roomId);
   // console.log(JSON.stringify(io.sockets.adapter.rooms[roomId], null, 3));
-  roomController.addPlayerToRoom(roomId, socket.id, socket.id);
+  roomController.addPlayerToRoom(roomId, socket.id, username);
   const players = roomController.getNames(roomId);
   const roomHost = roomController.getRoomHost(roomId);
   io.in(roomId).emit('new player', {id: socket.id, players, roomHost});

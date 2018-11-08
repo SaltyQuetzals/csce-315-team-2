@@ -13,16 +13,14 @@ const shotgun = new GUNS.SawnOffShotgun();
 
 var ZOMBIE_SPEED = 200;
 
-const playerList = document.getElementById('player-list');
-
 var GAME_STARTED;
-var gun;
-var socket;
-var roomHost;
+
+var socket; // IN SOCKETCONTROLLER
 
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
-waiting.updateAccessCodeBox();
+
+waiting.updateAccessCodeBox();  // DEAL WITH AFTER SOCKET CONTROLLER
 
 const KEYBOARD = {
     37: 'left',
@@ -64,7 +62,6 @@ const game = new Phaser.Game(
     GAME_VIEW_HEIGHT,
     Phaser.CANVAS,
     '', {
-        init: init,
         preload: preload,
         create: create,
         update: update,
@@ -299,8 +296,8 @@ function create() {
                 const y = player.character.y;
                 player.character.destroy();
                 player.character = initAvatar(player, 'zombie_1', x, y);
-                if(game.numSurvivors === 0){
-                    socket.emit('end game',{
+                if (game.numSurvivors === 0) {
+                    socket.emit('end game', {
                         zombies: true,
                         survivors: false,
                         roomId: roomId,
@@ -468,11 +465,6 @@ function render() {
 
 }
 
-function collide(character, drop) {
-    console.log("collide");
-    drop.kill();
-}
-
 function pickupDrop(character, dropSprite) {
     drop = game.drops[dropSprite.id];
     dropSprite.destroy();
@@ -548,7 +540,7 @@ function bulletHitHandler(bullet, enemy) {
     }
 }
 
-function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/ ) {
+function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/) {
     let avatar = player.character;
     let eventShouldBeEmitted = false;
 

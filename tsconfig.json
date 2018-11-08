@@ -11,5 +11,6 @@
     "src/**/*",
     "test/**/*", 
     "src/public/js/lib/phaser.min.js",
+    "./node_modules/phaser-ce/typescript/phaser.d.ts"
   ]
 }

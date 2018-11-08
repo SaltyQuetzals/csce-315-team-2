@@ -32,7 +32,7 @@ app.get('/rooms/:roomCode', (_req, res) => {
 
 app.post('/rooms', (req, res) => {
   const {username} = req.body;
-  const roomCode = random(ROOM_CODE_LENGTH);
+  const roomCode = random(ROOM_CODE_LENGTH)
   res.redirect(`/rooms/${roomCode}?username=${username}`);
 });
 

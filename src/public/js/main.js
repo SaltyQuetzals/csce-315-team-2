@@ -22,6 +22,7 @@ var roomHost;
 
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
+const username = waiting.getUserName();
 waiting.updateAccessCodeBox();
 
 const KEYBOARD = {
@@ -128,7 +129,7 @@ function create() {
 
     game.localPlayer = {};
     game.localPlayer.id = 0;
-    game.localPlayer = initPlayer(0);
+    game.localPlayer = initPlayer(0, username);
     game.localPlayer.cameraSprite = game.add.sprite(game.localPlayer.character.x, game.localPlayer.character.y);
 
     game.camera.follow(game.localPlayer.cameraSprite);
@@ -174,9 +175,12 @@ function create() {
     }
 
     socket = io.connect("/", {
-        query: `roomId=${roomId}`
+        query: {
+            roomId: roomId,
+            username: username
+        }
     });
-
+    
     socket.on('connect', () => {
         console.log('Connected successfully.');
         game.localPlayer.id = socket.id;
@@ -184,7 +188,7 @@ function create() {
 
         socket.on('start game', (message) => {
             console.log('Received start game event');
-            initObstacles(message._obstacles);
+            initObstacles(message.obstacles);
             initDrops(message.drops);
 
             const {
@@ -193,7 +197,7 @@ function create() {
 
             // HACK(SaltyQuetzals): Kills player that's supposed to be the zombie for starting the game.
             for (const socketId in socketPlayers) {
-                if (socketPlayers[socketId].avatar.type === 'zombie') {
+                if (socketPlayers[socketId].player.avatar.type === 'zombie') {
                     const {
                         avatar
                     } = socketPlayers[socketId];
@@ -217,12 +221,13 @@ function create() {
         socket.on('new player', (message) => {
             if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
             console.log(JSON.stringify(Object.keys(game.players), null, 3));
+            console.log(message.players);
             if (message.id === game.localPlayer.id) {
                 // create all preexisting players
                 for (var id in message.players) {
                     game.numSurvivors++;
                     if (id != game.localPlayer.id) {
-                        newPlayer = initPlayer(id);
+                        newPlayer = initPlayer(id, message.players[id]);
                         game.players[id] = newPlayer;
 
                     }
@@ -230,7 +235,7 @@ function create() {
             } else {
                 // create only new player
                 console.log('Another player has joined the room!');
-                newPlayer = initPlayer(message.id);
+                newPlayer = initPlayer(message.id, message.players[message.id]);
                 game.players[message.id] = newPlayer;
                 game.numSurvivors++;
                 console.log(newPlayer.id);
@@ -350,7 +355,7 @@ function create() {
                     break;
             }
         });
-
+    
         socket.on('player left', (message) => {
             const {
                 id
@@ -767,10 +772,11 @@ function orientGun(gun, direction) {
     }
 }
 
-function initPlayer(id) {
+function initPlayer(id, username) {
 
     var newPlayer = {};
     newPlayer.id = id;
+    newPlayer.username = username;
     // newPlayer.character = initAvatar(id, 'zombie_1');
     newPlayer.character = initAvatar(newPlayer, 'survivor_1');
     newPlayer.gun = initGun(newPlayer.character);
@@ -898,7 +904,7 @@ function initObstacles(obstacles) {
 
     for (var i = 0; i < obstacles.length; ++i) {
 
-        let obstacle = game.add.graphics(obstacles[i].position[0], obstacles[i].position[1]);
+        let obstacle = game.add.graphics(obstacles[i].location[0], obstacles[i].location[1]);
         obstacle.lineStyle(2, 0x5b5b5b, 1);
         obstacle.beginFill(0x5b5b5b, 1);
         obstacle.drawRect(0, 0,
@@ -925,7 +931,6 @@ function initDrops(drops) {
         } else {
             image = DROPIMAGES[drop.item.type];
         }
-
         drop.sprite = game.add.sprite(drop.position[0], drop.position[1], image);
         drop.sprite.id = drop.id;
 

@@ -15,7 +15,7 @@ export class Player {
   }
 
   async died(): Promise<void> {
-    const deathLocation = this.avatar.position;
+    const deathLocation = this.avatar.location;
     this._canMove = false;
     if (this.avatar instanceof Human) {
       this.avatar = new Zombie(deathLocation);

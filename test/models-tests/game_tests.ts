@@ -6,7 +6,7 @@ import {expect} from 'chai';
 import {Human} from '../../src/models/Avatar';
 import {Game, getRandomChoice, MovementData, PlayerData} from '../../src/models/Game';
 import {SawnOffShotgun} from '../../src/models/Guns';
-import {SquareObstacle} from '../../src/models/Obstacle';
+import {Obstacle} from '../../src/models/Obstacle';
 import {Player} from '../../src/models/Player';
 
 describe('Generate Players Function', () => {
@@ -47,10 +47,10 @@ describe('Game movement function', () => {
     const movePlayer2: MovementData = {xDelta: 5, yDelta: -5};
     game.movePlayer('gamer2', movePlayer2);
     const players = game.getPlayers();
-    expect(players.gamer1.avatar.position[0]).to.equal(10);
-    expect(players.gamer1.avatar.position[1]).to.equal(-10);
-    expect(players.gamer2.avatar.position[0]).to.equal(5);
-    expect(players.gamer2.avatar.position[1]).to.equal(-5);
+    expect(players.gamer1.avatar.location[0]).to.equal(10);
+    expect(players.gamer1.avatar.location[1]).to.equal(-10);
+    expect(players.gamer2.avatar.location[0]).to.equal(5);
+    expect(players.gamer2.avatar.location[1]).to.equal(-5);
   });
 });
 
@@ -66,9 +66,9 @@ describe('Add obstacle function', () => {
   it('Should add an obstacle to the current array of objects', () => {
     const game = new Game(1000, 1000);
     game.generateObstacles();
-    game.addObstacle(new SquareObstacle([0, 0], 100, 100));
+    game.addObstacle(new Obstacle([0, 0], 100, 100));
     expect(game.getObstacles()).to.have.lengthOf(7);
-    game.addObstacle(new SquareObstacle([100, 100], 200, 200));
+    game.addObstacle(new Obstacle([100, 100], 200, 200));
     expect(game.getObstacles()).to.have.lengthOf(8);
   });
 });

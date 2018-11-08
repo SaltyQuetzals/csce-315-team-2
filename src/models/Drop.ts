@@ -1,21 +1,25 @@
+import * as constants from '../shared/constants';
+
 import {Weapon} from './Guns';
 import {PowerUp} from './PowerUp';
+import {RectangularObject} from './RectangularObject';
 
 export enum DropType {
   WEAPON = 'Weapon',
   POWER_UP = 'PowerUp'
 }
 
-export class Drop {
+export class Drop extends RectangularObject {
   item!: Weapon|PowerUp;
-  position!: XY;
+  location!: XY;
   type!: DropType;
   id: number;
 
-  constructor(item: Weapon|PowerUp, position: XY, id: number) {
+  constructor(item: Weapon|PowerUp, location: XY, id: number) {
+    super(location, constants.POWERUP_WIDTH, constants.POWERUP_HEIGHT);
+
     this.id = id;
     this.item = item;
-    this.position = position;
     if (this.item instanceof Weapon) {
       this.type = DropType.WEAPON;
     } else if (this.item instanceof PowerUp) {

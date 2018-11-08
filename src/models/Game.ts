@@ -1,6 +1,6 @@
 import {Human, Zombie} from '../models/Avatar';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
-import {SquareObstacle} from '../models/Obstacle';
+import {Obstacle} from '../models/Obstacle';
 import {Player} from '../models/Player';
 
 import {Drop} from './Drop';
@@ -17,7 +17,7 @@ export type MovementData = {
 
 export class Game {
   private players!: {[key: string]: Player};
-  private _obstacles!: SquareObstacle[];
+  private _obstacles!: Obstacle[];
   private drops!: {[key: number]: Drop};
   private dropCounter = 0;
   private readonly boardWidth!: number;
@@ -62,14 +62,14 @@ export class Game {
    * Adds an obstacle to the obstacles array
    * @param obstacle a SquareObstacle object that has been declared
    */
-  addObstacle(obstacle: SquareObstacle) {
+  addObstacle(obstacle: Obstacle) {
     this._obstacles.push(obstacle);
   }
 
   /**
    * Returns the obstacles
    */
-  getObstacles(): SquareObstacle[] {
+  getObstacles(): Obstacle[] {
     return this._obstacles;
   }
 
@@ -118,12 +118,12 @@ export class Game {
   // TODO move this away from hardcoding in the obstacles and have the obstacles
   // be randomly generated
   generateObstacles() {
-    const obstacle1 = new SquareObstacle([10, 10], 100, 100),
-          obstacle2 = new SquareObstacle([100, 100], 50, 50),
-          obstacle3 = new SquareObstacle([700, 200], 200, 300),
-          obstacle4 = new SquareObstacle([800, 800], 100, 100),
-          obstacle5 = new SquareObstacle([200, 800], 20, 200),
-          obstacle6 = new SquareObstacle([1500, 1500], 200, 200);
+    const obstacle1 = new Obstacle([10, 10], 100, 100),
+          obstacle2 = new Obstacle([100, 100], 50, 50),
+          obstacle3 = new Obstacle([700, 200], 200, 300),
+          obstacle4 = new Obstacle([800, 800], 100, 100),
+          obstacle5 = new Obstacle([200, 800], 20, 200),
+          obstacle6 = new Obstacle([1500, 1500], 200, 200);
     this._obstacles =
         [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obstacle6];
   }
@@ -171,7 +171,7 @@ export class Game {
       if (pickedUpItem instanceof Weapon) {
         const dropId = this.getNewDropId();
         const newDrop: Drop =
-            new Drop(avatar.heldWeapon, avatar.position, dropId);
+            new Drop(avatar.heldWeapon, avatar.location, dropId);
         this.drops[dropId] = newDrop;
         avatar.heldWeapon = pickedUpItem;
       }
@@ -236,7 +236,7 @@ export function getRandomPosition(min: XY, max: XY): XY {
 
 export function generateRandomPositions(
     chunkSize: number, boardWidth: integer, boardHeight: integer,
-    obstacles: SquareObstacle[]) {
+    obstacles: Obstacle[]) {
   const positions: XY[] = [];
   // Goes through the board in square chunks and generates a random point within
   // the square chunk
@@ -250,7 +250,7 @@ export function generateRandomPositions(
             [j * chunkSize, i * chunkSize],
             [chunkSize * (j + 1), chunkSize * (i + 1)]);
         for (const obstacle of obstacles) {
-          if (obstacle.insideObstacle(position)) break;
+          if (obstacle.collidesWith(position, 0, 0)) break;
         }
         break;
       }

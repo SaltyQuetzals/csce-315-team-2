@@ -4,7 +4,7 @@ import {Obstacle} from '../models/Obstacle';
 import {Player} from '../models/Player';
 
 import {Drop} from './Drop';
-import {Grit, Hammertime, PowerUp, WeirdFlex} from './PowerUp';
+import {Grit, Hammertime, PowerUp, WeirdFlex, Jackpot} from './PowerUp';
 
 export type PlayerData = {
   id: string
@@ -135,7 +135,7 @@ export class Game {
     for (let i = 0; i < positions.length; i++) {
       let dropItem: Weapon|PowerUp;
 
-      switch (i % 6) {
+      switch (i % 7) {
         case 0:
           dropItem = new Revolver();
           break;
@@ -150,6 +150,9 @@ export class Game {
           break;
         case 4:
           dropItem = new Hammertime();
+          break;
+        case 5: 
+          dropItem = new Jackpot();
           break;
         default:
           dropItem = new Grit();

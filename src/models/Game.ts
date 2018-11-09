@@ -206,7 +206,7 @@ export class Game {
  * @param min the smallest number that can be randomly generated
  * @param max the largest number that can be randomly generated
  */
-export function getRandomChoice(min: number, max: number): integer {
+export function getRandomChoice(min: number, max: number): number {
   console.assert(
       Number.isInteger(min), 'The minimum provided is not an integer');
   console.assert(
@@ -232,7 +232,7 @@ export function getRandomPosition(min: XY, max: XY): XY {
 }
 
 export function generateRandomPositions(
-    chunkSize: number, boardWidth: integer, boardHeight: integer,
+    chunkSize: number, boardWidth: number, boardHeight: number,
     obstacles: Obstacle[]) {
   const positions: XY[] = [];
   // Goes through the board in square chunks and generates a random point within

@@ -178,7 +178,7 @@ export function initDrops(drops: {[key: number]: Drop}) {
 
     for (const key of Object.keys(drops)) {
         if (drops.hasOwnProperty(key)) {
-            drop = drops[key as unknown as number];
+            drop = drops[Number(key)];
 
             let image: string;
             if (drop.type === "Weapon") {
@@ -189,7 +189,7 @@ export function initDrops(drops: {[key: number]: Drop}) {
 
 
             drop.sprite = new CustomSprite(game.game, drop.location[0], drop.location[1], image);
-            drop.sprite.id = drop.id;
+            drop.sprite.id = String(drop.id);
 
             game.game.physics.arcade.enable(drop.sprite);
 

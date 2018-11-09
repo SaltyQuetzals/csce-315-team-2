@@ -1,7 +1,7 @@
 import { CustomPlayer, Gun } from "./game-classes";
 import { DIRECTIONS } from './game-constants';
 import { orientGun } from "./weapon-functs";
-import { game } from "./main";
+import { game, socket } from "./main";
  
 
 // function any(dict: {[key: string]: number}) {
@@ -103,13 +103,11 @@ export function movementHandler(player: CustomPlayer, gun: Gun, keys: {[key: str
         //zombie.anims.play('idle');
     }
     if (eventShouldBeEmitted) {
-        socket.emit("move", {
-            roomID: game.roomId,
-            location: {
-                x: Number(avatar.body.x),
-                y: Number(avatar.body.y)
-            }
-        });
+        const location = {
+            x: Number(avatar.body.x),
+            y: Number(avatar.body.y)
+        };
+        socket.sendMove(location);
         if (player.isZombie) {
             shiftHitbox(player);
         }

@@ -2,7 +2,7 @@ import 'mocha';
 
 import {expect} from 'chai';
 
-import {Revolver} from '../../src/models/Guns';
+import {Revolver} from '../../src/public/js/models/Guns';
 
 describe('Fire function', () => {
   it('Should not re-fire immediately.', async () => {

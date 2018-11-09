@@ -12,5 +12,9 @@
     "test/**/*", 
     "src/public/js/lib/phaser.min.js",
     "./node_modules/phaser-ce/typescript/phaser.d.ts"
+  ],
+  "exclude": [
+    "./node_modules/phaser-ce/typescript/phaser.d.ts",
+    "./node_modules/phaser-ce/typescript/pixi.d.ts"
   ]
 }

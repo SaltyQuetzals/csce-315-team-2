@@ -1,5 +1,5 @@
 import { Drop } from "../../models/Drop";
-import { game } from "./main";
+import { game, socket } from "./main";
 import { switchGun } from "./weapon-functs";
 import { Revolver, SawnOffShotgun, AutomaticRifle } from "./models/Guns";
 import { CustomSprite, CustomPlayer } from "./game-classes";
@@ -12,6 +12,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: Drop) {
 
     if (drop.type === 'Weapon') {
         console.log(drop.item.type);
+        socket.sendSwitchGun(drop.item.type);
         switch (drop.item.type) {
             case 'revolver':
                 switchGun(player.gun, new Revolver());
@@ -25,23 +26,18 @@ export function pickupDrop(character: CustomSprite, dropSprite: Drop) {
             default:
                 break; 
         }
-        socket.emit('switch gun', {
-            roomId: game.roomId,
-            gun: drop.item.type
-        });
+
     } else {
         const type = drop.item.type;
         console.log(type);
+        socket.sendActivateDrop(drop.id);
         switch (type) {
             case 'WeirdFlex':
                 player.gun.damage += 10;
                 break;
             case 'Grit':
                 player.health += 100;
-                socket.emit('change health', {
-                    roomId: game.roomId,
-                    change: 100
-                });
+                socket.sendChangeHealth(100);
                 break;
             case 'Hammertime':
                 player.speed = 300;
@@ -53,10 +49,6 @@ export function pickupDrop(character: CustomSprite, dropSprite: Drop) {
                 break;
         }
     }
-    socket.emit('activate', {
-        roomId: game.roomId,
-        id: drop.id
-    });
 }
 
 export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
@@ -66,11 +58,7 @@ export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
 export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
     /// Currently just kills sprites... need to implement health here
 
-    socket.emit('hit', {
-        roomId: game.roomId,
-        id: enemy.id,
-        damage: game.localPlayer.gun.damage
-    });
+    socket.sendHit(enemy.id, game.localPlayer.gun.damage);
     bullet.kill();
     if (game.localPlayer.gun.damage >= game.players[enemy.id].health) {
         enemy.kill();
@@ -90,11 +78,8 @@ export function melee(player: CustomPlayer) {
 export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {
     const meleeDamage = 100;
 
-    socket.emit('hit', {
-        roomId: game.roomId,
-        id: enemy.id,
-        damage: meleeDamage
-    });
+    socket.sendHit(enemy.id, meleeDamage);
+
     if (meleeDamage >= game.players[enemy.id].health) {
         enemy.kill();
     } else {

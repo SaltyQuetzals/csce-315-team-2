@@ -5,7 +5,7 @@ import {expect} from 'chai';
 
 import {Human} from '../../src/models/Avatar';
 import {Game, getRandomChoice, MovementData, PlayerData} from '../../src/models/Game';
-import {SawnOffShotgun} from '../../src/models/Guns';
+import {SawnOffShotgun} from '../../src/public/js/models/Guns';
 import {Obstacle} from '../../src/models/Obstacle';
 import {Player} from '../../src/models/Player';
 

@@ -2,7 +2,7 @@ import * as constants from '../shared/constants';
 
 import {Avatar, Human, Zombie} from './Avatar';
 import {Drop} from './Drop';
-import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from './Guns';
+import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../public/js/models/Guns';
 import {Obstacle} from './Obstacle';
 import {Player} from './Player';
 import {Grit, Hammertime, PowerUp, WeirdFlex} from './PowerUp';

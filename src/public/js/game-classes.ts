@@ -21,12 +21,12 @@ export class Gun {
 
 export class CustomSprite extends Phaser.Sprite{
   animating!: boolean;
-  id!: string|number;
+  id!: string;
   frame!: number;
 }
 
 export class CustomPlayer {
-  id!: string|number;
+  id!: string;
   character!: CustomSprite;
   cameraSprite!: Phaser.Sprite;
   keyboard!: {[key: string]: boolean};

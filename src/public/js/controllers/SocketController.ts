@@ -7,13 +7,14 @@ import { Obstacle } from '../../../models/Obstacle';
 import { Drop } from '../../../models/Drop';
 import {Player} from '../../../models/Player';
 import {PLAYER_HEALTH} from '../game-constants';
-import {CustomPlayer} from '../game-classes';
+import {CustomPlayer, Gun} from '../game-classes';
 import {Socket, Players, NewPlayerParams, StartGameParams, MovementParams} from '../socket-classes';
+import { switchGun } from '../weapon-functs';
 
 export class SocketController{
     private socket: Socket;  
     private gameController: GameController;
-    private GAME_STARTED: boolean = false;
+    private GAME_STARTED = false;
     private roomId: string;
     constructor(roomId: string, gameController: GameController){
         this.socket = io.connect("/", {
@@ -84,27 +85,27 @@ export class SocketController{
                 // Reset stats
             });
 
-            /* Still unclear how to do this
             this.socket.on('switch gun', (message: {id: string, gun: string}) => {
                 const {
                     id,
                     gun
                 } = message;
-                let player = gameController.players[id];
+                const player = gameController.players[id];
                 switch (gun) {
                     case 'revolver':
-                        player.gun = new Revolver();
-                        switchGun(player.gun, Revolver);
+                        switchGun(player.gun, new Revolver());
                         break;
                     case 'shotgun':
-                        switchGun(player.gun, SawnOffShotgun);
+                        switchGun(player.gun, new SawnOffShotgun());
                         break;
                     case 'automatic rifle':
-                        switchGun(player.gun, AutomaticRifle);
+                        switchGun(player.gun, new AutomaticRifle());
+                        break;
+                    default:
                         break;
                 }
             });
-            */
+            
 
             this.socket.on('player left', (message: {id: string, roomHost: string}) => {
                 const {
@@ -113,7 +114,7 @@ export class SocketController{
                 delete gameController.players[id];
                 waiting.updatePlayerList(gameController.players);
                 //if (message.roomHost === gameController.localPlayer.id) startGameButton.style.display = 'block';
-            })
+            });
 
             this.socket.on("err", (message: {}) => {
                 console.error(message);
@@ -127,8 +128,8 @@ export class SocketController{
                 }
             });
 
-            this.socket.on("end game", (data: {zombies: {}, survivors: {}}) => {
-                let {
+            this.socket.on("end game", (data: {zombies: boolean, survivors: boolean}) => {
+                const {
                     zombies,
                     survivors
                 } = data;
@@ -146,6 +147,49 @@ export class SocketController{
     sendStartGame(): void{
         this.socket.emit("start game", {
             roomId: this.roomId
+        });
+    }
+
+    sendMove(location: {x: number, y: number}): void{
+        this.socket.emit('move', {
+            roomId: this.roomId,
+            location
+        });
+    }
+
+    sendChangeHealth(change: number): void{
+        this.socket.emit('change health', {
+            roomId: this.roomId,
+            change
+        });
+    }
+
+    sendActivateDrop(id: number): void{
+        this.socket.emit('activate', {
+            roomId: this.roomId,
+            id
+        });
+    }
+
+    sendFireGun(fireAngle: number): void{
+        this.socket.emit('fire', {
+            roomId: this.roomId,
+            fireAngle
+        });
+    }
+
+    sendSwitchGun(gun: string): void{
+        this.socket.emit('switch gun', {
+            roomId: this.roomId,
+            gun
+        });
+    }
+
+    sendHit(id: string, damage: number): void {
+        this.socket.emit('hit', {
+            roomId: this.roomId,
+            id,
+            damage
         });
     }
 
@@ -169,7 +213,7 @@ export class SocketController{
         console.log(JSON.stringify(Object.keys(this.gameController.players), null, 3));
         if (playerId === this.gameController.localPlayer.id) {
             // create all preexisting players
-            for (let id in players) {
+            for (const id in players) {
                 if (id && id){
                     this.gameController.numSurvivors++;
                     if (id !== this.gameController.localPlayer.id) {

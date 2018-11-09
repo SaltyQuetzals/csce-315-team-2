@@ -1,16 +1,12 @@
-import { game } from './main';
+import { game, socket } from './main';
 import { Gun } from './game-classes';
 import { Weapon } from './models/Guns';
-
 
 export function fireGun() {
     if (game.localPlayer.gun.ammo > 0) {
         if (game.localPlayer.gun.shoot()) {
             --game.localPlayer.gun.ammo;
-            socket.emit('fire', {
-                roomId: game.roomId,
-                fireAngle: game.localPlayer.gun.pGun.fireAngle
-            });
+            socket.sendFireGun(game.localPlayer.gun.pGun.fireAngle);
         }
     }
 }

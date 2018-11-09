@@ -27,8 +27,8 @@ export interface NewPlayerParams {
 export interface Players {
     [socketId: string]: {
         player: Player
-    }
-};
+    };
+}
 
 export declare var io : {
     connect(url: string, data: {}): Socket;
@@ -38,4 +38,4 @@ export interface Socket {
     id: string;
     on(event: string, callback: (data: any) => void): any;
     emit(event: string, data: any): any;
-};
+}

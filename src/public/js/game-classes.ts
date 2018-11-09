@@ -1,8 +1,9 @@
+import { PLAYER_SPEED } from "./game-constants";
 
 
 
 export class Gun {
-  gun!: Phaser.Weapon;
+  pGun!: Phaser.Weapon;
   ammo!: number; 
   clipSize!: number;
   damage!: number;
@@ -10,7 +11,7 @@ export class Gun {
   handle!: Phaser.Sprite;
 
   shoot() {
-    if (this.gun.fire()) {
+    if (this.pGun.fire()) {
         this.handle.animations.play(this.name);
         return true;
     }
@@ -24,12 +25,13 @@ export class CustomSprite extends Phaser.Sprite{
   frame!: number;
 }
 
-export class Player {
+export class CustomPlayer {
   id!: string|number;
   character!: CustomSprite;
   cameraSprite!: Phaser.Sprite;
   keyboard!: {[key: string]: boolean};
   health!: number;
+  speed!: number;
   gun!: Gun;
   isZombie!: boolean;
   isDead!: boolean;
@@ -38,4 +40,8 @@ export class Player {
     y: number;
   };
   hitbox!: Phaser.Graphics;
+
+  constructor() {
+    this.speed = PLAYER_SPEED;
+  }
 }

@@ -1,39 +1,40 @@
 import {GameController} from './models/Game';
-import {Player, CustomSprite, Gun} from './game-classes';
+import {CustomPlayer, CustomSprite, Gun} from './game-classes';
 import * as gameConstants from './game-constants';
 import { Loader, Image, Weapon } from 'phaser-ce';
 import {Obstacle} from '../../models/Obstacle';
 import { Drop } from '../../models/Drop';
 import * as GUNS from './models/Guns';
+import { game } from './main';
 
-export function initHitbox(controller: GameController, character: Phaser.Sprite): Phaser.Graphics {
-    const hitbox = controller.game.add.graphics(0, 0);
+export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
+    const hitbox = game.game.add.graphics(0, 0);
     // hitbox.lineStyle(2, 0x5ff0000, 1);
     hitbox.drawRect(0, 0, character.width, character.height);
     hitbox.boundsPadding = 0;
 
-    controller.game.physics.arcade.enable(hitbox);
+    game.game.physics.arcade.enable(hitbox);
 
     character.addChild(hitbox);
 
     return hitbox;
 }
 
-export function initGun(controller: GameController, character: Phaser.Sprite, weapon: GUNS.Weapon = new GUNS.Revolver()) {
+export function initGun(character: Phaser.Sprite, weapon: GUNS.Weapon = new GUNS.Revolver()) {
     const newGun = new Gun();
-    newGun.gun = controller.game.add.weapon(30, 'weapons');
+    newGun.pGun = game.game.add.weapon(30, 'weapons');
     newGun.name = weapon.constructor.name;
 
     //Create bullets
-    newGun.gun.addBulletAnimation("bullet",
+    newGun.pGun.addBulletAnimation("bullet",
         [15, 16, 17, 18, 19],
         60,
         true
     );
-    newGun.gun.bulletAnimation = 'bullet';
+    newGun.pGun.bulletAnimation = 'bullet';
 
     //Create handles
-    newGun.handle = controller.game.add.sprite(0, 0, 'weapons');
+    newGun.handle = game.game.add.sprite(0, 0, 'weapons');
     newGun.handle.animations.add(
         'Revolver',
         [0, 1, 2, 3, 4],
@@ -59,29 +60,29 @@ export function initGun(controller: GameController, character: Phaser.Sprite, we
     newGun.ammo = weapon._clipSize;
     newGun.clipSize = weapon._clipSize;
     newGun.damage = Number(weapon._damage);
-    newGun.gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    newGun.gun.bulletAngleOffset = 0;
-    newGun.gun.fireAngle = Phaser.ANGLE_RIGHT;
-    newGun.gun.bulletSpeed = 1000;
-    newGun.gun.fireRate = weapon.fireRateMillis;
-    newGun.gun.trackSprite(newGun.handle, character.width / 2, character.height / 2);
+    newGun.pGun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    newGun.pGun.bulletAngleOffset = 0;
+    newGun.pGun.fireAngle = Phaser.ANGLE_RIGHT;
+    newGun.pGun.bulletSpeed = 1000;
+    newGun.pGun.fireRate = weapon.fireRateMillis;
+    newGun.pGun.trackSprite(newGun.handle, character.width / 2, character.height / 2);
 
 
     return newGun;
 }
 
-export function initAvatar(controller: GameController, player: Player,
+export function initAvatar(player: CustomPlayer,
     spriteSheet: string,
     x = gameConstants.GAME_VIEW_WIDTH / 2 - 200,
     y = gameConstants.GAME_VIEW_HEIGHT / 2 - 200): CustomSprite {
-    const avatar = new CustomSprite(controller.game, x, y, spriteSheet);
+    const avatar = new CustomSprite(game.game, x, y, spriteSheet);
     // avatar = this.game.add.avatar(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = player.id;
-    controller.game.physics.arcade.enable(avatar);
+    game.game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
-    if (avatar.id !== controller.localPlayer.id) {
-        controller.targets.add(avatar);
+    if (avatar.id !== game.localPlayer.id) {
+        game.targets.add(avatar);
     } else {
         // Local player attributes
         player.facing = {
@@ -89,7 +90,7 @@ export function initAvatar(controller: GameController, player: Player,
             y: 0
         };
         if (player.isZombie) {
-            player.hitbox = initHitbox(controller, avatar);
+            player.hitbox = initHitbox(avatar);
         }
     }
 
@@ -131,7 +132,7 @@ export function initAvatar(controller: GameController, player: Player,
     );
     avatar.animations.currentAnim.onComplete.add(() => {
         avatar.animating = false;
-    }, controller);
+    }, game);
     avatar.animations.add(
         'attack',
         [14, 19, 4, 9]
@@ -139,13 +140,13 @@ export function initAvatar(controller: GameController, player: Player,
     return avatar;
 }
 
-export function initPlayer(controller: GameController, id: string) {
+export function initPlayer(id: string) {
 
-    const newPlayer = new Player();
+    const newPlayer = new CustomPlayer();
     newPlayer.id = id;
     // newPlayer.character = initAvatar(id, 'zombie_1');
-    newPlayer.character = initAvatar(controller, newPlayer, 'survivor_1');
-    newPlayer.gun = initGun(controller, newPlayer.character);
+    newPlayer.character = initAvatar(newPlayer, 'survivor_1');
+    newPlayer.gun = initGun(newPlayer.character);
     newPlayer.health = gameConstants.PLAYER_HEALTH;
     newPlayer.isZombie = false;
     newPlayer.isDead = false;
@@ -153,11 +154,11 @@ export function initPlayer(controller: GameController, id: string) {
     return newPlayer;
 }
 
-export function initObstacles(controller: GameController, obstacles: [Obstacle]) {
+export function initObstacles(obstacles: [Obstacle]) {
 
     for (let i = 0; i < obstacles.length; ++i) {
 
-        const obstacle = controller.game.add.graphics(obstacles[i].location[0], obstacles[i].location[1]);
+        const obstacle = game.game.add.graphics(obstacles[i].location[0], obstacles[i].location[1]);
         obstacle.lineStyle(2, 0x5b5b5b, 1);
         obstacle.beginFill(0x5b5b5b, 1);
         obstacle.drawRect(0, 0,
@@ -165,14 +166,14 @@ export function initObstacles(controller: GameController, obstacles: [Obstacle])
         obstacle.endFill();
         obstacle.boundsPadding = 0;
 
-        controller.game.physics.arcade.enable(obstacle);
+        game.game.physics.arcade.enable(obstacle);
         obstacle.body.immovable = true;
 
-        controller.obstacles.add(obstacle);
+        game.obstacles.add(obstacle);
     }
 }
 
-function initDrops(controller: GameController, drops: {[key: number]: Drop}) {
+export function initDrops(drops: {[key: number]: Drop}) {
     let drop: Drop;
 
     for (const key of Object.keys(drops)) {
@@ -187,13 +188,13 @@ function initDrops(controller: GameController, drops: {[key: number]: Drop}) {
             }
 
 
-            drop.sprite = new CustomSprite(controller.game, drop.location[0], drop.location[1], image);
+            drop.sprite = new CustomSprite(game.game, drop.location[0], drop.location[1], image);
             drop.sprite.id = drop.id;
 
-            controller.game.physics.arcade.enable(drop.sprite);
+            game.game.physics.arcade.enable(drop.sprite);
 
-            controller.drops[drop.id] = drop;
-            controller.dropSprites.add(drop.sprite);
+            game.drops[drop.id] = drop;
+            game.dropSprites.add(drop.sprite);
     }
     }
 }

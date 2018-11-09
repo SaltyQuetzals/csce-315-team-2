@@ -1,9 +1,9 @@
 import * as constants from '../shared/constants';
 
-import {Weapon} from './Guns';
+import {Weapon} from '../public/js/models/Guns';
 import {PowerUp} from './PowerUp';
 import {RectangularObject} from './RectangularObject';
-import { CustomSprite } from '../public/js/models/Game';
+import { CustomSprite } from '../public/js/game-classes';
 
 export enum DropType {
   WEAPON = 'Weapon',

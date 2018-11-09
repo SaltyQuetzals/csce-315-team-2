@@ -1,14 +1,20 @@
 import * as gameConstants from "../game-constants";
 import * as gameClasses from "../game-classes";
+import { Drop } from "../../../models/Drop";
+import { initPlayer } from "../init-helpers";
+import { movementHandler } from "../movement";
+import { melee, bulletHitHandler, killBullet, pickupDrop } from "../collisons-functs";
+import { fireGun } from "../weapon-functs";
 
 export class GameController {
   game!: Phaser.Game;
-  players!: {[key: string]: {}};
-  drops!: {[key: string]: {}};
+  roomId!: string;
+  players!: {[key: string]: gameClasses.CustomPlayer};
+  drops!: {[key: string]: Drop};
   targets!: Phaser.Group;
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
-  localPlayer!: gameClasses.Player;
+  localPlayer!: gameClasses.CustomPlayer;
   numSurvivors!: number;
   HUD!: {
     survivors: Phaser.Text;
@@ -16,7 +22,8 @@ export class GameController {
     health: Phaser.Text;
   };
   endGame!: Phaser.Text;
-  constructor() {
+  constructor(roomId: string) {
+    this.roomId = roomId;
     this.game = new Phaser.Game(
       gameConstants.GAME_VIEW_WIDTH,
       gameConstants.GAME_VIEW_HEIGHT,
@@ -81,7 +88,7 @@ export class GameController {
       this.game.physics.arcade.enable(this.dropSprites);
   
       this.localPlayer.id = '0';
-      this.localPlayer = initPlayer(0).bind(this);
+      this.localPlayer = initPlayer(this.localPlayer.id);
 
       this.localPlayer.cameraSprite = this.game.add.sprite(this.localPlayer.character.x, this.localPlayer.character.y);
   
@@ -150,6 +157,7 @@ export class GameController {
 
   }
 
+
   update(): void {
      //LocalPlayer
      movementHandler(this.localPlayer, this.localPlayer.gun, this.localPlayer.keyboard);
@@ -164,11 +172,11 @@ export class GameController {
  
      this.localPlayer.cameraSprite.x = this.localPlayer.character.x;
      this.localPlayer.cameraSprite.y = this.localPlayer.character.y;
- 
+         
      // Check collisions
-     this.game.physics.arcade.overlap(this.localPlayer.gun.bullets, this.targets, bulletHitHandler, undefined, this);
+     this.game.physics.arcade.overlap(this.localPlayer.gun.pGun.bullets, this.targets, bulletHitHandler, undefined, this);
      this.game.physics.arcade.collide(this.localPlayer.character, this.obstacles, undefined, undefined, this);
-     this.game.physics.arcade.collide(this.localPlayer.gun.bullets, this.obstacles, killBullet, undefined, this);
+     this.game.physics.arcade.collide(this.localPlayer.gun.pGun.bullets, this.obstacles, killBullet, undefined, this);
      this.game.physics.arcade.collide(this.localPlayer.character, this.dropSprites, pickupDrop, undefined, this);
  }
 
@@ -181,7 +189,5 @@ export class GameController {
     this.HUD.survivors.setText("Survivors: " + this.numSurvivors);
  
   }
-
-  initHitbox: (character: Phaser.Sprite) => Phaser.Sprite;
 
 }

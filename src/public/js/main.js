@@ -419,11 +419,10 @@ function create() {
 
 
 
+// -------------DONE-----------------// 
 
 
 
-
-// -------- WAS NOT INCLUDED IN REFACTOR -----------------//
 const startGameButton = document.getElementById('start');
 startGameButton.style.display = "none";
 
@@ -439,18 +438,8 @@ function startGame() {
 if (startGameButton) {
     startGameButton.addEventListener('click', startGame);
 }
-// --------------------------------------------------------//
 
 
-
-
-
-
-
-
-
-
-// -------------DONE-----------------// 
 function update() {
     //LocalPlayer
     movementHandler(game.localPlayer, game.localPlayer.gun, game.localPlayer.keyboard);
@@ -482,11 +471,6 @@ function render() {
     game.HUD.survivors.setText("Survivors: " + game.numSurvivors);
 
 }
-//-------------------------------//
-
-
-
-
 
 
 function pickupDrop(character, dropSprite) {
@@ -564,6 +548,26 @@ function bulletHitHandler(bullet, enemy) {
     }
 }
 
+function melee(player) {
+    game.physics.arcade.overlap(player.hitbox, game.targets, meleeHit, null, game);
+}
+
+function meleeHit(hitbox, enemy) {
+    const meleeDamage = 100;
+
+    socket.emit('hit', {
+        roomId,
+        id: enemy.id,
+        damage: meleeDamage
+    });
+    if (meleeDamage >= game.players[enemy.id].health) {
+        enemy.kill();
+    } else {
+        game.players[enemy.id].health -= meleeDamage;
+    }
+}
+
+
 function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/) {
     let avatar = player.character;
     let eventShouldBeEmitted = false;
@@ -640,25 +644,6 @@ function movementHandler(player, gun, keys, /*pos = {x: false,y: false}*/) {
     }
 }
 
-function melee(player) {
-    game.physics.arcade.overlap(player.hitbox, game.targets, meleeHit, null, game);
-}
-
-function meleeHit(hitbox, enemy) {
-    const meleeDamage = 100;
-
-    socket.emit('hit', {
-        roomId,
-        id: enemy.id,
-        damage: meleeDamage
-    });
-    if (meleeDamage >= game.players[enemy.id].health) {
-        enemy.kill();
-    } else {
-        game.players[enemy.id].health -= meleeDamage;
-    }
-}
-
 function fireGun() {
     if (game.localPlayer.gun.ammo > 0) {
         if (game.localPlayer.gun.shoot()) {
@@ -724,7 +709,6 @@ function orientGun(gun, direction) {
 }
 
 
-// -----------------DONE---------------------- //
 function initGun(character, weapon = revolver) {
     let gun = game.add.weapon(30, 'weapons');
     gun.name = weapon.constructor.name;
@@ -915,8 +899,6 @@ function initDrops(drops) {
         game.dropSprites.add(drop.sprite);
     }
 }
-// ------------------------------------------ //
-
 
 function shiftHitbox(player) {
 
@@ -941,8 +923,9 @@ function shiftHitbox(player) {
     }
 }
 
-
-
 function any(dict) {
     return Object.keys(dict).reduce((acc, cur) => acc + dict[cur], 0);
 }
+
+
+// ------------------------------------------ //

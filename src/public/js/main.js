@@ -20,7 +20,7 @@ var gun;
 var socket;
 var roomHost;
 
-const splitUrl = location.href.split("/");
+const splitUrl = location.pathname.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
 const username = waiting.getUserName();
 waiting.updateAccessCodeBox();

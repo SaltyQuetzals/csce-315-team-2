@@ -5,9 +5,11 @@ import { initPlayer } from "../init-helpers";
 import { movementHandler } from "../movement";
 import { melee, bulletHitHandler, killBullet, pickupDrop } from "../collisons-functs";
 import { fireGun } from "../weapon-functs";
+import { SocketController } from "../controllers/SocketController";
 
 export class GameController {
   game!: Phaser.Game;
+  socket!: SocketController;
   ready: boolean;
   roomId!: string;
   players!: {[key: string]: gameClasses.CustomPlayer};
@@ -159,6 +161,8 @@ export class GameController {
       this.endGame.fixedToCamera = true;
       
       this.ready = true;
+
+      this.socket = new SocketController(this.roomId, this);
   }
 
 

@@ -1,5 +1,5 @@
 import { Drop } from "../../models/Drop";
-import { game, socket } from "./main";
+import { game } from "./main";
 import { switchGun } from "./weapon-functs";
 import { Revolver, SawnOffShotgun, AutomaticRifle } from "./models/Guns";
 import { CustomSprite, CustomPlayer } from "./game-classes";
@@ -12,7 +12,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: Drop) {
 
     if (drop.type === 'Weapon') {
         console.log(drop.item.type);
-        socket.sendSwitchGun(drop.item.type);
+        game.socket.sendSwitchGun(drop.item.type);
         switch (drop.item.type) {
             case 'revolver':
                 switchGun(player.gun, new Revolver());
@@ -30,14 +30,14 @@ export function pickupDrop(character: CustomSprite, dropSprite: Drop) {
     } else {
         const type = drop.item.type;
         console.log(type);
-        socket.sendActivateDrop(drop.id);
+        game.socket.sendActivateDrop(drop.id);
         switch (type) {
             case 'WeirdFlex':
                 player.gun.damage += 10;
                 break;
             case 'Grit':
                 player.health += 100;
-                socket.sendChangeHealth(100);
+                game.socket.sendChangeHealth(100);
                 break;
             case 'Hammertime':
                 player.speed = 300;
@@ -58,7 +58,7 @@ export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
 export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
     /// Currently just kills sprites... need to implement health here
 
-    socket.sendHit(enemy.id, game.localPlayer.gun.damage);
+    game.socket.sendHit(enemy.id, game.localPlayer.gun.damage);
     bullet.kill();
     if (game.localPlayer.gun.damage >= game.players[enemy.id].health) {
         enemy.kill();
@@ -78,7 +78,7 @@ export function melee(player: CustomPlayer) {
 export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {
     const meleeDamage = 100;
 
-    socket.sendHit(enemy.id, meleeDamage);
+    game.socket.sendHit(enemy.id, meleeDamage);
 
     if (meleeDamage >= game.players[enemy.id].health) {
         enemy.kill();

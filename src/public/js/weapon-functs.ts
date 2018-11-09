@@ -1,4 +1,4 @@
-import { game, socket } from './main';
+import { game } from './main';
 import { Gun } from './game-classes';
 import { Weapon } from './models/Guns';
 
@@ -6,7 +6,7 @@ export function fireGun() {
     if (game.localPlayer.gun.ammo > 0) {
         if (game.localPlayer.gun.shoot()) {
             --game.localPlayer.gun.ammo;
-            socket.sendFireGun(game.localPlayer.gun.pGun.fireAngle);
+            game.socket.sendFireGun(game.localPlayer.gun.pGun.fireAngle);
         }
     }
 }

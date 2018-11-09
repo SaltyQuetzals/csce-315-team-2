@@ -1,7 +1,7 @@
 import { CustomPlayer, Gun } from "./game-classes";
 import { DIRECTIONS } from './game-constants';
 import { orientGun } from "./weapon-functs";
-import { game, socket } from "./main";
+import { game } from "./main";
  
 
 // function any(dict: {[key: string]: number}) {
@@ -107,7 +107,7 @@ export function movementHandler(player: CustomPlayer, gun: Gun, keys: {[key: str
             x: Number(avatar.body.x),
             y: Number(avatar.body.y)
         };
-        socket.sendMove(location);
+        game.socket.sendMove(location);
         if (player.isZombie) {
             shiftHitbox(player);
         }

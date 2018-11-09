@@ -1,6 +1,6 @@
 import { Obstacle } from '../../models/Obstacle';
 import { Drop } from '../../models/Drop';
-import {Player} from '../../models/Player';
+import { Player } from '../../models/Player';
 
 export type StartGameParams = {
     obstacles: [Obstacle],

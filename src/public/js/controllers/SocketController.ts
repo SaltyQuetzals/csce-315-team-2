@@ -25,8 +25,9 @@ export class SocketController{
 
         this.socket.on('connect', () => {
             console.log('Connected successfully.');
-            gameController.localPlayer.id = this.socket.id;
-            gameController.players[gameController.localPlayer.id] = gameController.localPlayer;
+
+            // gameController.localPlayer.id = this.socket.id;
+            // gameController.players[gameController.localPlayer.id] = gameController.localPlayer;
 
             this.socket.on('start game', (message: StartGameParams) => {
                 console.log('Received start game event');
@@ -210,7 +211,7 @@ export class SocketController{
     initNewPlayer(roomHost: string, playerId: string, players: {}): void{
         let newPlayer = null;
         //if (roomHost === this.gameController.localPlayer.id) startGameButton.style.display = 'block';
-        console.log(JSON.stringify(Object.keys(this.gameController.players), null, 3));
+        // console.log(JSON.stringify(Object.keys(this.gameController.players), null, 3));
         if (playerId === this.gameController.localPlayer.id) {
             // create all preexisting players
             for (const id in players) {

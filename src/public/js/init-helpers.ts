@@ -6,6 +6,7 @@ import {Obstacle} from '../../models/Obstacle';
 import { Drop } from '../../models/Drop';
 import * as GUNS from './models/Guns';
 import { game } from './main';
+import { delay } from '../../shared/functions';
 
 export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
     const hitbox = game.game.add.graphics(0, 0);

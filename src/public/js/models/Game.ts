@@ -8,6 +8,7 @@ import { fireGun } from "../weapon-functs";
 
 export class GameController {
   game!: Phaser.Game;
+  ready: boolean;
   roomId!: string;
   players!: {[key: string]: gameClasses.CustomPlayer};
   drops!: {[key: string]: Drop};
@@ -35,6 +36,8 @@ export class GameController {
         render: this.render
       }
     );
+    this.localPlayer = new gameClasses.CustomPlayer();
+    this.ready = false;
   }
 
   preload(): void {
@@ -154,7 +157,8 @@ export class GameController {
           align: "center"
       });
       this.endGame.fixedToCamera = true;
-
+      
+      this.ready = true;
   }
 
 

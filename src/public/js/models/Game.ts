@@ -4,6 +4,28 @@ export class Gun extends Phaser.Weapon{
   ammo!: number; 
 }
 
+export class CustomSprite extends Phaser.Sprite{
+  animating!: boolean;
+  id!: string;
+  frame!: number;
+}
+
+export class Player {
+  id!: string;
+  character!: CustomSprite;
+  cameraSprite!: Phaser.Sprite;
+  keyboard!: {[key: string]: boolean};
+  health!: number;
+  gun!: Gun;
+  isZombie!: boolean;
+  isDead!: boolean;
+  facing!: {
+    x: number;
+    y: number;
+  };
+  hitbox!: Phaser.Sprite;
+}
+
 export class GameController {
   game!: Phaser.Game;
   players!: {[key: string]: {}};
@@ -11,15 +33,7 @@ export class GameController {
   targets!: Phaser.Group;
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
-  localPlayer!: {
-    id: string,
-    character: Phaser.Sprite,
-    cameraSprite: Phaser.Sprite,
-    keyboard: {[key: string]: boolean};
-    health: number,
-    gun: Gun,
-    isZombie: boolean
-  };
+  localPlayer!: Player;
   numSurvivors!: number;
   HUD!: {
     survivors: Phaser.Text;
@@ -92,7 +106,7 @@ export class GameController {
       this.game.physics.arcade.enable(this.dropSprites);
   
       this.localPlayer.id = '0';
-      this.localPlayer = initPlayer(0);
+      this.localPlayer = initPlayer(0).bind(this);
       this.localPlayer.cameraSprite = this.game.add.sprite(this.localPlayer.character.x, this.localPlayer.character.y);
   
       this.game.camera.follow(this.localPlayer.cameraSprite);

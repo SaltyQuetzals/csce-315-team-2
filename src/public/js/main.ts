@@ -7,9 +7,3 @@ import { isNumber } from 'util';
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
 
-const KEYS_DOWN: {[keyCode: number]: boolean} = {};
-for (const keyCode in gameConstants.Controls) {
-    if (isNumber(keyCode)) {
-        KEYS_DOWN[keyCode] = false;
-    }
-}

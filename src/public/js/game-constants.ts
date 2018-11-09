@@ -26,10 +26,19 @@ export const keysPressed: {[key: string]: boolean} = {
     spacebar: false
 };
 
-
 export const DIRECTIONS = {
     NORTH: -1,
     EAST: 1,
     SOUTH: 1,
     WEST: -1
+};
+
+export const DROPIMAGES: {[key: string]: string} = {
+    'automatic rifle': 'Automatic Rifle',
+    'revolver': 'Revolver',
+    'shotgun': 'Shotgun',
+    'WeirdFlex': 'p1',
+    'Grit': 'p2',
+    'Hammertime': 'p3',
+    'Jackpot': 'p4'
 };

@@ -450,7 +450,7 @@ if (startGameButton) {
 
 
 
-
+// -------------DONE-----------------// 
 function update() {
     //LocalPlayer
     movementHandler(game.localPlayer, game.localPlayer.gun, game.localPlayer.keyboard);
@@ -482,6 +482,12 @@ function render() {
     game.HUD.survivors.setText("Survivors: " + game.numSurvivors);
 
 }
+//-------------------------------//
+
+
+
+
+
 
 function pickupDrop(character, dropSprite) {
     drop = game.drops[dropSprite.id];
@@ -653,62 +659,6 @@ function meleeHit(hitbox, enemy) {
     }
 }
 
-function initGun(character, weapon = revolver) {
-    let gun = game.add.weapon(30, 'weapons');
-    gun.name = weapon.constructor.name;
-
-    //Create bullets
-    gun.addBulletAnimation(name = "bullet",
-        frames = [15, 16, 17, 18, 19],
-        frameRate = 60,
-        loop = true
-    );
-    gun.bulletAnimation = 'bullet';
-
-    //Create handles
-    gun.handle = game.add.sprite(0, 0, 'weapons');
-    gun.handle.animations.add(
-        'Revolver',
-        [0, 1, 2, 3, 4],
-        30,
-        false
-    )
-    gun.handle.animations.add(
-        'SawnOffShotgun',
-        [5, 6, 7, 8, 9],
-        30,
-        false
-    )
-    gun.handle.animations.add(
-        'AutomaticRifle',
-        [10, 11, 12, 13, 14],
-        30,
-        false
-    )
-    gun.handle.frame = 0;
-    gun.handle.anchor.setTo(-0.5, 0);
-    character.addChild(gun.handle);
-
-    gun.ammo = revolver._clipSize;
-    gun.clipSize = revolver._clipSize;
-    gun.damage = Number(revolver._damage);
-    gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    gun.bulletAngleOffset = 0;
-    gun.fireAngle = Phaser.ANGLE_RIGHT;
-    gun.bulletSpeed = 1000;
-    gun.fireRate = weapon.fireRateMillis;
-    gun.trackSprite(gun.handle, character.width / 2, character.height / 2);
-
-    gun.shoot = function () {
-        if (gun.fire()) {
-            gun.handle.animations.play(gun.name);
-            return true;
-        }
-        return false;
-    }
-    return gun;
-}
-
 function fireGun() {
     if (game.localPlayer.gun.ammo > 0) {
         if (game.localPlayer.gun.shoot()) {
@@ -771,6 +721,64 @@ function orientGun(gun, direction) {
             gun.handle.anchor.setTo(-0.4, 1.3);
             break;
     }
+}
+
+
+// -----------------DONE---------------------- //
+function initGun(character, weapon = revolver) {
+    let gun = game.add.weapon(30, 'weapons');
+    gun.name = weapon.constructor.name;
+
+    //Create bullets
+    gun.addBulletAnimation(name = "bullet",
+        frames = [15, 16, 17, 18, 19],
+        frameRate = 60,
+        loop = true
+    );
+    gun.bulletAnimation = 'bullet';
+
+    //Create handles
+    gun.handle = game.add.sprite(0, 0, 'weapons');
+    gun.handle.animations.add(
+        'Revolver',
+        [0, 1, 2, 3, 4],
+        30,
+        false
+    )
+    gun.handle.animations.add(
+        'SawnOffShotgun',
+        [5, 6, 7, 8, 9],
+        30,
+        false
+    )
+    gun.handle.animations.add(
+        'AutomaticRifle',
+        [10, 11, 12, 13, 14],
+        30,
+        false
+    )
+    gun.handle.frame = 0;
+    gun.handle.anchor.setTo(-0.5, 0);
+    character.addChild(gun.handle);
+
+    gun.ammo = revolver._clipSize;
+    gun.clipSize = revolver._clipSize;
+    gun.damage = Number(revolver._damage);
+    gun.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+    gun.bulletAngleOffset = 0;
+    gun.fireAngle = Phaser.ANGLE_RIGHT;
+    gun.bulletSpeed = 1000;
+    gun.fireRate = weapon.fireRateMillis;
+    gun.trackSprite(gun.handle, character.width / 2, character.height / 2);
+
+    gun.shoot = function () {
+        if (gun.fire()) {
+            gun.handle.animations.play(gun.name);
+            return true;
+        }
+        return false;
+    }
+    return gun;
 }
 
 function initPlayer(id) {
@@ -865,29 +873,6 @@ function initHitbox(character) {
     return hitbox;
 }
 
-function shiftHitbox(player) {
-
-    if (player.facing.x != 0) {
-        if (player.facing.x == DIRECTION.EAST) {
-            player.hitbox.x = player.character.width;
-        } else {
-            player.hitbox.x = -player.character.width;
-        }
-    } else {
-        player.hitbox.x = 0;
-    }
-
-    if (player.facing.y != 0) {
-        if (player.facing.y == DIRECTION.SOUTH) {
-            player.hitbox.y = player.character.height;
-        } else {
-            player.hitbox.y = -player.character.height;
-        }
-    } else {
-        player.hitbox.y = 0;
-    }
-}
-
 function initObstacles(obstacles) {
 
     for (var i = 0; i < obstacles.length; ++i) {
@@ -930,6 +915,33 @@ function initDrops(drops) {
         game.dropSprites.add(drop.sprite);
     }
 }
+// ------------------------------------------ //
+
+
+function shiftHitbox(player) {
+
+    if (player.facing.x != 0) {
+        if (player.facing.x == DIRECTION.EAST) {
+            player.hitbox.x = player.character.width;
+        } else {
+            player.hitbox.x = -player.character.width;
+        }
+    } else {
+        player.hitbox.x = 0;
+    }
+
+    if (player.facing.y != 0) {
+        if (player.facing.y == DIRECTION.SOUTH) {
+            player.hitbox.y = player.character.height;
+        } else {
+            player.hitbox.y = -player.character.height;
+        }
+    } else {
+        player.hitbox.y = 0;
+    }
+}
+
+
 
 function any(dict) {
     return Object.keys(dict).reduce((acc, cur) => acc + dict[cur], 0);

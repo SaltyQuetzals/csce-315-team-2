@@ -3,6 +3,7 @@ import * as constants from '../shared/constants';
 import {Weapon} from './Guns';
 import {PowerUp} from './PowerUp';
 import {RectangularObject} from './RectangularObject';
+import { CustomSprite } from '../public/js/models/Game';
 
 export enum DropType {
   WEAPON = 'Weapon',
@@ -14,6 +15,7 @@ export class Drop extends RectangularObject {
   location!: XY;
   type!: DropType;
   id: number;
+  sprite!: CustomSprite;
 
   constructor(item: Weapon|PowerUp, location: XY, id: number) {
     super(location, constants.POWERUP_WIDTH, constants.POWERUP_HEIGHT);

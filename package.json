@@ -2,7 +2,7 @@
   "name": "multiplayer-game",
   "version": "0.0.1",
   "description": "A real-time multiplayer game written in TypeScript and Socket.io.",
-  "main": "src/server/app.ts",
+  "main": "src/server/app.js",
   "scripts": {
     "test": "find ./build/test -name '*_tests.js' | xargs mocha -R spec",
     "check": "gts check",
@@ -14,7 +14,7 @@
     "prepare": "npm run compile",
     "pretest": "npm run fix && npm run compile",
     "posttest": "npm run check",
-    "start": "npm run build && browserify build/src/public/js/main.ts -o build/src/public/js/main.ts && node build/src/app.ts"
+    "start": "npm run build && browserify build/src/public/js/main.js -o build/src/public/js/main.ts && node build/src/app.js"
   },
   "repository": {
     "type": "git",

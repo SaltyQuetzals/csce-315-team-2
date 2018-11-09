@@ -1,8 +1,10 @@
 // import * as gameConstants from './game-constants';
 // import * as sharedConstants from '../../shared/constants';
 // import { isNumber } from 'util';
+
+
+import { SocketController } from './controllers/SocketController';
 import { GameController } from './models/Game';
-import {SocketController} from './controllers/SocketController';
 
 // let gameStarted = false;
 

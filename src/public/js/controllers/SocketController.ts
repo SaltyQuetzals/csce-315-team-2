@@ -1,52 +1,31 @@
 import * as waiting from '../waiting';
-import * as GUNS from '../models/Guns'; 
-import {Game} from '../models/Game';
+import {Revolver, SawnOffShotgun, AutomaticRifle, Weapon} from '../models/Guns'; 
+import {GameController} from '../models/Game';
+import {initObstacles, initDrops, initAvatar, initPlayer} from '../init-helpers';
 import * as socket from 'socket.io-client';
-
-type StartGameParams = {
-    obstacles: {},
-    drops: {},
-    players: {}
-};
-
-type MovementParams = {
-    id: string,
-    location: {
-        x: number,
-        y: number
-    }
-};
-
-interface NewPlayerParams {
-    roomHost: string;
-    id: string;
-    players: {
-        [playerId: string]: string
-    };
-}
-
-interface Players {
-    [socketId: string]: {
-        avatar: {},
-        player: {}
-    };
-}
+import { Obstacle } from '../../../models/Obstacle';
+import { Drop } from '../../../models/Drop';
+import {Player} from '../../../models/Player';
+import {PLAYER_HEALTH} from '../game-constants';
+import {CustomPlayer} from '../game-classes';
+import {Socket, Players, NewPlayerParams, StartGameParams, MovementParams} from '../socket-classes';
 
 class SocketController{
-    private socket: socket.Socket;  
-    private game: Game;
+    private socket: Socket;  
+    private gameController: GameController;
+    private GAME_STARTED: boolean = false;
     private roomId: string;
-    constructor(roomId: string, game: Game){
+    constructor(roomId: string, gameController: GameController){
         this.socket = io.connect("/", {
             query: `roomId=${roomId}`
         });
         this.roomId = roomId;
-        this.game = game;
+        this.gameController = gameController;
 
         this.socket.on('connect', () => {
             console.log('Connected successfully.');
-            game.localPlayer.id = this.socket.id;
-            game.players[game.localPlayer.id] = game.localPlayer;
+            gameController.localPlayer.id = this.socket.id;
+            gameController.players[gameController.localPlayer.id] = gameController.localPlayer;
 
             this.socket.on('start game', (message: StartGameParams) => {
                 console.log('Received start game event');
@@ -61,7 +40,7 @@ class SocketController{
 
             this.socket.on('player moved', (message: MovementParams) => {
                 // console.log(game.players);
-                const avatar = this.game.players[message.id].character;
+                const avatar = this.gameController.players[message.id].character;
                 avatar.x = message.location.x;
                 avatar.y = message.location.y;
             });
@@ -71,8 +50,8 @@ class SocketController{
                     id,
                     fireAngle
                 } = message;
-                const gun = game.players[id].gun;
-                gun.fireAngle = fireAngle;
+                const gun = gameController.players[id].gun;
+                //gun.fireAngle = fireAngle;
                 gun.shoot();
             });
 
@@ -91,13 +70,13 @@ class SocketController{
                     id
                 } = message;
 
-                const drop = this.game.drops[id];
+                const drop = this.gameController.drops[id];
                 drop.sprite.destroy();
             });
 
             this.socket.on('change health', (message: {id: string, change: number}) => {
                 const {id, change} = message;
-                const player = this.game.players[id];
+                const player = this.gameController.players[id];
                 player.health += change;
             });
 
@@ -105,37 +84,38 @@ class SocketController{
                 // Reset stats
             });
 
-            this.socket.on('switch gun', (message: {id: string, gun: Gun}) => {
+            /* Still unclear how to do this
+            this.socket.on('switch gun', (message: {id: string, gun: string}) => {
                 const {
                     id,
                     gun
                 } = message;
-                player = game.players[id];
+                let player = gameController.players[id];
                 switch (gun) {
                     case 'revolver':
-                        switchGun(player.gun, revolver);
+                        player.gun = new Revolver();
+                        switchGun(player.gun, Revolver);
                         break;
                     case 'shotgun':
-                        switchGun(player.gun, shotgun);
+                        switchGun(player.gun, SawnOffShotgun);
                         break;
                     case 'automatic rifle':
-                        switchGun(player.gun, ar);
+                        switchGun(player.gun, AutomaticRifle);
                         break;
                 }
             });
+            */
 
-            this.socket.on('player left', (message) => {
+            this.socket.on('player left', (message: {id: string, roomHost: string}) => {
                 const {
                     id
                 } = message;
-                delete game.players[id];
-                waiting.updatePlayerList(game.players);
-                if (message.roomHost === game.localPlayer.id) startGameButton.style.display = 'block';
+                delete gameController.players[id];
+                waiting.updatePlayerList(gameController.players);
+                //if (message.roomHost === gameController.localPlayer.id) startGameButton.style.display = 'block';
             })
 
-            this.socket.on("err", ({
-                message
-            }) => {
+            this.socket.on("err", (message: {}) => {
                 console.error(message);
             });
 
@@ -147,16 +127,16 @@ class SocketController{
                 }
             });
 
-            this.socket.on("end game", data => {
+            this.socket.on("end game", (data: {zombies: {}, survivors: {}}) => {
                 let {
                     zombies,
                     survivors
                 } = data;
                 if (zombies) {
-                    game.EndGame.setText("Zombies win!");
+                    gameController.endGame.setText("Zombies win!");
                     console.log("ZOMBIES WIN");
                 } else {
-                    game.EndGame.setText("Survivors win!");
+                    gameController.endGame.setText("Survivors win!");
                     console.log("SURVIVORS WIN");
                 }
             });
@@ -179,16 +159,16 @@ class SocketController{
 
     initNewPlayer(roomHost: string, playerId: string, players: {}): void{
         let newPlayer = null;
-        if (roomHost === this.game.localPlayer.id) startGameButton.style.display = 'block';
-        console.log(JSON.stringify(Object.keys(this.game.players), null, 3));
-        if (playerId === this.game.localPlayer.id) {
+        //if (roomHost === this.gameController.localPlayer.id) startGameButton.style.display = 'block';
+        console.log(JSON.stringify(Object.keys(this.gameController.players), null, 3));
+        if (playerId === this.gameController.localPlayer.id) {
             // create all preexisting players
             for (let id in players) {
                 if (id && id){
-                    this.game.numSurvivors++;
-                    if (id !== this.game.localPlayer.id) {
-                        newPlayer = this.game.initPlayer(id);
-                        this.game.players[id] = newPlayer;
+                    this.gameController.numSurvivors++;
+                    if (id !== this.gameController.localPlayer.id) {
+                        newPlayer = initPlayer(id);
+                        this.gameController.players[id] = newPlayer;
 
                     }
                 }
@@ -196,45 +176,45 @@ class SocketController{
         } else {
             // create only new player
             console.log('Another player has joined the room!');
-            newPlayer = this.game.initPlayer(playerId);
-            this.game.players[playerId] = newPlayer;
-            this.game.numSurvivors++;
+            newPlayer = initPlayer(playerId);
+            this.gameController.players[playerId] = newPlayer;
+            this.gameController.numSurvivors++;
             console.log(newPlayer.id);
         }
-        waiting.updatePlayerList(this.game.players);
+        waiting.updatePlayerList(this.gameController.players);
     }
 
-    startGame(obstacles: {}, drops: {}, players: Players): void{
-        this.game.initObstacles(obstacles);
-        this.game.initDrops(drops);
-        const socketPlayers: {[socketId: string]: {avatar: {}}} = players;
+    startGame(obstacles: [Obstacle], drops: [Drop], players: Players): void{
+        initObstacles(obstacles);
+        initDrops(drops);
+        const socketPlayers: Players = players;
 
         // HACK(SaltyQuetzals): Kills player that's supposed to be the zombie for starting the game.
         for (const socketId in socketPlayers) {
             if (socketPlayers[socketId].player.avatar.type === 'zombie') {
-                const {avatar} = socketPlayers[socketId];
-                const player = this.game.players[socketId];
-                this.game.numSurvivors--;
+                const {avatar} = socketPlayers[socketId].player;
+                const player = this.gameController.players[socketId];
+                this.gameController.numSurvivors--;
                 player.isZombie = true;
-                const x = player.x;
-                const y = player.y;
+                const x = player.facing.x;
+                const y = player.facing.y;
                 player.character.destroy();
-                player.character = this.game.initAvatar(player, 'zombie_1', x, y);
-                if (player.id === this.game.localPlayer.id) {
-                    this.game.localPlayer = player;
+                player.character = initAvatar(player, 'zombie_1', x, y);
+                if (player.id === this.gameController.localPlayer.id) {
+                    this.gameController.localPlayer = player;
                 }
             }
         }
-        this.game.GAME_STARTED = true;
-        document.getElementById('waiting-room-overlay').style.display = "none";
-        document.getElementById('background').style.display = "none";
+        this.GAME_STARTED = true;
+        //document.getElementById('waiting-room-overlay').style.display = "none";
+        //document.getElementById('background').style.display = "none";
     }
 
     playerHit(playerId: string, damage: number): void{
-        const player = this.game.players[playerId];
+        const player = this.gameController.players[playerId];
         if (player.health <= damage) {
             player.health = 0;
-            if (playerId === this.game.localPlayer.id) {
+            if (playerId === this.gameController.localPlayer.id) {
                 // Movement is disabled
                 player.isDead = true;
                 this.sendPlayerDied();
@@ -250,22 +230,22 @@ class SocketController{
 
     respawnPlayer(playerId: string): void{
         // Redraw zombie sprite and reset health
-        const player = this.game.players[playerId];
+        const player = this.gameController.players[playerId];
 
         player.health = PLAYER_HEALTH;
 
         if (player.isZombie) {
             const x = player.character.x;
             const y = player.character.y;
-            player.character = this.game.initAvatar(player, 'zombie_1', x, y);
+            player.character = initAvatar(player, 'zombie_1', x, y);
         } else {
-            this.game.numSurvivors--;
+            this.gameController.numSurvivors--;
             player.isZombie = true;
             const x = player.character.x;
             const y = player.character.y;
             player.character.destroy();
-            player.character = this.game.initAvatar(player, 'zombie_1', x, y);
-            if(this.game.numSurvivors === 0){
+            player.character = initAvatar(player, 'zombie_1', x, y);
+            if(this.gameController.numSurvivors === 0){
                 this.sendGameEnded();
             }
         }

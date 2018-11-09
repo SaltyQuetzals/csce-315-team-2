@@ -417,6 +417,13 @@ function create() {
 }
 
 
+
+
+
+
+
+
+// -------- WAS NOT INCLUDED IN REFACTOR -----------------//
 const startGameButton = document.getElementById('start');
 startGameButton.style.display = "none";
 
@@ -432,6 +439,17 @@ function startGame() {
 if (startGameButton) {
     startGameButton.addEventListener('click', startGame);
 }
+// --------------------------------------------------------//
+
+
+
+
+
+
+
+
+
+
 
 function update() {
     //LocalPlayer

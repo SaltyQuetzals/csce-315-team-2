@@ -1,5 +1,5 @@
 const waiting = require('./waiting.js');
-const GUNS = require("../../models/Guns.js")
+const GUNS = require("./models/Guns.js")
 
 
 const GAME_VIEW_WIDTH = 800;

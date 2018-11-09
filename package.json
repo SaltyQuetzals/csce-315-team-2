@@ -14,7 +14,7 @@
     "prepare": "npm run compile",
     "pretest": "npm run fix && npm run compile",
     "posttest": "npm run check",
-    "start": "npm run build && browserify build/src/public/js/main.js -o build/src/public/js/main.ts && node build/src/app.js"
+    "start": "npm run build && browserify build/src/public/js/main.js -o build/src/public/js/main.js && node build/src/app.js"
   },
   "repository": {
     "type": "git",

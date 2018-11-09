@@ -10,7 +10,7 @@ import {PLAYER_HEALTH} from '../game-constants';
 import {CustomPlayer} from '../game-classes';
 import {Socket, Players, NewPlayerParams, StartGameParams, MovementParams} from '../socket-classes';
 
-class SocketController{
+export class SocketController{
     private socket: Socket;  
     private gameController: GameController;
     private GAME_STARTED: boolean = false;
@@ -140,6 +140,12 @@ class SocketController{
                     console.log("SURVIVORS WIN");
                 }
             });
+        });
+    }
+
+    sendStartGame(): void{
+        this.socket.emit("start game", {
+            roomId: this.roomId
         });
     }
 

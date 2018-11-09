@@ -1,6 +1,6 @@
 import * as constants from '../shared/constants';
 
-import {Revolver, Weapon} from './Guns';
+import {Revolver, Weapon} from '../public/js/models/Guns';
 import {RectangularObject} from './RectangularObject';
 
 export enum Direction {

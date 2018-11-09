@@ -1,5 +1,5 @@
 import {Human, Zombie} from '../models/Avatar';
-import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
+import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../public/js/models/Guns';
 import {Obstacle} from '../models/Obstacle';
 import {Player} from '../models/Player';
 

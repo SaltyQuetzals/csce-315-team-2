@@ -11,14 +11,17 @@ import { GameController } from './models/Game';
 const splitUrl = location.href.split("/");
 const roomId = splitUrl[splitUrl.length - 1];
 
-export const game = new GameController(roomId);
+export let game = new GameController(roomId);
 
 const startGameButton = document.getElementById('start');
-    startGameButton!.style.display = "none";
 
 function startGame() {
     document.getElementById('waiting-room-overlay')!.style.display = "none";
     document.getElementById('background')!.style.display = "none";
+    document.getElementById('start')!.style.display = "none";
+    console.log("MAIN.TS");
+    console.log(game);
+    console.log(game.socket);
     game.socket.sendStartGame();
 }
 

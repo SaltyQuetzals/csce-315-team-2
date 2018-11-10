@@ -7,6 +7,7 @@ import { Drop } from '../../models/Drop';
 import * as GUNS from './models/Guns';
 import { game } from './main';
 import { delay } from '../../shared/functions';
+import { isUndefined } from 'util';
 
 export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
     const hitbox = game.game.add.graphics(0, 0);
@@ -82,8 +83,10 @@ export function initAvatar(player: CustomPlayer,
     avatar.id = player.id;
     game.game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
-    if (avatar.id !== game.localPlayer.id) {
-        game.targets.add(avatar);
+    if (!isUndefined(game.localPlayer)) {
+        if (avatar.id !== game.localPlayer.id) {
+            game.targets.add(avatar);
+        }
     } else {
         // Local player attributes
         player.facing = {

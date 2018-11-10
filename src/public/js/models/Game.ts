@@ -10,7 +10,6 @@ import { SocketController } from "../controllers/SocketController";
 export class GameController {
   game!: Phaser.Game;
   socket!: SocketController;
-  ready: boolean;
   roomId!: string;
   players!: {[key: string]: gameClasses.CustomPlayer};
   drops!: {[key: string]: Drop};
@@ -20,9 +19,9 @@ export class GameController {
   localPlayer!: gameClasses.CustomPlayer;
   numSurvivors!: number;
   HUD!: {
-    survivors: Phaser.Text;
     ammo: Phaser.Text;
     health: Phaser.Text;
+    survivors: Phaser.Text;
   };
   endGame!: Phaser.Text;
   constructor(roomId: string) {
@@ -31,6 +30,7 @@ export class GameController {
       gameConstants.GAME_VIEW_WIDTH,
       gameConstants.GAME_VIEW_HEIGHT,
       Phaser.CANVAS,
+      '', 
       {
         preload: this.preload,
         create: this.create,
@@ -38,11 +38,10 @@ export class GameController {
         render: this.render
       }
     );
-    this.localPlayer = new gameClasses.CustomPlayer();
-    this.ready = false;
   }
 
   preload(): void {
+    console.log("Preloading");
     this.game.load.image("bg", "../assets/bg.png");
     this.game.load.image("bullet", "../assets/bullet.png");
     this.game.load.image("Automatic Rifle", "../assets/AutomaticRifle.png");
@@ -92,8 +91,9 @@ export class GameController {
       this.dropSprites = this.game.add.group();
       this.game.physics.arcade.enable(this.dropSprites);
   
+      this.localPlayer = new gameClasses.CustomPlayer();
+      this.localPlayer = initPlayer('0');
       this.localPlayer.id = '0';
-      this.localPlayer = initPlayer(this.localPlayer.id);
 
       this.localPlayer.cameraSprite = this.game.add.sprite(this.localPlayer.character.x, this.localPlayer.character.y);
   
@@ -131,7 +131,8 @@ export class GameController {
               this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]] = false;
           }
       };
-  
+
+      this.HUD = Object();
       this.HUD.ammo = this.game.add.text(10, gameConstants.GAME_VIEW_HEIGHT - 50, "Ammo: ", {
           font: "bold 24px Arial",
           fill: "#004887",
@@ -160,8 +161,6 @@ export class GameController {
       });
       this.endGame.fixedToCamera = true;
       
-      this.ready = true;
-
       this.socket = new SocketController(this.roomId, this);
   }
 

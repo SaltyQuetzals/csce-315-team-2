@@ -4,9 +4,9 @@ import { switchGun } from "./weapon-functs";
 import { Revolver, SawnOffShotgun, AutomaticRifle } from "./models/Guns";
 import { CustomSprite, CustomPlayer } from "./game-classes";
 
-export function pickupDrop(character: CustomSprite, dropSprite: Drop) {
+export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
     const drop: Drop = game.drops[dropSprite.id];
-    dropSprite.sprite.destroy();
+    dropSprite.destroy();
 
     const player = game.localPlayer;
 

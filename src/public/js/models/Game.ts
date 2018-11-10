@@ -8,6 +8,7 @@ import { fireGun } from "../weapon-functs";
 import { SocketController } from "../controllers/SocketController";
 
 export class GameController {
+  GAME_STARTED: boolean = false;
   game!: Phaser.Game;
   socket!: SocketController;
   roomId!: string;
@@ -40,7 +41,7 @@ export class GameController {
     );
   }
 
-  preload(): void {
+  preload = ():void => {
     console.log("Preloading");
     this.game.load.image("bg", "../assets/bg.png");
     this.game.load.image("bullet", "../assets/bullet.png");
@@ -72,7 +73,7 @@ export class GameController {
     this.game.load.image("field_of_view", "../assets/FieldOfView.png");
   }
 
-  create(): void {
+  create = ():void => {
 
       console.log("Creating");
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -110,7 +111,7 @@ export class GameController {
           ...gameConstants.keysPressed
       };
       this.game.input.keyboard.onDownCallback = (event: KeyboardEvent) => {
-          if (gameConstants.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
+          if (this.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
               !this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]]) {
               this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]] = true;
           }
@@ -126,7 +127,7 @@ export class GameController {
           // }
       };
       this.game.input.keyboard.onUpCallback = (event: KeyboardEvent) => {
-          if (gameConstants.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
+          if (this.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
               this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]]) {
               this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]] = false;
           }
@@ -165,7 +166,7 @@ export class GameController {
   }
 
 
-  update(): void {
+  update = (): void =>{
      //LocalPlayer
      movementHandler(this.localPlayer, this.localPlayer.gun, this.localPlayer.keyboard);
      //Loop through players (move non-LocalPlayer)
@@ -187,7 +188,7 @@ export class GameController {
      this.game.physics.arcade.collide(this.localPlayer.character, this.dropSprites, pickupDrop, undefined, this);
  }
 
-  render(): void {
+  render = (): void =>{
     // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
     // game.localPlayer.gun.debug(20, 128);
 

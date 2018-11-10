@@ -12,9 +12,8 @@ import {Socket, Players, NewPlayerParams, StartGameParams, MovementParams} from 
 import { switchGun } from '../weapon-functs';
 
 export class SocketController{
-    private socket: Socket;  
+    socket: Socket;  
     private gameController: GameController;
-    private GAME_STARTED = false;
     private roomId: string;
     constructor(roomId: string, gameController: GameController){
         this.socket = io.connect("/", {
@@ -24,6 +23,9 @@ export class SocketController{
         this.gameController = gameController;
 
         this.socket.on('connect', () => {
+            this.gameController.localPlayer.id = this.socket.id;
+            this.gameController.players[this.socket.id] = this.gameController.localPlayer;
+            console.log(this.gameController.localPlayer.id);
             console.log('Connected successfully.');
 
             // gameController.localPlayer.id = this.socket.id;
@@ -210,7 +212,8 @@ export class SocketController{
 
     initNewPlayer(roomHost: string, playerId: string, players: {}): void{
         let newPlayer = null;
-        //if (roomHost === this.gameController.localPlayer.id) startGameButton.style.display = 'block';
+        let startGameButton = document.getElementById('start');
+        if (roomHost === this.gameController.localPlayer.id) startGameButton!.style.display = 'block';
         // console.log(JSON.stringify(Object.keys(this.gameController.players), null, 3));
         if (playerId === this.gameController.localPlayer.id) {
             // create all preexisting players
@@ -247,8 +250,8 @@ export class SocketController{
                 const player = this.gameController.players[socketId];
                 this.gameController.numSurvivors--;
                 player.isZombie = true;
-                const x = player.facing.x;
-                const y = player.facing.y;
+                const x = player.character.x;
+                const y = player.character.y;
                 player.character.destroy();
                 player.character = initAvatar(player, 'zombie_1', x, y);
                 if (player.id === this.gameController.localPlayer.id) {
@@ -256,9 +259,11 @@ export class SocketController{
                 }
             }
         }
-        this.GAME_STARTED = true;
-        //document.getElementById('waiting-room-overlay').style.display = "none";
-        //document.getElementById('background').style.display = "none";
+        this.gameController.GAME_STARTED = true;
+        let overlay: HTMLElement | null = document.getElementById('waiting-room-overlay');
+        overlay!.style.display = "none";
+        let background: HTMLElement | null = document!.getElementById('background');
+        background!.style.display = "none";
     }
 
     playerHit(playerId: string, damage: number): void{

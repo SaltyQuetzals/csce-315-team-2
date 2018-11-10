@@ -1,7 +1,7 @@
 import {GameController} from './models/Game';
 import {CustomPlayer, CustomSprite, Gun} from './game-classes';
 import * as gameConstants from './game-constants';
-import { Loader, Image, Weapon } from 'phaser-ce';
+import { Loader, Image, Weapon, Sprite } from 'phaser-ce';
 import {Obstacle} from '../../models/Obstacle';
 import { Drop } from '../../models/Drop';
 import * as GUNS from './models/Guns';
@@ -77,17 +77,17 @@ export function initAvatar(player: CustomPlayer,
     spriteSheet: string,
     x = gameConstants.GAME_VIEW_WIDTH / 2 - 200,
     y = gameConstants.GAME_VIEW_HEIGHT / 2 - 200): CustomSprite {
-    const avatar = new CustomSprite(game.game, x, y, spriteSheet);
+    // const avatar = new CustomSprite(game.game, x, y, spriteSheet);
+    let avatar: CustomSprite = game.game.add.sprite(x, y, spriteSheet) as CustomSprite;
     // avatar = this.game.add.avatar(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = player.id;
     game.game.physics.arcade.enable(avatar);
     avatar.body.collideWorldBounds = true;
-    if (!isUndefined(game.localPlayer)) {
-        if (avatar.id !== game.localPlayer.id) {
-            game.targets.add(avatar);
-        }
-    } else {
+    if (game.localPlayer && (avatar.id !== game.localPlayer.id) && (player.id !== '0')) {
+        game.targets.add(avatar);
+    }
+    else {
         // Local player attributes
         player.facing = {
             x: 0,
@@ -191,8 +191,8 @@ export function initDrops(drops: {[key: number]: Drop}) {
                 image = gameConstants.DROPIMAGES[drop.item.type];
             }
 
-
-            drop.sprite = new CustomSprite(game.game, drop.location[0], drop.location[1], image);
+            let sprite = game.game.add.sprite(drop.location[0], drop.location[1], image);
+            drop.sprite = sprite as CustomSprite;
             drop.sprite.id = String(drop.id);
 
             game.game.physics.arcade.enable(drop.sprite);

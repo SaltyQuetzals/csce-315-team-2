@@ -36,7 +36,6 @@ function shiftHitbox(player: CustomPlayer) {
 export function movementHandler(player: CustomPlayer, gun: Gun, keys: {[key: string]: boolean}) {
     const avatar = player.character;
     let eventShouldBeEmitted = false;
-
     if (player.isDead) {
         return;
     }
@@ -44,7 +43,6 @@ export function movementHandler(player: CustomPlayer, gun: Gun, keys: {[key: str
         if (keys['left']) {
             player.facing.x = DIRECTIONS.WEST;
             avatar.body.velocity.x = -player.speed;
-
             if (!(keys['down'])) {
                 avatar.animations.play('left', 1);
                 orientGun(gun, 'left');

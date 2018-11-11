@@ -32,9 +32,11 @@ export abstract class Avatar extends RectangularObject {
 }
 
 export class Zombie extends Avatar {
+  public static numZombies: number = -1;
   constructor(position: XY) {
     super(ZOMBIE_MOVE_SPEED, position);
     this.type = 'zombie';
+    Zombie.numZombies++;
   }
 }
 

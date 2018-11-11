@@ -1,3 +1,7 @@
+export interface Players {
+  [key: string]: {username: string};
+}
+
 export function getAccessCode(): string {
   const pathName = window.location.pathname;
   const splitPathName = pathName.split('/');
@@ -10,9 +14,22 @@ export function updateAccessCodeBox(): void {
   if (accessCodeBox) accessCodeBox.innerHTML = accessCode;
 }
 
-export function updatePlayerList(players: {}): void {
+export function updatePlayerList(players: Players): void {
   const playerList = document.getElementById('player-list');
-  const newPlayerList =
-      Object.keys(players).map((player) => '<li>' + player + '</li>');
+  console.log('Players', players);
+  const newPlayerList = Object.keys(players).map((playerId) => {
+    console.log(playerId);
+    return '<li>' + players[playerId].username + '</li>';
+  });
   if (playerList) playerList.innerHTML = newPlayerList.join('');
+}
+
+export function getUserName(): string {
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get('username');
+  if (username) {
+    return username;
+  } else {
+    return '';
+  }
 }

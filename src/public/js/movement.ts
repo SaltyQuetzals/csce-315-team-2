@@ -44,7 +44,7 @@ export function movementHandler(player: CustomPlayer, gun: Gun, keys: {[key: str
             player.facing.x = DIRECTIONS.WEST;
             avatar.body.velocity.x = -player.speed;
             if (!(keys['down'])) {
-                avatar.animations.play('left', 1);
+                avatar.animations.play('left', 10, true);
                 orientGun(gun, 'left');
             }
             eventShouldBeEmitted = true;
@@ -52,7 +52,7 @@ export function movementHandler(player: CustomPlayer, gun: Gun, keys: {[key: str
             player.facing.x = DIRECTIONS.EAST;
             avatar.body.velocity.x = player.speed;
             if (!(keys['down'])) {
-                avatar.animations.play('right', 1);
+                avatar.animations.play('right', 10, true);
                 orientGun(gun, 'right');
             }
             eventShouldBeEmitted = true;
@@ -67,14 +67,14 @@ export function movementHandler(player: CustomPlayer, gun: Gun, keys: {[key: str
             player.facing.y = DIRECTIONS.NORTH;
             avatar.body.velocity.y = -player.speed;
             if (!(keys['left'] || keys['right'])) {
-                avatar.animations.play('up', 1);
+                avatar.animations.play('up', 10, true);
                 orientGun(gun, 'up');
             }
             eventShouldBeEmitted = true;
         } else if (keys['down']) {
             player.facing.y = DIRECTIONS.SOUTH;
             avatar.body.velocity.y = player.speed;
-            avatar.animations.play('down', 1);
+            avatar.animations.play('down', 10, true);
             orientGun(gun, 'down');
             eventShouldBeEmitted = true;
         } else {

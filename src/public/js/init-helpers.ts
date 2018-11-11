@@ -78,7 +78,7 @@ export function initAvatar(player: CustomPlayer,
     x = gameConstants.GAME_VIEW_WIDTH / 2 - 200,
     y = gameConstants.GAME_VIEW_HEIGHT / 2 - 200): CustomSprite {
     // const avatar = new CustomSprite(game.game, x, y, spriteSheet);
-    let avatar: CustomSprite = game.game.add.sprite(x, y, spriteSheet) as CustomSprite;
+    const avatar: CustomSprite = game.game.add.sprite(x, y, spriteSheet) as CustomSprite;
     // avatar = this.game.add.avatar(x, y, spriteSheet);
     avatar.frame = 1;
     avatar.id = player.id;

@@ -116,7 +116,8 @@ io.on('connection', socket => {
   });
 
   socket.on('died', data => {
-    const {roomId} = data;
+    // Player id will come from socket id
+    const {roomId, killerId} = data;
     console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
@@ -142,7 +143,7 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        socket.to(roomId).emit('player hit', {id, damage});
+        socket.to(roomId).emit('player hit', {victimId: id, killerId: socket.id, damage});
       } else {
         console.log('Game not started');
       }

@@ -1,6 +1,6 @@
+import {Revolver, Weapon} from '../public/js/models/Guns';
 import * as constants from '../shared/constants';
 
-import {Revolver, Weapon} from '../public/js/models/Guns';
 import {RectangularObject} from './RectangularObject';
 
 export enum Direction {
@@ -32,7 +32,7 @@ export abstract class Avatar extends RectangularObject {
 }
 
 export class Zombie extends Avatar {
-  public static numZombies: number = -1;
+  static numZombies = -1;
   constructor(position: XY) {
     super(ZOMBIE_MOVE_SPEED, position);
     this.type = 'zombie';

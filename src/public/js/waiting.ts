@@ -1,4 +1,4 @@
-import { CustomPlayer } from "./game-classes";
+import {CustomPlayer} from './game-classes';
 
 export interface Players {
   [key: string]: {username: string};
@@ -16,7 +16,8 @@ export function updateAccessCodeBox(): void {
   if (accessCodeBox) accessCodeBox.innerHTML = accessCode;
 }
 
-export function updatePlayerList(players: {[key: string]: CustomPlayer;}): void {
+export function updatePlayerList(players: {[key: string]: CustomPlayer;}):
+    void {
   const playerList = document.getElementById('player-list');
   // console.log('Players', players);
   const newPlayerList = Object.keys(players).map((playerId) => {

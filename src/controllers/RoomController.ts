@@ -1,9 +1,7 @@
-import {Game, getRandomChoice} from '../models/Game';
 import {InitialState, Leaderboard} from '../models/Leaderboard';
 
 export type GameRoom = {
   roomLeader: string,
-  game: Game,
   gameInProgress: boolean,
   names: {[socketid: string]: string},
   leaderboard: Leaderboard
@@ -32,7 +30,6 @@ class RoomController {
       names[socketId] = name;
       this.rooms[roomId] = {
         roomLeader: socketId,
-        game: new Game(2400, 1800),
         leaderboard: new Leaderboard(),
         gameInProgress: false,
         names
@@ -79,15 +76,6 @@ class RoomController {
   }
 
   /**
-   * Returns the game in a specific room, given the `roomId`.
-   * @param roomId The unique identifier of the room.
-   */
-  getGame(roomId: string) {
-    return this.getRoom(roomId).game;
-  }
-
-
-  /**
    * Returns the names in a room, given the `roomId`.
    * @param roomId The unique identifier of the room.
    */
@@ -108,9 +96,6 @@ class RoomController {
         playerData.push({id: room.names[socketId]});
         room.leaderboard.addPlayer(socketId, socketId);
       }
-      room.game.generatePlayers(playerData);
-      room.game.generateObstacles();
-      room.game.generateDrops();
       const initialState = room.leaderboard.initialize();
       room.gameInProgress = true;
       return initialState;
@@ -137,7 +122,7 @@ class RoomController {
           newLeaderIndex = 0;
         } else {
           do {
-            newLeaderIndex = getRandomChoice(0, socketIds.length);
+            newLeaderIndex = Math.floor(Math.random() * socketIds.length);
           } while (socketIds[newLeaderIndex] === socketId);
         }
         this.rooms[roomId].roomLeader = socketIds[newLeaderIndex];

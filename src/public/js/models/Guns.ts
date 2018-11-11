@@ -1,11 +1,11 @@
-import {delay} from '../shared/functions';
+import {delay} from '../../../shared/functions';
 
-export abstract class Weapon {
+export class Weapon {
   readonly fireRateMillis!: number;
   readonly reloadRateMillis!: number;
   readonly type!: string;
-  protected readonly _damage!: number;
-  protected readonly _clipSize!: number;
+  readonly _damage!: number;
+  readonly _clipSize!: number;
   protected _shotsInClip!: number;
   protected _canFire!: boolean;
   ammoNotLoaded!: number;

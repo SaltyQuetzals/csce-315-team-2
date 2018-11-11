@@ -32,7 +32,7 @@ app.get('/rooms/:roomCode', (_req, res) => {
 
 app.post('/rooms', (req, res) => {
   const {username} = req.body;
-  const roomCode = random(ROOM_CODE_LENGTH)
+  const roomCode = random(ROOM_CODE_LENGTH);
   res.redirect(`/rooms/${roomCode}?username=${username}`);
 });
 
@@ -52,7 +52,9 @@ io.on('connection', socket => {
   roomController.addPlayerToRoom(roomId, socket.id, username);
   const players = roomController.getNames(roomId);
   const roomHost = roomController.getRoomHost(roomId);
-  io.in(roomId).emit('new player', {id: socket.id, players, roomHost});
+  console.log(players);
+  io.in(roomId).emit(
+      'new player', {roomHost, id: socket.id, username, players});
 
   socket.on('start game', data => {
     const {roomId} = data;
@@ -61,7 +63,6 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (!room.gameInProgress) {
         const initialState = roomController.startGame(roomId);
-        const game = roomController.getGame(roomId);
         io.in(roomId).emit('start game', initialState);
       } else {
         console.log('Game already started');
@@ -86,8 +87,6 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        const game = roomController.getGame(roomId);
-        // game.movePlayer(socket.id, location);
         socket.to(roomId).emit('player moved', {id: socket.id, location});
       } else {
         console.log('Game not started');
@@ -100,7 +99,6 @@ io.on('connection', socket => {
 
   socket.on('fire', data => {
     const {roomId, fireAngle} = data;
-    // console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
@@ -115,16 +113,16 @@ io.on('connection', socket => {
   });
 
   socket.on('died', data => {
-    const {roomId} = data;
+    // Player id will come from socket id
+    const {roomId, killerId} = data;
     console.log(JSON.stringify(data, null, 3));
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        const game = roomController.getGame(roomId);
         socket.emit('died', {id: socket.id});
-        game.playerDied(socket.id).then(() => {
+
+        room.leaderboard.playerKilled(killerId, socket.id).then(() => {
           io.in(roomId).emit('respawned', {id: socket.id});
-          // socket.emit('respawn', {id: socket.id});
         });
       } else {
         console.log('Game not started');
@@ -141,7 +139,8 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        socket.to(roomId).emit('player hit', {id, damage});
+        socket.to(roomId).emit(
+            'player hit', {victimId: id, killerId: socket.id, damage});
       } else {
         console.log('Game not started');
       }
@@ -214,10 +213,7 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        const game = roomController.getGame(roomId);
-        const player = game.getPlayer(socket.id);
-        if (player.avatar instanceof Human) {
-          game.pickupWeapon(socket.id, weaponId);
+        if (room.leaderboard.players[socket.id].stats.isHuman) {
           socket.emit(
               'player pickup weapon', {id: socket.id, weapon: weaponId});
         }
@@ -234,10 +230,7 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
-        const game = roomController.getGame(roomId);
-        const player = game.getPlayer(socket.id);
-        if (player.avatar instanceof Human && player.avatar.heldWeapon) {
-          player.avatar.heldWeapon.fire();
+        if (room.leaderboard.players[socket.id].stats.isHuman) {
           socket.emit('player fired weapon', {id: socket.id});
         }
       }

@@ -25,8 +25,7 @@ export class Player {
         if (this.respawnFactor > 5) {
           this.respawnFactor = 5;
         }
-      }
-      else {
+      } else {
         this.respawnFactor = 1;
       }
       await delay(this.respawnFactor * RESPAWN_RATE);

@@ -3,7 +3,6 @@ import 'mocha';
 import {expect} from 'chai';
 
 import {RoomController} from '../../src/controllers/RoomController';
-import {Game} from '../../src/models/Game';
 const mockSocketId = 'abcdef';
 const mockRoomId = 'room';
 const mockName = 'The Entirety of the Great Gatsby';

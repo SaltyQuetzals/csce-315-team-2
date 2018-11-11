@@ -3,8 +3,8 @@ import 'mocha';
 import {expect} from 'chai';
 
 import {Drop, DropType} from '../../src/models/Drop';
-import {Revolver, SawnOffShotgun} from '../../src/models/Guns';
 import {Grit} from '../../src/models/PowerUp';
+import {Revolver, SawnOffShotgun} from '../../src/public/js/models/Guns';
 
 describe('Drop.constructor', () => {
   const pos: [number, number] = [0, 0];

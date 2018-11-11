@@ -1,8 +1,9 @@
+import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../public/js/models/Guns';
 import * as constants from '../shared/constants';
+import {delay} from '../shared/functions';
 
 import {Avatar, Human, Zombie} from './Avatar';
 import {Drop} from './Drop';
-import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from './Guns';
 import {Obstacle} from './Obstacle';
 import {Player} from './Player';
 import {Grit, Hammertime, PowerUp, WeirdFlex} from './PowerUp';
@@ -45,7 +46,7 @@ export class Leaderboard {
    * @param killerId The killer's unique socket identifier
    * @param victimId The victim's unique socket identifier
    */
-  playerKilled(killerId: SocketId, victimId: SocketId): void {
+  async playerKilled(killerId: SocketId, victimId: SocketId): Promise<void> {
     if (!(killerId in this.players)) {
       throw Error(`The killerId provided (${killerId}) was not found.`);
     }
@@ -55,6 +56,14 @@ export class Leaderboard {
     this.players[killerId].stats.kills++;
     this.players[victimId].stats.deaths++;
     this.players[victimId].stats.isHuman = false;
+
+    let respawnFactor = 1 << this.players[victimId].stats.deaths - 1;
+    if (respawnFactor > 5) {
+      respawnFactor = 5;
+    }
+
+    const delayMillis = respawnFactor * 1000;
+    await delay(delayMillis);
   }
 
 

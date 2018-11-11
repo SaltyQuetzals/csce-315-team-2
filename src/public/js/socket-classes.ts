@@ -1,6 +1,7 @@
 import { Obstacle } from '../../models/Obstacle';
 import { Drop } from '../../models/Drop';
 import { Player } from '../../models/Player';
+import { CustomPlayer } from './game-classes';
 
 export type StartGameParams = {
     obstacles: [Obstacle],
@@ -19,8 +20,9 @@ export type MovementParams = {
 export interface NewPlayerParams {
     roomHost: string;
     id: string;
+    username: string;
     players: {
-        [playerId: string]: string
+        [socketId: string]: string
     };
 }
 

@@ -1,3 +1,5 @@
+import { CustomPlayer } from "./game-classes";
+
 export interface Players {
   [key: string]: {username: string};
 }
@@ -14,11 +16,11 @@ export function updateAccessCodeBox(): void {
   if (accessCodeBox) accessCodeBox.innerHTML = accessCode;
 }
 
-export function updatePlayerList(players: Players): void {
+export function updatePlayerList(players: {[key: string]: CustomPlayer;}): void {
   const playerList = document.getElementById('player-list');
-  console.log('Players', players);
+  // console.log('Players', players);
   const newPlayerList = Object.keys(players).map((playerId) => {
-    console.log(playerId);
+    // console.log(playerId);
     return '<li>' + players[playerId].username + '</li>';
   });
   if (playerList) playerList.innerHTML = newPlayerList.join('');

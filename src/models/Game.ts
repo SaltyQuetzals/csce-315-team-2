@@ -197,6 +197,8 @@ export class Game {
   }
 
   async playerDied(playerId: string): Promise<void> {
+    console.log(playerId);
+    console.log(this.players);
     const player = this.getPlayer(playerId);
     await player.died();
   }

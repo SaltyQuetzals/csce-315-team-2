@@ -15,21 +15,28 @@ export class SocketController{
     socket: Socket;  
     private gameController: GameController;
     private roomId: string;
-    constructor(roomId: string, gameController: GameController){
+    private username: string;
+    constructor(roomId: string, username: string, gameController: GameController){
         this.socket = io.connect("/", {
-            query: `roomId=${roomId}`
+            // query: `roomId=${roomId}`,
+            query: {
+                roomId,
+                username
+            }
         });
+
         this.roomId = roomId;
+        this.username = username;
         this.gameController = gameController;
 
         this.socket.on('connect', () => {
             this.gameController.localPlayer.id = this.socket.id;
+            this.gameController.localPlayer.username = this.username;
             this.gameController.players[this.socket.id] = this.gameController.localPlayer;
-            console.log(this.gameController.localPlayer.id);
-            console.log('Connected successfully.');
+            waiting.updateAccessCodeBox();
 
-            // gameController.localPlayer.id = this.socket.id;
-            // gameController.players[gameController.localPlayer.id] = gameController.localPlayer;
+            // console.log(this.gameController.localPlayer.id);
+            console.log('Connected successfully.');
 
             this.socket.on('start game', (message: StartGameParams) => {
                 console.log('Received start game event');
@@ -38,8 +45,10 @@ export class SocketController{
             });
 
             this.socket.on('new player', (message: NewPlayerParams) => {
-                const {roomHost, id, players} = message;
-                this.initNewPlayer(roomHost, id, players);
+                const {roomHost, id, username, players} = message;
+                console.log(message);
+                console.log(players);
+                this.initNewPlayer(roomHost, id, username, players);
             });
 
             this.socket.on('player moved', (message: MovementParams) => {
@@ -115,7 +124,7 @@ export class SocketController{
                     id
                 } = message;
                 delete gameController.players[id];
-                waiting.updatePlayerList(gameController.players);
+                waiting.updatePlayerList(this.gameController.players);
                 //if (message.roomHost === gameController.localPlayer.id) startGameButton.style.display = 'block';
             });
 
@@ -210,18 +219,24 @@ export class SocketController{
         });
     }
 
-    initNewPlayer(roomHost: string, playerId: string, players: {}): void{
+    initNewPlayer(roomHost: string, playerId: string, username: string, players: {[playerId: string]: string}): void{
+        console.log("init new players entered");
         let newPlayer = null;
         let startGameButton = document.getElementById('start');
         if (roomHost === this.gameController.localPlayer.id) startGameButton!.style.display = 'block';
         // console.log(JSON.stringify(Object.keys(this.gameController.players), null, 3));
         if (playerId === this.gameController.localPlayer.id) {
+            console.log("Local Player");
+            console.log(players);
+            this.gameController.localPlayer.username = username;
             // create all preexisting players
             for (const id in players) {
                 if (id && id){
                     this.gameController.numSurvivors++;
                     if (id !== this.gameController.localPlayer.id) {
-                        newPlayer = initPlayer(id);
+                        console.log("Players in init NewPlayer");
+                        console.log(players);
+                        newPlayer = initPlayer(id, players[id]);
                         this.gameController.players[id] = newPlayer;
 
                     }
@@ -229,11 +244,11 @@ export class SocketController{
             }
         } else {
             // create only new player
-            console.log('Another player has joined the room!');
-            newPlayer = initPlayer(playerId);
+            // console.log('Another player has joined the room!');
+            newPlayer = initPlayer(playerId, players[playerId]);
             this.gameController.players[playerId] = newPlayer;
             this.gameController.numSurvivors++;
-            console.log(newPlayer.id);
+            // console.log(newPlayer.id);
         }
         waiting.updatePlayerList(this.gameController.players);
     }

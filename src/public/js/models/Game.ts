@@ -18,6 +18,7 @@ export class GameController {
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
   localPlayer!: gameClasses.CustomPlayer;
+  username: string;
   numSurvivors!: number;
   HUD!: {
     ammo: Phaser.Text;
@@ -25,8 +26,9 @@ export class GameController {
     survivors: Phaser.Text;
   };
   endGame!: Phaser.Text;
-  constructor(roomId: string) {
+  constructor(roomId: string, username: string) {
     this.roomId = roomId;
+    this.username = username;
     this.game = new Phaser.Game(
       gameConstants.GAME_VIEW_WIDTH,
       gameConstants.GAME_VIEW_HEIGHT,
@@ -93,7 +95,7 @@ export class GameController {
       this.game.physics.arcade.enable(this.dropSprites);
   
       this.localPlayer = new gameClasses.CustomPlayer();
-      this.localPlayer = initPlayer('0');
+      this.localPlayer = initPlayer('0', 'local');
       this.localPlayer.id = '0';
 
       this.localPlayer.cameraSprite = this.game.add.sprite(this.localPlayer.character.x, this.localPlayer.character.y);
@@ -162,7 +164,7 @@ export class GameController {
       });
       this.endGame.fixedToCamera = true;
       
-      this.socket = new SocketController(this.roomId, this);
+      this.socket = new SocketController(this.roomId, this.username, this);
   }
 
 

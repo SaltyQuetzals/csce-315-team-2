@@ -52,7 +52,8 @@ io.on('connection', socket => {
   roomController.addPlayerToRoom(roomId, socket.id, username);
   const players = roomController.getNames(roomId);
   const roomHost = roomController.getRoomHost(roomId);
-  io.in(roomId).emit('new player', {id: socket.id, players, roomHost});
+  console.log(players);
+  io.in(roomId).emit('new player', {roomHost, id: socket.id, username, players});
 
   socket.on('start game', data => {
     const {roomId} = data;

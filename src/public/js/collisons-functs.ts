@@ -10,43 +10,45 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
 
     const player = game.localPlayer;
 
-    if (drop.type === 'Weapon') {
-        console.log(drop.item.type);
-        game.socket.sendSwitchGun(drop.item.type);
-        switch (drop.item.type) {
-            case 'revolver':
-                switchGun(player.gun, new Revolver());
-                break;
-            case 'shotgun':
-                switchGun(player.gun, new SawnOffShotgun());
-                break;
-            case 'automatic rifle':
-                switchGun(player.gun, new AutomaticRifle());
-                break;
-            default:
-                break; 
-        }
+    if (!player.isZombie) {
+        if (drop.type === 'Weapon') {
+            // console.log(drop.item.type);
+            game.socket.sendSwitchGun(drop.item.type);
+            switch (drop.item.type) {
+                case 'revolver':
+                    switchGun(player.gun, new Revolver());
+                    break;
+                case 'shotgun':
+                    switchGun(player.gun, new SawnOffShotgun());
+                    break;
+                case 'automatic rifle':
+                    switchGun(player.gun, new AutomaticRifle());
+                    break;
+                default:
+                    break; 
+            }
 
-    } else {
-        const type = drop.item.type;
-        console.log(type);
-        game.socket.sendActivateDrop(drop.id);
-        switch (type) {
-            case 'WeirdFlex':
-                player.gun.damage += 10;
-                break;
-            case 'Grit':
-                player.health += 100;
-                game.socket.sendChangeHealth(100);
-                break;
-            case 'Hammertime':
-                player.speed = 300;
-                break;
-            case 'Jackpot':
-                player.gun.ammo += player.gun.clipSize;
-                break;
-            default:
-                break;
+        } else {
+            const type = drop.item.type;
+            // console.log(type);
+            game.socket.sendActivateDrop(drop.id);
+            switch (type) {
+                case 'WeirdFlex':
+                    player.gun.damage += 10;
+                    break;
+                case 'Grit':
+                    player.health += 100;
+                    game.socket.sendChangeHealth(100);
+                    break;
+                case 'Hammertime':
+                    player.speed = 300;
+                    break;
+                case 'Jackpot':
+                    player.gun.ammo += player.gun.clipSize;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

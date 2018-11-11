@@ -27,6 +27,7 @@ export class CustomSprite extends Phaser.Sprite{
 
 export class CustomPlayer {
   id!: string;
+  username!: string;
   character!: CustomSprite;
   cameraSprite!: Phaser.Sprite;
   keyboard!: {[key: string]: boolean};

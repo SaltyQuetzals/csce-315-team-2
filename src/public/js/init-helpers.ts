@@ -89,6 +89,17 @@ export function initAvatar(player: CustomPlayer,
     }
     else {
         // Local player attributes
+        const userIndicator = game.game.add.graphics(0, 0);
+        userIndicator.lineStyle(2, 0x5ff0000, 1);
+        userIndicator.beginFill(0x5ff0000, 1);
+        userIndicator.drawTriangle(
+            [new Phaser.Point(avatar.width/2 - 10, -15), 
+            new Phaser.Point(avatar.width/2 + 10, -15), 
+            new Phaser.Point(avatar.width/2, -10)],
+            false);
+        userIndicator.endFill();
+        avatar.addChild(userIndicator);
+
         player.facing = {
             x: 0,
             y: 0
@@ -144,10 +155,11 @@ export function initAvatar(player: CustomPlayer,
     return avatar;
 }
 
-export function initPlayer(id: string) {
+export function initPlayer(id: string, username: string) {
 
     const newPlayer = new CustomPlayer();
     newPlayer.id = id;
+    newPlayer.username = username;
     // newPlayer.character = initAvatar(id, 'zombie_1');
     newPlayer.character = initAvatar(newPlayer, 'survivor_1');
     newPlayer.gun = initGun(newPlayer.character);

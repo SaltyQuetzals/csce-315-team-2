@@ -16,7 +16,6 @@
     <div class="center-container">
         <h1>Untitled Zombie Game ... 3?</h1>
         <form method="POST" action="/rooms" id="create-form" style="display: none">
-            <input type="text" placeholder="Username" name="username"/>
             <div class="buttongroup" style="display: flex; flex-direction: row;">
                 <br/>
                 <div class="btn">
@@ -30,11 +29,13 @@
         <form id="join-form" style="display: flex; flex-direction: column;">
             <div style="display: flex; flex-direction: row">
                 <input id="access-code" type="text" placeholder="Access Code"/>
-                <input id="user-name" type="text" placeholder="Username"/>
+                <input id="username" type="text" placeholder="Username"/>
                 <div class="btn">
                     <input id="join-submit" type="submit" name="join" value="→"/>
                 </div>
             </div>
+            <h2 id="username-error" style="display: none; color: red">Username is required</h2>
+            <h2 id="roomcode-error" style="display: none; color: red">Room code is required</h2>
             <span style="display: block; margin-top: 10px;">Don't have an access code?
                 <b id="create-game" class="btn">
                     <span style="position: relative; padding: 10px;">Create a Game</span>

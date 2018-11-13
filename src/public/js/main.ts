@@ -18,7 +18,9 @@ export let game = new GameController(roomId, username);
 
 const startGameButton = document.getElementById('start');
 
-function startGame() {
+const createButton = document.getElementById('create');
+
+function startGame(): void{
   document.getElementById('waiting-room-overlay')!.style.display = 'none';
   document.getElementById('background')!.style.display = 'none';
   document.getElementById('start')!.style.display = 'none';
@@ -26,7 +28,6 @@ function startGame() {
   // console.log(game.socket);
   game.socket.sendStartGame();
 }
-
 
 if (startGameButton) {
   startGameButton.addEventListener('click', startGame);

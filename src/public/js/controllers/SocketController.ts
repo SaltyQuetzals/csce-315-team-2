@@ -231,6 +231,7 @@ export class SocketController {
   }
 
   startGame(obstacles: [Obstacle], drops: [Drop], players: Players): void {
+    console.log(players);
     initObstacles(obstacles);
     initDrops(drops);
     const socketPlayers: Players = players;
@@ -252,6 +253,13 @@ export class SocketController {
         }
       }
     }
+    for (const playerKey of Object.keys(socketPlayers)) {
+        const avatar = this.gameController.players[playerKey].character;
+        avatar.x = socketPlayers[playerKey].player.avatar.location[0];
+        avatar.y = socketPlayers[playerKey].player.avatar.location[1];
+
+    }
+
     this.gameController.GAME_STARTED = true;
     const overlay: HTMLElement|null =
         document.getElementById('waiting-room-overlay');

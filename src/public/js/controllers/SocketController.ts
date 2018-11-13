@@ -11,6 +11,7 @@ import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
 import * as waiting from '../waiting';
 import {switchGun} from '../weapon-functs';
+import { animateAvatar } from '../movement';
 
 export class SocketController {
   socket: Socket;
@@ -54,8 +55,13 @@ export class SocketController {
       this.socket.on('player moved', (message: MovementParams) => {
         // console.log(game.players);
         const avatar = this.gameController.players[message.id].character;
+        let {x, y} = avatar;
         avatar.x = message.location.x;
         avatar.y = message.location.y;
+        let dx = avatar.x - x;
+        let dy = avatar.y - y;
+        animateAvatar(avatar, dx, dy);
+        console.log(avatar.id, dx, dy);
       });
 
       this.socket.on(

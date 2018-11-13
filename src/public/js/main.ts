@@ -20,7 +20,7 @@ const startGameButton = document.getElementById('start');
 
 const createButton = document.getElementById('create');
 
-function startGame(): void{
+function startGame(): void {
   document.getElementById('waiting-room-overlay')!.style.display = 'none';
   document.getElementById('background')!.style.display = 'none';
   document.getElementById('start')!.style.display = 'none';

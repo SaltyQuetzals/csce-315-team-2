@@ -78,21 +78,20 @@ window.onload = () => {
       const username = (usernameInput as HTMLInputElement).value;
       const roomCode = (accessCodeForm as HTMLInputElement).value;
 
-      if (usernameError) usernameError.style.display = "none";
-      if (roomCodeError) roomCodeError.style.display = "none";
+      if (usernameError) usernameError.style.display = 'none';
+      if (roomCodeError) roomCodeError.style.display = 'none';
 
 
-      if (!roomCode || roomCode === ""){
-        if (roomCodeError) roomCodeError.style.display = "block";
+      if (!roomCode || roomCode === '') {
+        if (roomCodeError) roomCodeError.style.display = 'block';
         return;
       }
-      if (!username || username === ""){
-        if (usernameError) usernameError.style.display = "block";
+      if (!username || username === '') {
+        if (usernameError) usernameError.style.display = 'block';
         return;
       }
-      window.location.replace(
-          `/rooms/${(accessCodeForm as HTMLInputElement).value}?username=${
-              username}`);
+      window.location.replace(`/rooms/${
+          (accessCodeForm as HTMLInputElement).value}?username=${username}`);
     });
   }
 };

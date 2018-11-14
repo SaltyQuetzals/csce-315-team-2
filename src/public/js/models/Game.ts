@@ -228,12 +228,20 @@ export class GameController {
   updateShadowTexture() {
     this.shadowTexture.context.fillStyle = 'rgb(10, 10, 10)';
     this.shadowTexture.context.fillRect(
-        0, 0, this.game.width + 20, this.game.height + 20);
-    this.game.world.bringToTop(this.shadowTexture);
+        0, 0, this.game.width, this.game.height);
 
-    const radius = 100,
-          heroX = this.localPlayer.character.x - this.game.camera.x + 30,
-          heroY = this.localPlayer.character.y - this.game.camera.y + 30;
+    this.game.world.bringToTop(this.shadowTexture);
+    this.game.world.bringToTop(this.lightSprite);
+
+    let radius: number;
+
+    if (this.localPlayer.isZombie)
+      radius = 500;
+    else
+      radius = 300;
+
+    const heroX = this.localPlayer.character.x - this.game.camera.x + 30;
+    const heroY = this.localPlayer.character.y - this.game.camera.y + 30;
 
     const gradient = this.shadowTexture.context.createRadialGradient(
         heroX, heroY, 100 * 0.75, heroX, heroY, radius);

@@ -60,7 +60,7 @@ export class SocketController {
           'weapon fired', (message: {id: string, fireAngle: number}) => {
             const {id, fireAngle} = message;
             const gun = gameController.players[id].gun;
-            // gun.fireAngle = fireAngle;
+            gun.pGun.fireAngle = fireAngle;
             gun.shoot();
           });
 
@@ -270,6 +270,7 @@ export class SocketController {
         // Movement is disabled
         player.isDead = true;
         this.sendPlayerDied(killerId);
+        this.gameController.HUD.healthbar.width = 1.5*player.health;
       }
       player.character.destroy();
     } else {
@@ -277,6 +278,9 @@ export class SocketController {
       // animate HIT
       player.character.animating = true;
       player.character.animations.play('hurt', 20, false);
+      if (player.id === this.gameController.localPlayer.id) {
+        this.gameController.HUD.healthbar.width = 1.5*player.health;
+      }
     }
   }
 
@@ -303,6 +307,7 @@ export class SocketController {
     }
     player.isDead = false;
     if (player.id === this.gameController.localPlayer.id) {
+      this.gameController.HUD.healthbar.width = 1.5*player.health;
       this.gameController.localPlayer = player;
     }
   }

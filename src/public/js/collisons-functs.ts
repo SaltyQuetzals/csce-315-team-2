@@ -54,7 +54,17 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
   }
 }
 
+export function killBulletTest(bullet: Phaser.Sprite, obstacle: CustomSprite) {
+  bullet.kill();
+}
+
 export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
+  const player = game.players[obstacle.id];
+  if (player !== undefined) {
+    if (bullet.data.bulletManager === player.gun.pGun) {
+      return;
+    }
+  }
   bullet.kill();
 }
 

@@ -1,5 +1,5 @@
 import {Drop} from '../../../models/Drop';
-import {bulletHitHandler, killBullet, melee, pickupDrop} from '../collisons-functs';
+import {bulletHitHandler, killBullet, melee, pickupDrop, killBulletTest} from '../collisons-functs';
 import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../game-classes';
 import * as gameConstants from '../game-constants';
@@ -15,6 +15,7 @@ export class GameController {
   players!: {[key: string]: gameClasses.CustomPlayer};
   drops!: {[key: string]: Drop};
   targets!: Phaser.Group;
+  bullets!: Phaser.Group;
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
   localPlayer!: gameClasses.CustomPlayer;
@@ -38,6 +39,8 @@ export class GameController {
   preload = ():
       void => {
         console.log('Preloading');
+        this.game.stage.disableVisibilityChange = true;
+
         this.game.load.image('bg', '../assets/bg.png');
         this.game.load.image('bullet', '../assets/bullet.png');
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
@@ -79,6 +82,9 @@ export class GameController {
 
         this.targets = this.game.add.group();
         this.game.physics.arcade.enable(this.targets);
+
+        this.bullets = this.game.add.group();
+        this.game.physics.arcade.enable(this.bullets);
 
         this.obstacles = this.game.add.group();
         this.game.physics.arcade.enable(this.obstacles);
@@ -182,10 +188,16 @@ export class GameController {
         this.game.physics.arcade.collide(
             this.localPlayer.character, this.obstacles, undefined, undefined,
             this);
-        this.game.physics.arcade.collide(
-            this.localPlayer.gun.pGun.bullets, this.obstacles, killBullet,
+        this.game.physics.arcade.overlap(
+            this.bullets, this.obstacles, killBullet,
             undefined, this);
-        this.game.physics.arcade.collide(
+        this.game.physics.arcade.overlap(
+            this.bullets, this.targets, killBullet,
+            undefined, this);
+        this.game.physics.arcade.overlap(
+            this.bullets, this.localPlayer.character, killBulletTest,
+            undefined, this);
+        this.game.physics.arcade.overlap(
             this.localPlayer.character, this.dropSprites, pickupDrop, undefined,
             this);
       }

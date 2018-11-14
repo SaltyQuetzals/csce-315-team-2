@@ -30,6 +30,8 @@ export function initGun(
   newGun.pGun = game.game.add.weapon(30, 'weapons');
   newGun.name = weapon.constructor.name;
 
+  game.bullets.add(newGun.pGun.bullets);
+
   // Create bullets
   newGun.pGun.addBulletAnimation('bullet', [15, 16, 17, 18, 19], 60, true);
   newGun.pGun.bulletAnimation = 'bullet';

@@ -1,4 +1,5 @@
 import {PLAYER_SPEED} from './game-constants';
+import { Weapon, Bullet } from 'phaser-ce';
 
 
 

@@ -1,4 +1,5 @@
 import {Drop} from '../../../models/Drop';
+import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH} from '../../../shared/constants';
 import {bulletHitHandler, killBullet, melee, pickupDrop} from '../collisons-functs';
 import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../game-classes';
@@ -6,14 +7,13 @@ import * as gameConstants from '../game-constants';
 import {initPlayer} from '../init-helpers';
 import {movementHandler} from '../movement';
 import {fireGun} from '../weapon-functs';
-import { GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT } from '../../../shared/constants';
 
 export class GameController {
   GAME_STARTED = false;
-  shadowTexture!: any;
-  lightSprite!: any;
+  shadowTexture!: Phaser.BitmapData;
+  lightSprite!: Phaser.Image;
   layer!: Phaser.TilemapLayer;
-  map!: any;
+  map!: Phaser.Tilemap;
   game!: Phaser.Game;
   socket!: SocketController;
   roomId!: string;
@@ -44,7 +44,8 @@ export class GameController {
       void => {
         console.log('Preloading');
         this.game.load.image('tiles', '../assets/0x72_DungeonTilesetII_v1.png');
-        this.game.load.tilemap('map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
+        this.game.load.tilemap(
+            'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
         this.game.load.image('bullet', '../assets/bullet.png');
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
         this.game.load.image('Revolver', '../assets/Revolver.png');
@@ -71,7 +72,7 @@ export class GameController {
         this.game.load.image('field_of_view', '../assets/FieldOfView.png');
 
         this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-        //this.scale.pageAlignHorizontally = true;
+        // this.scale.pageAlignHorizontally = true;
         this.game.scale.pageAlignVertically = true;
       }
 
@@ -87,10 +88,12 @@ export class GameController {
         this.layer.scale.setTo(3);
         this.layer.resizeWorld();
 
-        this.shadowTexture = this.game.add.bitmapData(this.game.width, this.game.height);
+        this.shadowTexture =
+            this.game.add.bitmapData(this.game.width, this.game.height);
 
-        this.lightSprite = this.game.add.image(this.game.camera.x, this.game.camera.y, this.shadowTexture);
-        
+        this.lightSprite = this.game.add.image(
+            this.game.camera.x, this.game.camera.y, this.shadowTexture);
+
         this.lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
 
         this.players = {};
@@ -101,7 +104,7 @@ export class GameController {
 
         this.obstacles = this.game.add.group();
         this.game.physics.arcade.enable(this.obstacles);
-        
+
         this.dropSprites = this.game.add.group();
         this.game.physics.arcade.enable(this.dropSprites);
 
@@ -212,33 +215,34 @@ export class GameController {
             this);
       }
 
-  render = (): void => {
-    // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
-    // game.localPlayer.gun.debug(20, 128);
+  render = ():
+      void => {
+        // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
+        // game.localPlayer.gun.debug(20, 128);
 
-    this.HUD.ammo.setText('Ammo: ' + this.localPlayer.gun.ammo);
-    this.HUD.health.setText('Health: ' + this.localPlayer.health);
-    this.HUD.survivors.setText('Survivors: ' + this.numSurvivors);
-  }
+        this.HUD.ammo.setText('Ammo: ' + this.localPlayer.gun.ammo);
+        this.HUD.health.setText('Health: ' + this.localPlayer.health);
+        this.HUD.survivors.setText('Survivors: ' + this.numSurvivors);
+      }
 
-  updateShadowTexture(){
-    
+  updateShadowTexture() {
     this.shadowTexture.context.fillStyle = 'rgb(10, 10, 10)';
-    this.shadowTexture.context.fillRect(0, 0, this.game.width + 20, this.game.height + 20);
+    this.shadowTexture.context.fillRect(
+        0, 0, this.game.width + 20, this.game.height + 20);
+    this.game.world.bringToTop(this.shadowTexture);
 
-    var radius = 100,
-        heroX = this.localPlayer.character.x - this.game.camera.x + 30,
-        heroY = this.localPlayer.character.y - this.game.camera.y + 30;
-    
-    var gradient = this.shadowTexture.context.createRadialGradient(
-            heroX, heroY, 100 * 0.75,
-            heroX, heroY, radius);
+    const radius = 100,
+          heroX = this.localPlayer.character.x - this.game.camera.x + 30,
+          heroY = this.localPlayer.character.y - this.game.camera.y + 30;
+
+    const gradient = this.shadowTexture.context.createRadialGradient(
+        heroX, heroY, 100 * 0.75, heroX, heroY, radius);
     gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
 
     this.shadowTexture.context.beginPath();
     this.shadowTexture.context.fillStyle = gradient;
-    this.shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI*2, false);
+    this.shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI * 2, false);
     this.shadowTexture.context.fill();
 
     this.shadowTexture.dirty = true;

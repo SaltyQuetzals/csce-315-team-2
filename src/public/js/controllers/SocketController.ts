@@ -30,6 +30,7 @@ export class SocketController {
 
     this.socket.on('connect', () => {
       this.gameController.localPlayer.id = this.socket.id;
+      this.gameController.localPlayer.character.id = this.socket.id;
       this.gameController.localPlayer.username = this.username;
       this.gameController.players[this.socket.id] =
           this.gameController.localPlayer;
@@ -121,7 +122,7 @@ export class SocketController {
             delete gameController.players[id];
             waiting.updatePlayerList(this.gameController.players);
             // if (message.roomHost === gameController.localPlayer.id)
-            // startGameButton.style.display = 'block';
+            // startGamebutton.style.display = 'block';
           });
 
       this.socket.on('err', (message: {}) => {

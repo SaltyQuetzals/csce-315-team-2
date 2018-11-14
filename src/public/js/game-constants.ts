@@ -1,6 +1,5 @@
-export const GAME_VIEW_WIDTH = 800;
-export const GAME_VIEW_HEIGHT = 600;
-
+export const GAME_VIEW_WIDTH = window.innerWidth;
+export const GAME_VIEW_HEIGHT = window.innerHeight;
 // REMOVE LATER?
 export const BOARD_WIDTH = 2400;
 export const BOARD_HEIGHT = 1800;

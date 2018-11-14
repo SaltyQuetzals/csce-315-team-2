@@ -10,6 +10,8 @@ import { GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT } from '../../../shared/constants';
 
 export class GameController {
   GAME_STARTED = false;
+  shadowTexture!: any;
+  lightSprite!: any;
   layer!: Phaser.TilemapLayer;
   map!: any;
   game!: Phaser.Game;
@@ -67,6 +69,10 @@ export class GameController {
             64   // frame height
         );
         this.game.load.image('field_of_view', '../assets/FieldOfView.png');
+
+        this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        //this.scale.pageAlignHorizontally = true;
+        this.game.scale.pageAlignVertically = true;
       }
 
   create = ():
@@ -80,6 +86,12 @@ export class GameController {
         this.layer = this.map.createLayer('Tile Layer 1');
         this.layer.scale.setTo(3);
         this.layer.resizeWorld();
+
+        this.shadowTexture = this.game.add.bitmapData(this.game.width, this.game.height);
+
+        this.lightSprite = this.game.add.image(this.game.camera.x, this.game.camera.y, this.shadowTexture);
+        
+        this.lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
 
         this.players = {};
         this.drops = {};
@@ -182,6 +194,9 @@ export class GameController {
         this.localPlayer.cameraSprite.x = this.localPlayer.character.x;
         this.localPlayer.cameraSprite.y = this.localPlayer.character.y;
 
+        this.lightSprite.reset(this.game.camera.x, this.game.camera.y);
+        this.updateShadowTexture();
+
         // Check collisions
         this.game.physics.arcade.overlap(
             this.localPlayer.gun.pGun.bullets, this.targets, bulletHitHandler,
@@ -204,5 +219,28 @@ export class GameController {
     this.HUD.ammo.setText('Ammo: ' + this.localPlayer.gun.ammo);
     this.HUD.health.setText('Health: ' + this.localPlayer.health);
     this.HUD.survivors.setText('Survivors: ' + this.numSurvivors);
+  }
+
+  updateShadowTexture(){
+    
+    this.shadowTexture.context.fillStyle = 'rgb(10, 10, 10)';
+    this.shadowTexture.context.fillRect(0, 0, this.game.width + 20, this.game.height + 20);
+
+    var radius = 100,
+        heroX = this.localPlayer.character.x - this.game.camera.x + 30,
+        heroY = this.localPlayer.character.y - this.game.camera.y + 30;
+    
+    var gradient = this.shadowTexture.context.createRadialGradient(
+            heroX, heroY, 100 * 0.75,
+            heroX, heroY, radius);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+    this.shadowTexture.context.beginPath();
+    this.shadowTexture.context.fillStyle = gradient;
+    this.shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI*2, false);
+    this.shadowTexture.context.fill();
+
+    this.shadowTexture.dirty = true;
   }
 }

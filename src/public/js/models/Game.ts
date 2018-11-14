@@ -1,4 +1,5 @@
 import {Drop} from '../../../models/Drop';
+import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH} from '../../../shared/constants';
 import {bulletHitHandler, killBullet, melee, pickupDrop} from '../collisons-functs';
 import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../game-classes';
@@ -9,6 +10,10 @@ import {fireGun} from '../weapon-functs';
 
 export class GameController {
   GAME_STARTED = false;
+  shadowTexture!: Phaser.BitmapData;
+  lightSprite!: Phaser.Image;
+  layer!: Phaser.TilemapLayer;
+  map!: Phaser.Tilemap;
   game!: Phaser.Game;
   socket!: SocketController;
   roomId!: string;
@@ -38,7 +43,9 @@ export class GameController {
   preload = ():
       void => {
         console.log('Preloading');
-        this.game.load.image('bg', '../assets/bg.png');
+        this.game.load.image('tiles', '../assets/0x72_DungeonTilesetII_v1.png');
+        this.game.load.tilemap(
+            'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
         this.game.load.image('bullet', '../assets/bullet.png');
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
         this.game.load.image('Revolver', '../assets/Revolver.png');
@@ -63,16 +70,31 @@ export class GameController {
             64   // frame height
         );
         this.game.load.image('field_of_view', '../assets/FieldOfView.png');
+
+        this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        // this.scale.pageAlignHorizontally = true;
+        this.game.scale.pageAlignVertically = true;
       }
 
   create = ():
       void => {
         console.log('Creating');
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
-        this.game.world.setBounds(
-            0, 0, gameConstants.BOARD_WIDTH, gameConstants.BOARD_HEIGHT);
-        this.game.add.tileSprite(
-            0, 0, gameConstants.BOARD_WIDTH, gameConstants.BOARD_HEIGHT, 'bg');
+
+        this.map = this.game.add.tilemap('map');
+        this.map.addTilesetImage('0x72_DungeonTilesetII_v1', 'tiles');
+
+        this.layer = this.map.createLayer('Tile Layer 1');
+        this.layer.scale.setTo(3);
+        this.layer.resizeWorld();
+
+        this.shadowTexture =
+            this.game.add.bitmapData(this.game.width, this.game.height);
+
+        this.lightSprite = this.game.add.image(
+            this.game.camera.x, this.game.camera.y, this.shadowTexture);
+
+        this.lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
 
         this.players = {};
         this.drops = {};
@@ -175,6 +197,9 @@ export class GameController {
         this.localPlayer.cameraSprite.x = this.localPlayer.character.x;
         this.localPlayer.cameraSprite.y = this.localPlayer.character.y;
 
+        this.lightSprite.reset(this.game.camera.x, this.game.camera.y);
+        this.updateShadowTexture();
+
         // Check collisions
         this.game.physics.arcade.overlap(
             this.localPlayer.gun.pGun.bullets, this.targets, bulletHitHandler,
@@ -190,12 +215,44 @@ export class GameController {
             this);
       }
 
-  render = (): void => {
-    // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
-    // game.localPlayer.gun.debug(20, 128);
+  render = ():
+      void => {
+        // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
+        // game.localPlayer.gun.debug(20, 128);
 
-    this.HUD.ammo.setText('Ammo: ' + this.localPlayer.gun.ammo);
-    this.HUD.health.setText('Health: ' + this.localPlayer.health);
-    this.HUD.survivors.setText('Survivors: ' + this.numSurvivors);
+        this.HUD.ammo.setText('Ammo: ' + this.localPlayer.gun.ammo);
+        this.HUD.health.setText('Health: ' + this.localPlayer.health);
+        this.HUD.survivors.setText('Survivors: ' + this.numSurvivors);
+      }
+
+  updateShadowTexture() {
+    this.shadowTexture.context.fillStyle = 'rgb(10, 10, 10)';
+    this.shadowTexture.context.fillRect(
+        0, 0, this.game.width, this.game.height);
+
+    this.game.world.bringToTop(this.shadowTexture);
+    this.game.world.bringToTop(this.lightSprite);
+
+    let radius: number;
+
+    if (this.localPlayer.isZombie)
+      radius = 500;
+    else
+      radius = 300;
+
+    const heroX = this.localPlayer.character.x - this.game.camera.x + 30;
+    const heroY = this.localPlayer.character.y - this.game.camera.y + 30;
+
+    const gradient = this.shadowTexture.context.createRadialGradient(
+        heroX, heroY, 100 * 0.75, heroX, heroY, radius);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+    this.shadowTexture.context.beginPath();
+    this.shadowTexture.context.fillStyle = gradient;
+    this.shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI * 2, false);
+    this.shadowTexture.context.fill();
+
+    this.shadowTexture.dirty = true;
   }
 }

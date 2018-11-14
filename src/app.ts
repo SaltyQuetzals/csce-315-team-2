@@ -28,13 +28,29 @@ app.get('/', (_req, res) => {
 });
 
 app.get('/rooms/:roomCode', (_req, res) => {
-  res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
+  const {roomCode} = _req.params;
+  const {username} = _req.query;
+  if (!username || username === '')
+    res.redirect(`/username?roomcode=${roomCode}`);
+  else
+    res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
+});
+
+app.get('/username', (_req, res) => {
+  const {roomcode} = _req.query;
+  if (!roomcode || roomcode === '')
+    res.redirect('/');
+  else
+    res.sendFile(path.join(STATIC_DIR, '/html/username.html'));
 });
 
 app.post('/rooms', (req, res) => {
   const {username} = req.body;
   const roomCode = random(ROOM_CODE_LENGTH);
-  res.redirect(`/rooms/${roomCode}?username=${username}`);
+  if (!username || username === '')
+    res.redirect(`/username?roomcode=${roomCode}`);
+  else
+    res.redirect(`/rooms/${roomCode}?username=${username}`);
 });
 
 const server = new http.Server(app);

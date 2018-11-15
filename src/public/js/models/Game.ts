@@ -193,28 +193,28 @@ export class GameController {
         this.HUD.healthbar.beginFill(0xaf0000, 1);
         this.HUD.healthbar.drawRect(0, 0, 150, 20);
         this.HUD.healthbar.endFill();
-        this.HUD.healthbar.alpha = .5;
+        // this.HUD.healthbar.alpha = .5;
 
         this.HUD.ammo.graphic = this.game.add.sprite(10, 40, 'HUDammo');
-        this.HUD.ammo.graphic.alpha = .5;
+        // this.HUD.ammo.graphic.alpha = .5;
         this.HUD.ammo.text =
             this.game.add.text(10 + this.HUD.ammo.graphic.width + 10, 35, '', {
               font: 'bold 40px Annie Use Your Telescope',
-              fill: '#5b5b5b',
+              fill: '#ffffff',
               align: 'center'
             });
 
         this.HUD.survivors.graphic = this.game.add.sprite(
             gameConstants.GAME_VIEW_WIDTH - 100, 10, 'survivor_1');
         this.HUD.survivors.graphic.scale.setTo(.9, .9);
-        this.HUD.survivors.graphic.tint = 0x5b5b5b;
-        this.HUD.survivors.graphic.alpha = .5;
+        // this.HUD.survivors.graphic.tint = 0x5b5b5b;
+        // this.HUD.survivors.graphic.alpha = .5;
         this.HUD.survivors.text = this.game.add.text(
             gameConstants.GAME_VIEW_WIDTH - 95 +
                 this.HUD.survivors.graphic.width,
             12, '', {
               font: 'bold 40px Annie Use Your Telescope',
-              fill: '#5b5b5b',
+              fill: '#ffffff',
               align: 'center'
             });
     
@@ -242,11 +242,13 @@ export class GameController {
 
         this.game.world.bringToTop(this.shadowTexture);
         this.game.world.bringToTop(this.lightSprite);
+        this.game.world.bringToTop(healthbarBackground);
         this.game.world.bringToTop(this.HUD.healthbar);
         this.game.world.bringToTop(this.HUD.survivors.graphic);
         this.game.world.bringToTop(this.HUD.survivors.text);
         this.game.world.bringToTop(this.HUD.ammo.text);
         this.game.world.bringToTop(this.HUD.ammo.graphic);
+        this.game.world.bringToTop(this.endGame);
       }
 
 

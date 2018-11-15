@@ -8,10 +8,10 @@ import {PLAYER_HEALTH} from '../game-constants';
 import {initAvatar, initDrops, initObstacles, initPlayer} from '../init-helpers';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
+import {animateAvatar} from '../movement';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
 import * as waiting from '../waiting';
 import {switchGun} from '../weapon-functs';
-import { animateAvatar } from '../movement';
 
 export class SocketController {
   socket: Socket;
@@ -54,11 +54,11 @@ export class SocketController {
       this.socket.on('player moved', (message: MovementParams) => {
         // console.log(game.players);
         const avatar = this.gameController.players[message.id].character;
-        let {x, y} = avatar;
+        const {x, y} = avatar;
         avatar.x = message.location.x;
         avatar.y = message.location.y;
-        let dx = avatar.x - x;
-        let dy = avatar.y - y;
+        const dx = avatar.x - x;
+        const dy = avatar.y - y;
         animateAvatar(avatar, dx, dy);
         console.log(avatar.id, dx, dy);
       });

@@ -1,4 +1,5 @@
 import {Drop} from '../../models/Drop';
+import {Player} from '../../models/Player';
 
 import {CustomPlayer, CustomSprite} from './game-classes';
 import {game} from './main';
@@ -39,6 +40,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           break;
         case 'Grit':
           player.health += 100;
+          game.HUD.healthbar.width = 1.5 * player.health;
           game.socket.sendChangeHealth(100);
           break;
         case 'Hammertime':
@@ -54,12 +56,9 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
   }
 }
 
-export function killBulletTest(bullet: Phaser.Sprite, obstacle: CustomSprite) {
-  bullet.kill();
-}
-
 export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
   const player = game.players[obstacle.id];
+
   if (player !== undefined) {
     if (bullet.data.bulletManager === player.gun.pGun) {
       return;
@@ -71,9 +70,12 @@ export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
 export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
   /// Currently just kills sprites... need to implement health here
 
+  if (enemy.id === game.localPlayer.id || enemy.id === '0') {
+    return;
+  }
   game.socket.sendHit(enemy.id, game.localPlayer.gun.damage);
-  bullet.kill();
   if (game.localPlayer.gun.damage >= game.players[enemy.id].health) {
+    killBullet(bullet, enemy);
     enemy.kill();
   } else {
     game.players[enemy.id].health -= game.localPlayer.gun.damage;
@@ -91,6 +93,10 @@ export function melee(player: CustomPlayer) {
 
 export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {
   const meleeDamage = 100;
+
+  if (enemy.id === game.localPlayer.id || enemy.id === '0') {
+    return;
+  }
 
   game.socket.sendHit(enemy.id, meleeDamage);
 

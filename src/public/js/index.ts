@@ -5,8 +5,10 @@ window.onload = () => {
   const joinGameForm = document.getElementById('join-form');
   const joinSubmitButton = document.getElementById('join-submit');
   const accessCodeForm = document.getElementById('access-code');
-  const userNameForm = document.getElementById('user-name');
   const backButtons = document.getElementsByClassName('back-button');
+  const usernameInput = document.getElementById('username');
+  const usernameError = document.getElementById('username-error');
+  const roomCodeError = document.getElementById('roomcode-error');
 
   function reset(this: HTMLElement, event: Event) {
     if (event) {
@@ -73,10 +75,23 @@ window.onload = () => {
   if (joinSubmitButton && accessCodeForm) {
     joinSubmitButton.addEventListener('click', event => {
       event.preventDefault();
-      console.log(accessCodeForm as HTMLInputElement);
-      window.location.replace(
-          `/rooms/${(accessCodeForm as HTMLInputElement).value}?username=${
-              (userNameForm as HTMLInputElement).value}`);
+      const username = (usernameInput as HTMLInputElement).value;
+      const roomCode = (accessCodeForm as HTMLInputElement).value;
+
+      if (usernameError) usernameError.style.display = 'none';
+      if (roomCodeError) roomCodeError.style.display = 'none';
+
+
+      if (!roomCode || roomCode === '') {
+        if (roomCodeError) roomCodeError.style.display = 'block';
+        return;
+      }
+      if (!username || username === '') {
+        if (usernameError) usernameError.style.display = 'block';
+        return;
+      }
+      window.location.replace(`/rooms/${
+          (accessCodeForm as HTMLInputElement).value}?username=${username}`);
     });
   }
 };

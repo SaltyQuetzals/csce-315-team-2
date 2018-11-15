@@ -1,5 +1,6 @@
 import {Drop} from '../../../models/Drop';
-import {bulletHitHandler, killBullet, killBulletTest, melee, pickupDrop} from '../collisons-functs';
+import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH} from '../../../shared/constants';
+import {bulletHitHandler, killBullet, melee, pickupDrop} from '../collisons-functs';
 import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../game-classes';
 import * as gameConstants from '../game-constants';
@@ -9,6 +10,10 @@ import {fireGun} from '../weapon-functs';
 
 export class GameController {
   GAME_STARTED = false;
+  shadowTexture!: Phaser.BitmapData;
+  lightSprite!: Phaser.Image;
+  layer!: Phaser.TilemapLayer;
+  map!: Phaser.Tilemap;
   game!: Phaser.Game;
   socket!: SocketController;
   roomId!: string;
@@ -19,10 +24,11 @@ export class GameController {
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
   localPlayer!: gameClasses.CustomPlayer;
-  username: string;
+  username!: string;
   numSurvivors!: number;
   HUD!: {
-    ammo: Phaser.Text; health: Phaser.Text; survivors: Phaser.Text;
+    ammo: {text: Phaser.Text; graphic: Phaser.Sprite, health: Phaser.Text};
+    survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
     healthbar: Phaser.Graphics;
   };
   endGame!: Phaser.Text;
@@ -53,8 +59,9 @@ export class GameController {
             'Annie Use Your Telescope',
             '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
         this.game.stage.disableVisibilityChange = true;
-
-        this.game.load.image('bg', '../assets/bg.png');
+        this.game.load.image('tiles', '../assets/0x72_DungeonTilesetII_v1.png');
+        this.game.load.tilemap(
+            'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
         this.game.load.image('bullet', '../assets/bullet.png');
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
         this.game.load.image('Revolver', '../assets/Revolver.png');
@@ -63,6 +70,7 @@ export class GameController {
         this.game.load.image('p2', '../assets/Grit.png');
         this.game.load.image('p3', '../assets/Hammertime.png');
         this.game.load.image('p4', '../assets/Jackpot.png');
+        this.game.load.image('HUDammo', '../assets/HUDammo.png');
         this.game.load.spritesheet(
             'weapons', '../assets/WeaponsSpriteSheet.png',
             64,  // frame width
@@ -79,16 +87,31 @@ export class GameController {
             64   // frame height
         );
         this.game.load.image('field_of_view', '../assets/FieldOfView.png');
+
+        this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        // this.scale.pageAlignHorizontally = true;
+        this.game.scale.pageAlignVertically = true;
       }
 
   create = ():
       void => {
         console.log('Creating');
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
-        this.game.world.setBounds(
-            0, 0, gameConstants.BOARD_WIDTH, gameConstants.BOARD_HEIGHT);
-        this.game.add.tileSprite(
-            0, 0, gameConstants.BOARD_WIDTH, gameConstants.BOARD_HEIGHT, 'bg');
+
+        this.map = this.game.add.tilemap('map');
+        this.map.addTilesetImage('0x72_DungeonTilesetII_v1', 'tiles');
+
+        this.layer = this.map.createLayer('Tile Layer 1');
+        this.layer.scale.setTo(3);
+        this.layer.resizeWorld();
+
+        this.shadowTexture =
+            this.game.add.bitmapData(this.game.width, this.game.height);
+
+        this.lightSprite = this.game.add.image(
+            this.game.camera.x, this.game.camera.y, this.shadowTexture);
+
+        this.lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
 
         this.players = {};
         this.drops = {};
@@ -108,6 +131,8 @@ export class GameController {
         this.localPlayer = new gameClasses.CustomPlayer();
         this.localPlayer = initPlayer('0', 'local');
         this.localPlayer.id = '0';
+        //   this.bullets.remove(this.localPlayer.gun.pGun);
+
 
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
@@ -150,51 +175,65 @@ export class GameController {
         };
 
         this.HUD = Object();
-        this.HUD.ammo = this.game.add.text(
-            10, gameConstants.GAME_VIEW_HEIGHT - 50, 'Ammo: ', {
-              font: 'bold 30px Annie Use Your Telescope',
-              fill: '#004887',
-              align: 'center'
-            });
-        this.HUD.health = this.game.add.text(
-            gameConstants.GAME_VIEW_WIDTH / 2 - 100,
-            gameConstants.GAME_VIEW_HEIGHT - 50, 'Health: ', {
-              font: 'bold 30px Annie Use Your Telescope',
-              fill: '#af0000',
-              align: 'center'
-            });
-        this.HUD.survivors = this.game.add.text(
-            gameConstants.GAME_VIEW_WIDTH - 200,
-            gameConstants.GAME_VIEW_HEIGHT - 50, 'Survivors: ', {
-              font: 'bold 30px Annie Use Your Telescope',
-              fill: '#004887',
-              align: 'center'
-            });
+        this.HUD.ammo = Object();
+        this.HUD.survivors = Object();
 
         const healthbarBackground = this.game.add.graphics(10, 10);
         healthbarBackground.lineStyle(2, 0x5b5b5b, 1);
         healthbarBackground.beginFill(0x5b5b5b, 1);
         healthbarBackground.drawRect(0, 0, 150, 20);
         healthbarBackground.endFill();
+        healthbarBackground.alpha = .5;
 
         this.HUD.healthbar = this.game.add.graphics(10, 10);
         this.HUD.healthbar.lineStyle(2, 0xaf0000, 1);
         this.HUD.healthbar.beginFill(0xaf0000, 1);
         this.HUD.healthbar.drawRect(0, 0, 150, 20);
         this.HUD.healthbar.endFill();
+        this.HUD.healthbar.alpha = .5;
 
-        this.HUD.ammo.fixedToCamera = true;
-        this.HUD.health.fixedToCamera = true;
-        this.HUD.survivors.fixedToCamera = true;
+        this.HUD.ammo.graphic = this.game.add.sprite(10, 40, 'HUDammo');
+        this.HUD.ammo.graphic.alpha = .5;
+        this.HUD.ammo.text =
+            this.game.add.text(10 + this.HUD.ammo.graphic.width + 10, 35, '', {
+              font: 'bold 40px Annie Use Your Telescope',
+              fill: '#5b5b5b',
+              align: 'center'
+            });
+
+
+        this.HUD.survivors.graphic = this.game.add.sprite(
+            gameConstants.GAME_VIEW_WIDTH - 100, 10, 'survivor_1');
+        this.HUD.survivors.graphic.scale.setTo(.9, .9);
+        this.HUD.survivors.graphic.tint = 0x5b5b5b;
+        this.HUD.survivors.graphic.alpha = .5;
+        this.HUD.survivors.text = this.game.add.text(
+            gameConstants.GAME_VIEW_WIDTH - 95 +
+                this.HUD.survivors.graphic.width,
+            12, '', {
+              font: 'bold 40px Annie Use Your Telescope',
+              fill: '#5b5b5b',
+              align: 'center'
+            });
+
+        this.HUD.ammo.text.fixedToCamera = true;
+        this.HUD.ammo.graphic.fixedToCamera = true;
+        this.HUD.survivors.text.fixedToCamera = true;
+        this.HUD.survivors.graphic.fixedToCamera = true;
         this.HUD.healthbar.fixedToCamera = true;
+        healthbarBackground.fixedToCamera = true;
+
+
 
         this.endGame = this.game.add.text(
             gameConstants.GAME_VIEW_WIDTH / 2,
             gameConstants.GAME_VIEW_HEIGHT / 2, '', {
               font: 'bold 100px Annie Use Your Telescope',
               fill: '#af0000',
-              align: 'center'
+              boundsAlignH: 'center',
+              boundsAlignV: 'middle'
             });
+        this.endGame.anchor.setTo(.5);
         this.endGame.fixedToCamera = true;
 
         this.socket = new SocketController(this.roomId, this.username, this);
@@ -219,31 +258,72 @@ export class GameController {
         this.localPlayer.cameraSprite.x = this.localPlayer.character.x;
         this.localPlayer.cameraSprite.y = this.localPlayer.character.y;
 
+        this.lightSprite.reset(this.game.camera.x, this.game.camera.y);
+        this.updateShadowTexture();
+
         // Check collisions
+        // Local Player shoots target
         this.game.physics.arcade.overlap(
             this.localPlayer.gun.pGun.bullets, this.targets, bulletHitHandler,
             undefined, this);
+
+        // Local Player runs into obstacle
         this.game.physics.arcade.collide(
             this.localPlayer.character, this.obstacles, undefined, undefined,
             this);
+
+        // Bullet hits obstacle
         this.game.physics.arcade.overlap(
             this.bullets, this.obstacles, killBullet, undefined, this);
+
+        // Any bullet hits target
         this.game.physics.arcade.overlap(
             this.bullets, this.targets, killBullet, undefined, this);
-        this.game.physics.arcade.overlap(
-            this.bullets, this.localPlayer.character, killBulletTest, undefined,
-            this);
+
+        // Player picks up powerup or gun
         this.game.physics.arcade.overlap(
             this.localPlayer.character, this.dropSprites, pickupDrop, undefined,
             this);
       }
 
-  render = (): void => {
-    // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
-    // game.localPlayer.gun.debug(20, 128);
+  render = ():
+      void => {
+        // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
+        // game.localPlayer.gun.debug(20, 128);
 
-    this.HUD.ammo.setText('Ammo: ' + this.localPlayer.gun.ammo);
-    this.HUD.health.setText('Health: ' + this.localPlayer.health);
-    this.HUD.survivors.setText('Survivors: ' + this.numSurvivors);
+        this.HUD.ammo.text.setText('' + this.localPlayer.gun.ammo);
+        this.HUD.survivors.text.setText('' + this.numSurvivors);
+      }
+
+  updateShadowTexture() {
+    this.shadowTexture.context.fillStyle = 'rgb(10, 10, 10)';
+    this.shadowTexture.context.fillRect(
+        0, 0, this.game.width, this.game.height);
+
+    this.game.world.bringToTop(this.shadowTexture);
+    this.game.world.bringToTop(this.lightSprite);
+
+    let radius: number;
+
+    if (this.localPlayer.isZombie) {
+      radius = 500;
+    } else {
+      radius = 300;
+    }
+
+    const heroX = this.localPlayer.character.x - this.game.camera.x + 30;
+    const heroY = this.localPlayer.character.y - this.game.camera.y + 30;
+
+    const gradient = this.shadowTexture.context.createRadialGradient(
+        heroX, heroY, 100 * 0.75, heroX, heroY, radius);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+    this.shadowTexture.context.beginPath();
+    this.shadowTexture.context.fillStyle = gradient;
+    this.shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI * 2, false);
+    this.shadowTexture.context.fill();
+
+    this.shadowTexture.dirty = true;
   }
 }

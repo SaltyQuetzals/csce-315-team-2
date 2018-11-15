@@ -5,15 +5,16 @@ export interface Players {
 }
 
 export function getAccessCode(): string {
-  const pathName = window.location.href;
-  const url = pathName.split('?');
-  return url[0];
+  const pathName = window.location.pathname;
+  const url = pathName.split('/');
+  return url[url.length-1];
 }
 
 export function copyText(): void {
   const el = document.createElement('textarea');
-  el.value = getAccessCode();
+  const url = window.location.href.split('?');
   document.body.appendChild(el);
+  el.value = url[0]; 
   el.select();
   document.execCommand('copy');
   document.body.removeChild(el);

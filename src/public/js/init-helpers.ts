@@ -25,10 +25,13 @@ export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
 }
 
 export function initGun(
-    character: Phaser.Sprite, weapon: GUNS.Weapon = new GUNS.Revolver()) {
+    character: CustomSprite, weapon: GUNS.Weapon = new GUNS.Revolver()) {
   const newGun = new Gun();
   newGun.pGun = game.game.add.weapon(30, 'weapons');
   newGun.name = weapon.constructor.name;
+
+  game.game.physics.arcade.enable(newGun.pGun.bullets);
+  game.bullets.add(newGun.pGun.bullets);
 
   // Create bullets
   newGun.pGun.addBulletAnimation('bullet', [15, 16, 17, 18, 19], 60, true);
@@ -55,7 +58,6 @@ export function initGun(
   newGun.pGun.trackSprite(
       newGun.handle, character.width / 2, character.height / 2);
 
-
   return newGun;
 }
 
@@ -70,10 +72,14 @@ export function initAvatar(
   avatar.frame = 1;
   avatar.id = player.id;
   game.game.physics.arcade.enable(avatar);
+  game.targets.add(avatar);
+
   avatar.body.collideWorldBounds = true;
   if (game.localPlayer && (avatar.id !== game.localPlayer.id) &&
       (player.id !== '0')) {
-    game.targets.add(avatar);
+    // game.bulletTargets.push(avatar);
+    // console.log(game.bulletTargets);
+    // game.targets.add(avatar);
   } else {
     // Local player attributes
     const userIndicator = game.game.add.graphics(0, 0);
@@ -105,6 +111,7 @@ export function initAvatar(
     avatar.animating = false;
   }, game);
   avatar.animations.add('attack', [14, 19, 4, 9]);
+
   return avatar;
 }
 

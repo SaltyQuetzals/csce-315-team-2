@@ -30,27 +30,30 @@ app.get('/', (_req, res) => {
 app.get('/rooms/:roomCode', (_req, res) => {
   const {roomCode} = _req.params;
   const {username} = _req.query;
-  if (!username || username === '')
+  if (!username || username === '') {
     res.redirect(`/username?roomcode=${roomCode}`);
-  else
+  } else {
     res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
+  }
 });
 
 app.get('/username', (_req, res) => {
   const {roomcode} = _req.query;
-  if (!roomcode || roomcode === '')
+  if (!roomcode || roomcode === '') {
     res.redirect('/');
-  else
+  } else {
     res.sendFile(path.join(STATIC_DIR, '/html/username.html'));
+  }
 });
 
 app.post('/rooms', (req, res) => {
   const {username} = req.body;
   const roomCode = random(ROOM_CODE_LENGTH);
-  if (!username || username === '')
+  if (!username || username === '') {
     res.redirect(`/username?roomcode=${roomCode}`);
-  else
+  } else {
     res.redirect(`/rooms/${roomCode}?username=${username}`);
+  }
 });
 
 const server = new http.Server(app);

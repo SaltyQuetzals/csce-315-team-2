@@ -1,5 +1,5 @@
 import {Drop} from '../../../models/Drop';
-import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH} from '../../../shared/constants';
+import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH, GAME_LENGTH} from '../../../shared/constants';
 import {bulletHitHandler, killBullet, melee, pickupDrop} from '../collisons-functs';
 import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../game-classes';
@@ -22,15 +22,18 @@ export class GameController {
   targets!: Phaser.Group;
   bullets!: Phaser.Group;
   obstacles!: Phaser.Group;
-  dropSprites!: Phaser.Group;
-  hudObjects!: Phaser.Group;
-  localPlayer!: gameClasses.CustomPlayer;
+    dropSprites!: Phaser.Group;
+    localPlayer!: gameClasses.CustomPlayer;
   username!: string;
-  numSurvivors!: number;
+    numSurvivors!: number;  
+    numZombies!: number;
+    timer!: Phaser.Timer;
   HUD!: {
     ammo: {text: Phaser.Text; graphic: Phaser.Sprite, health: Phaser.Text};
-    survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
+      survivors: { text: Phaser.Text; graphic: Phaser.Sprite; }
+      zombies: { text: Phaser.Text; graphic: Phaser.Sprite; }
     healthbar: Phaser.Graphics;
+      timer: Phaser.Text;
   };
   endGame!: Phaser.Text;
   constructor(roomId: string, username: string, socketController: SocketController) {
@@ -136,13 +139,16 @@ export class GameController {
         this.localPlayer.id = '0';
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
+      this.timer = this.game.time.create(true);
+      
 
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
 
         this.game.camera.follow(this.localPlayer.cameraSprite);
 
-        this.numSurvivors = 0;
+      this.numSurvivors = 0;
+      this.numZombies = 0;
 
         // Controls
         this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -179,7 +185,8 @@ export class GameController {
 
         this.HUD = Object();
         this.HUD.ammo = Object();
-        this.HUD.survivors = Object();
+      this.HUD.survivors = Object();
+      this.HUD.zombies = Object();
 
         const healthbarBackground = this.game.add.graphics(10, 10);
         healthbarBackground.lineStyle(2, 0x5b5b5b, 1);
@@ -187,8 +194,6 @@ export class GameController {
         healthbarBackground.drawRect(0, 0, 150, 20);
         healthbarBackground.endFill();
         healthbarBackground.alpha = .5;
-
-        this.hudObjects = this.game.add.group();
 
         this.HUD.healthbar = this.game.add.graphics(10, 10);
         this.HUD.healthbar.lineStyle(2, 0xaf0000, 1);
@@ -218,14 +223,39 @@ export class GameController {
               font: 'bold 40px Annie Use Your Telescope',
               fill: '#ffffff',
               align: 'center'
+          });
+      
+        this.HUD.zombies.graphic = this.game.add.sprite(
+            gameConstants.GAME_VIEW_WIDTH - 100, 10 + this.HUD.survivors.graphic.height, 'zombie_1');
+        this.HUD.zombies.graphic.scale.setTo(.9, .9);
+        // this.HUD.zombies.graphic.tint = 0x5b5b5b;
+        // this.HUD.zombies.graphic.alpha = .5;
+        this.HUD.zombies.text = this.game.add.text(
+            gameConstants.GAME_VIEW_WIDTH - 95 +
+            this.HUD.zombies.graphic.width,
+            12 + this.HUD.survivors.graphic.height, '', {
+                font: 'bold 40px Annie Use Your Telescope',
+                fill: '#ffffff',
+                align: 'center'
             });
+      
+      this.HUD.timer = 
+          this.game.add.text(gameConstants.GAME_VIEW_WIDTH / 2, 30, '' + (GAME_LENGTH - this.timer.seconds), {
+              font: 'bold 80px Annie Use Your Telescope',
+              fill: '#ffffff',
+              boundsAlignH: 'center'
+          });
+      this.HUD.timer.anchor.setTo(.5);
 
         this.HUD.ammo.text.fixedToCamera = true;
         this.HUD.ammo.graphic.fixedToCamera = true;
         this.HUD.survivors.text.fixedToCamera = true;
-        this.HUD.survivors.graphic.fixedToCamera = true;
+      this.HUD.survivors.graphic.fixedToCamera = true;
+      this.HUD.zombies.text.fixedToCamera = true;
+      this.HUD.zombies.graphic.fixedToCamera = true;
         this.HUD.healthbar.fixedToCamera = true;
         healthbarBackground.fixedToCamera = true;
+        this.HUD.timer.fixedToCamera = true;
 
 
 
@@ -245,9 +275,12 @@ export class GameController {
         this.game.world.bringToTop(healthbarBackground);
         this.game.world.bringToTop(this.HUD.healthbar);
         this.game.world.bringToTop(this.HUD.survivors.graphic);
-        this.game.world.bringToTop(this.HUD.survivors.text);
+      this.game.world.bringToTop(this.HUD.survivors.text);
+      this.game.world.bringToTop(this.HUD.zombies.graphic);
+      this.game.world.bringToTop(this.HUD.zombies.text);
         this.game.world.bringToTop(this.HUD.ammo.text);
         this.game.world.bringToTop(this.HUD.ammo.graphic);
+        this.game.world.bringToTop(this.HUD.timer);
         this.game.world.bringToTop(this.endGame);
       }
 
@@ -304,7 +337,10 @@ export class GameController {
         // game.localPlayer.gun.debug(20, 128);
 
         this.HUD.ammo.text.setText('' + this.localPlayer.gun.ammo);
-        this.HUD.survivors.text.setText('' + this.numSurvivors);
+      this.HUD.survivors.text.setText('' + this.numSurvivors);
+      this.HUD.zombies.text.setText('' + this.numZombies);
+
+        this.HUD.timer.setText('' + (GAME_LENGTH - Math.floor(this.timer.seconds)));
       }
 
   updateShadowTexture() {

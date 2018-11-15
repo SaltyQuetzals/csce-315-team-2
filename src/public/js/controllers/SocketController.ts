@@ -246,6 +246,7 @@ export class SocketController {
         const {avatar} = socketPlayers[socketId].player;
         const player = this.gameController.players[socketId];
         this.gameController.numSurvivors--;
+        this.gameController.numZombies++;
         player.isZombie = true;
         const x = player.character.x;
         const y = player.character.y;
@@ -265,13 +266,13 @@ export class SocketController {
       }
     }
 
-    console.log("Reached html display");
     this.gameController.GAME_STARTED = true;
     const overlay: HTMLElement|null =
         document.getElementById('waiting-room-overlay');
     overlay!.style.display = 'none';
     const background: HTMLElement|null = document!.getElementById('background');
     background!.style.display = 'none';
+    this.gameController.timer.start();
   }
 
   playerHit(victimId: string, killerId: string, damage: number): void {
@@ -307,6 +308,7 @@ export class SocketController {
       const y = player.character.y;
       player.character = initAvatar(player, 'zombie_1', x, y);
     } else {
+      this.gameController.numZombies++;
       this.gameController.numSurvivors--;
       player.isZombie = true;
       const x = player.character.x;

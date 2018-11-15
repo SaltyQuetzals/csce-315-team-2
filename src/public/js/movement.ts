@@ -31,20 +31,35 @@ function shiftHitbox(player: CustomPlayer) {
   }
 }
 
-export function animateAvatar(avatar: CustomSprite, dx: number, dy: number) {
+export function animateAvatar(avatar: CustomSprite, dx: number, dy: number, gun?: Gun) {
   if (!avatar.animating) {
+    if (dy === 0 && dx === 0){
+        avatar.animations.stop();
+    }
     // Up-Down Anim Precedence
-    if (dy !== 0) {
+    else if (dy !== 0) {
       if (dy > 0) {
         avatar.animations.play('down', 10, false);
+        if(gun){
+            orientGun(gun, 'down');
+        }
       } else {
         avatar.animations.play('up', 10, false);
+        if(gun){
+            orientGun(gun, 'up');
+        }
       }
     } else {
       if (dx > 0) {
         avatar.animations.play('right', 10, false);
+        if(gun){
+            orientGun(gun, 'right');
+        }
       } else {
         avatar.animations.play('left', 10, false);
+        if(gun){
+            orientGun(gun, 'left');
+        }
       }
     }
   }
@@ -58,38 +73,38 @@ export function movementHandler(
     return;
   }
   if (!avatar.animating) {
-    if (keys['left']) {
+    if (keys['left'] || keys['a']) {
       player.facing.x = DIRECTIONS.WEST;
       avatar.body.velocity.x = -player.speed;
-      if (!(keys['down'])) {
+      if (!(keys['down'] || keys['s'])) {
         avatar.animations.play('left', 10, true);
         orientGun(gun, 'left');
       }
       eventShouldBeEmitted = true;
-    } else if (keys['right']) {
+    } else if (keys['right'] || keys['d']) {
       player.facing.x = DIRECTIONS.EAST;
       avatar.body.velocity.x = player.speed;
-      if (!(keys['down'])) {
+      if (!(keys['down'] || keys['s'])) {
         avatar.animations.play('right', 10, true);
         orientGun(gun, 'right');
       }
       eventShouldBeEmitted = true;
     } else {
       avatar.body.velocity.x = 0;
-      if (keys['up'] || keys['down']) {
+      if (keys['up'] || keys['w'] || keys['down'] || keys['s']) {
         player.facing.x = 0;
       }
     }
 
-    if (keys['up']) {
+    if (keys['up'] || keys['w']) {
       player.facing.y = DIRECTIONS.NORTH;
       avatar.body.velocity.y = -player.speed;
-      if (!(keys['left'] || keys['right'])) {
+      if (!(keys['left'] || keys['a'] || keys['right'] || keys['d'])) {
         avatar.animations.play('up', 10, true);
         orientGun(gun, 'up');
       }
       eventShouldBeEmitted = true;
-    } else if (keys['down']) {
+    } else if (keys['down'] || keys['s']) {
       player.facing.y = DIRECTIONS.SOUTH;
       avatar.body.velocity.y = player.speed;
       avatar.animations.play('down', 10, true);
@@ -97,7 +112,7 @@ export function movementHandler(
       eventShouldBeEmitted = true;
     } else {
       avatar.body.velocity.y = 0;
-      if (keys['left'] || keys['right']) {
+      if (keys['left'] || keys['a'] || keys['right'] || keys['d']) {
         player.facing.y = 0;
       }
     }
@@ -118,7 +133,13 @@ export function movementHandler(
     avatar.body.velocity.y = 0;
     // zombie.anims.play('idle');
   }
-  if (eventShouldBeEmitted) {
+  if (eventShouldBeEmitted || player.moving) {
+    if(!player.moving){
+        player.moving = true;
+    }
+    else if(!eventShouldBeEmitted){
+        player.moving = false;
+    }
     const location = {x: Number(avatar.body.x), y: Number(avatar.body.y)};
     game.socket.sendMove(location);
     if (player.isZombie) {

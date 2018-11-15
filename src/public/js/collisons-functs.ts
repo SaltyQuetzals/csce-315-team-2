@@ -89,6 +89,14 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
 export function melee(player: CustomPlayer) {
   game.game.physics.arcade.overlap(
       player.hitbox, game.targets, meleeHit, undefined, game);
+  //Instantiate bite anim
+  let x = player.character.x + player.hitbox.x;
+  let y = player.character.y + player.hitbox.y;
+  let biteAnim = game.game.add.sprite(x, y, 'weapons');
+  biteAnim.animations.add('Bite', [20, 21, 22, 23, 24], 30, false);
+  biteAnim.frame = 20;
+  //Play & kill on complete
+  biteAnim.animations.play('Bite', 30, false, true);
 }
 
 export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {

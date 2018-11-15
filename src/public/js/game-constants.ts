@@ -14,7 +14,11 @@ export const KEYCODES: {[key: number]: string} = {
   38: 'up',
   39: 'right',
   40: 'down',
-  32: 'spacebar'
+  87: 'w',
+  65: 'a',
+  83: 's',
+  68: 'd',
+  32: 'spacebar',
 };
 
 export const keysPressed: {[key: string]: boolean} = {
@@ -22,7 +26,11 @@ export const keysPressed: {[key: string]: boolean} = {
   left: false,
   down: false,
   right: false,
-  spacebar: false
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+  spacebar: false,
 };
 
 export const DIRECTIONS = {

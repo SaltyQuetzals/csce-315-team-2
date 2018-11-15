@@ -53,14 +53,15 @@ export class SocketController {
 
       this.socket.on('player moved', (message: MovementParams) => {
         // console.log(game.players);
-        const avatar = this.gameController.players[message.id].character;
+        const player = this.gameController.players[message.id]
+        const avatar = player.character;
         const {x, y} = avatar;
         avatar.x = message.location.x;
         avatar.y = message.location.y;
         const dx = avatar.x - x;
         const dy = avatar.y - y;
-        animateAvatar(avatar, dx, dy);
-        console.log(avatar.id, dx, dy);
+        animateAvatar(avatar, dx, dy, player.gun);
+        // console.log(avatar.id, dx, dy);
       });
 
       this.socket.on(

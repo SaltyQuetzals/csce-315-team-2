@@ -22,10 +22,11 @@ const createButton = document.getElementById('create');
 
 const copyButton = document.getElementById('copy');
 
-if (copyButton)
+if (copyButton) {
   copyButton.addEventListener('click', onCopyButtonPressed);
+}
 
-function onCopyButtonPressed(){
+function onCopyButtonPressed() {
   waiting.copyText();
   showSnackBar();
 }
@@ -45,11 +46,13 @@ if (startGameButton) {
 
 function showSnackBar() {
   // Get the snackbar DIV
-  let x: HTMLElement|null = document.getElementById("snackbar");
+  const x: HTMLElement|null = document.getElementById('snackbar');
 
-  if (x){
-    x.className = "show";
+  if (x) {
+    x.className = 'show';
     // After 3 seconds, remove the show class from DIV
-    setTimeout(function(){ if (x) x.className = x.className.replace("show", ""); }, 3000);
+    setTimeout(() => {
+      if (x) x.className = x.className.replace('show', '');
+    }, 3000);
   }
 }

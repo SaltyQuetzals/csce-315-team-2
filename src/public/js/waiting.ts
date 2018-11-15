@@ -10,12 +10,12 @@ export function getAccessCode(): string {
   return url[0];
 }
 
-export function copyText(): void{
+export function copyText(): void {
   const el = document.createElement('textarea');
   el.value = getAccessCode();
   document.body.appendChild(el);
   el.select();
-  document.execCommand("copy");
+  document.execCommand('copy');
   document.body.removeChild(el);
 }
 

@@ -7,6 +7,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="../js/lib/phaser.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Annie+Use+Your+Telescope" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 </head>
 
 <body id="noPad">
@@ -17,6 +18,7 @@
         <div style="display: flex" class="access-code-container">
             <h3>ACCESS CODE:&nbsp;</h3>
             <h3 style="letter-spacing: 2px" id="accessCode"></h3>
+            <i class="fas fa-copy" id="copy" style="cursor: pointer; padding: 45px"></i>
         </div>
         <h2>Players</h2>
         <ul id="player-list">
@@ -29,6 +31,7 @@
 
         <button onclick="location.href='/'">Return to Main Menu</button>
     </div>
+    <div id="snackbar" style="z-index: 20">Room URL copied to clipboard</div>
     <script src="../js/main.js"></script>
 </body>
 

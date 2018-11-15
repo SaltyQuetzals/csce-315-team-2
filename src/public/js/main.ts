@@ -20,6 +20,16 @@ const startGameButton = document.getElementById('start');
 
 const createButton = document.getElementById('create');
 
+const copyButton = document.getElementById('copy');
+
+if (copyButton)
+  copyButton.addEventListener('click', onCopyButtonPressed);
+
+function onCopyButtonPressed(){
+  waiting.copyText();
+  showSnackBar();
+}
+
 function startGame(): void {
   document.getElementById('waiting-room-overlay')!.style.display = 'none';
   document.getElementById('background')!.style.display = 'none';
@@ -31,4 +41,15 @@ function startGame(): void {
 
 if (startGameButton) {
   startGameButton.addEventListener('click', startGame);
+}
+
+function showSnackBar() {
+  // Get the snackbar DIV
+  let x: HTMLElement|null = document.getElementById("snackbar");
+
+  if (x){
+    x.className = "show";
+    // After 3 seconds, remove the show class from DIV
+    setTimeout(function(){ if (x) x.className = x.className.replace("show", ""); }, 3000);
+  }
 }

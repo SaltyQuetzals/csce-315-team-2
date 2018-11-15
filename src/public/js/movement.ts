@@ -1,4 +1,4 @@
-import {CustomPlayer, Gun} from './game-classes';
+import {CustomPlayer, CustomSprite, Gun} from './game-classes';
 import {DIRECTIONS} from './game-constants';
 import {game} from './main';
 import {orientGun} from './weapon-functs';
@@ -31,6 +31,24 @@ function shiftHitbox(player: CustomPlayer) {
   }
 }
 
+export function animateAvatar(avatar: CustomSprite, dx: number, dy: number) {
+  if (!avatar.animating) {
+    // Up-Down Anim Precedence
+    if (dy !== 0) {
+      if (dy > 0) {
+        avatar.animations.play('down', 10, false);
+      } else {
+        avatar.animations.play('up', 10, false);
+      }
+    } else {
+      if (dx > 0) {
+        avatar.animations.play('right', 10, false);
+      } else {
+        avatar.animations.play('left', 10, false);
+      }
+    }
+  }
+}
 
 export function movementHandler(
     player: CustomPlayer, gun: Gun, keys: {[key: string]: boolean}) {

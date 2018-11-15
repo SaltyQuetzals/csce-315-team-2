@@ -20,12 +20,17 @@ export class GameController {
   players!: {[key: string]: gameClasses.CustomPlayer};
   drops!: {[key: string]: Drop};
   targets!: Phaser.Group;
+  bullets!: Phaser.Group;
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
   localPlayer!: gameClasses.CustomPlayer;
-  username: string;
+  username!: string;
   numSurvivors!: number;
-  HUD!: {ammo: Phaser.Text; health: Phaser.Text; survivors: Phaser.Text;};
+  HUD!: {
+    ammo: {text: Phaser.Text; graphic: Phaser.Sprite, health: Phaser.Text};
+    survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
+    healthbar: Phaser.Graphics;
+  };
   endGame!: Phaser.Text;
   constructor(roomId: string, username: string) {
     this.roomId = roomId;
@@ -40,9 +45,20 @@ export class GameController {
         });
   }
 
+  //  The Google WebFont Loader will look for this object, so create it before
+  //  loading the script.
+  webFontConfig = {
+    google: {families: ['Annie Use Your Telescope']}
+
+  };
+
   preload = ():
       void => {
         console.log('Preloading');
+        this.game.load.script(
+            'Annie Use Your Telescope',
+            '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
+        this.game.stage.disableVisibilityChange = true;
         this.game.load.image('tiles', '../assets/0x72_DungeonTilesetII_v1.png');
         this.game.load.tilemap(
             'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
@@ -54,6 +70,7 @@ export class GameController {
         this.game.load.image('p2', '../assets/Grit.png');
         this.game.load.image('p3', '../assets/Hammertime.png');
         this.game.load.image('p4', '../assets/Jackpot.png');
+        this.game.load.image('HUDammo', '../assets/HUDammo.png');
         this.game.load.spritesheet(
             'weapons', '../assets/WeaponsSpriteSheet.png',
             64,  // frame width
@@ -102,6 +119,9 @@ export class GameController {
         this.targets = this.game.add.group();
         this.game.physics.arcade.enable(this.targets);
 
+        this.bullets = this.game.add.group();
+        this.game.physics.arcade.enable(this.bullets);
+
         this.obstacles = this.game.add.group();
         this.game.physics.arcade.enable(this.obstacles);
 
@@ -111,6 +131,8 @@ export class GameController {
         this.localPlayer = new gameClasses.CustomPlayer();
         this.localPlayer = initPlayer('0', 'local');
         this.localPlayer.id = '0';
+        //   this.bullets.remove(this.localPlayer.gun.pGun);
+
 
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
@@ -153,31 +175,70 @@ export class GameController {
         };
 
         this.HUD = Object();
-        this.HUD.ammo = this.game.add.text(
-            10, gameConstants.GAME_VIEW_HEIGHT - 50, 'Ammo: ',
-            {font: 'bold 24px Arial', fill: '#004887', align: 'center'});
-        this.HUD.health = this.game.add.text(
-            gameConstants.GAME_VIEW_WIDTH / 2 - 100,
-            gameConstants.GAME_VIEW_HEIGHT - 50, 'Health: ',
-            {font: 'bold 24px Arial', fill: '#af0000', align: 'center'});
-        this.HUD.survivors = this.game.add.text(
-            gameConstants.GAME_VIEW_WIDTH - 200,
-            gameConstants.GAME_VIEW_HEIGHT - 50, 'Survivors: ',
-            {font: 'bold 24px Arial', fill: '#004887', align: 'center'});
+        this.HUD.ammo = Object();
+        this.HUD.survivors = Object();
 
-        this.HUD.ammo.fixedToCamera = true;
-        this.HUD.health.fixedToCamera = true;
-        this.HUD.survivors.fixedToCamera = true;
+        const healthbarBackground = this.game.add.graphics(10, 10);
+        healthbarBackground.lineStyle(2, 0x5b5b5b, 1);
+        healthbarBackground.beginFill(0x5b5b5b, 1);
+        healthbarBackground.drawRect(0, 0, 150, 20);
+        healthbarBackground.endFill();
+        healthbarBackground.alpha = .5;
+
+        this.HUD.healthbar = this.game.add.graphics(10, 10);
+        this.HUD.healthbar.lineStyle(2, 0xaf0000, 1);
+        this.HUD.healthbar.beginFill(0xaf0000, 1);
+        this.HUD.healthbar.drawRect(0, 0, 150, 20);
+        this.HUD.healthbar.endFill();
+        this.HUD.healthbar.alpha = .5;
+
+        this.HUD.ammo.graphic = this.game.add.sprite(10, 40, 'HUDammo');
+        this.HUD.ammo.graphic.alpha = .5;
+        this.HUD.ammo.text =
+            this.game.add.text(10 + this.HUD.ammo.graphic.width + 10, 35, '', {
+              font: 'bold 40px Annie Use Your Telescope',
+              fill: '#5b5b5b',
+              align: 'center'
+            });
+
+
+        this.HUD.survivors.graphic = this.game.add.sprite(
+            gameConstants.GAME_VIEW_WIDTH - 100, 10, 'survivor_1');
+        this.HUD.survivors.graphic.scale.setTo(.9, .9);
+        this.HUD.survivors.graphic.tint = 0x5b5b5b;
+        this.HUD.survivors.graphic.alpha = .5;
+        this.HUD.survivors.text = this.game.add.text(
+            gameConstants.GAME_VIEW_WIDTH - 95 +
+                this.HUD.survivors.graphic.width,
+            12, '', {
+              font: 'bold 40px Annie Use Your Telescope',
+              fill: '#5b5b5b',
+              align: 'center'
+            });
+
+        this.HUD.ammo.text.fixedToCamera = true;
+        this.HUD.ammo.graphic.fixedToCamera = true;
+        this.HUD.survivors.text.fixedToCamera = true;
+        this.HUD.survivors.graphic.fixedToCamera = true;
+        this.HUD.healthbar.fixedToCamera = true;
+        healthbarBackground.fixedToCamera = true;
+
 
 
         this.endGame = this.game.add.text(
             gameConstants.GAME_VIEW_WIDTH / 2,
-            gameConstants.GAME_VIEW_HEIGHT / 2, '',
-            {font: 'bold 24px Arial', fill: '#af0000', align: 'center'});
+            gameConstants.GAME_VIEW_HEIGHT / 2, '', {
+              font: 'bold 100px Annie Use Your Telescope',
+              fill: '#af0000',
+              boundsAlignH: 'center',
+              boundsAlignV: 'middle'
+            });
+        this.endGame.anchor.setTo(.5);
         this.endGame.fixedToCamera = true;
 
         this.socket = new SocketController(this.roomId, this.username, this);
       }
+
 
 
   update = ():
@@ -201,16 +262,26 @@ export class GameController {
         this.updateShadowTexture();
 
         // Check collisions
+        // Local Player shoots target
         this.game.physics.arcade.overlap(
             this.localPlayer.gun.pGun.bullets, this.targets, bulletHitHandler,
             undefined, this);
+
+        // Local Player runs into obstacle
         this.game.physics.arcade.collide(
             this.localPlayer.character, this.obstacles, undefined, undefined,
             this);
-        this.game.physics.arcade.collide(
-            this.localPlayer.gun.pGun.bullets, this.obstacles, killBullet,
-            undefined, this);
-        this.game.physics.arcade.collide(
+
+        // Bullet hits obstacle
+        this.game.physics.arcade.overlap(
+            this.bullets, this.obstacles, killBullet, undefined, this);
+
+        // Any bullet hits target
+        this.game.physics.arcade.overlap(
+            this.bullets, this.targets, killBullet, undefined, this);
+
+        // Player picks up powerup or gun
+        this.game.physics.arcade.overlap(
             this.localPlayer.character, this.dropSprites, pickupDrop, undefined,
             this);
       }
@@ -220,9 +291,8 @@ export class GameController {
         // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
         // game.localPlayer.gun.debug(20, 128);
 
-        this.HUD.ammo.setText('Ammo: ' + this.localPlayer.gun.ammo);
-        this.HUD.health.setText('Health: ' + this.localPlayer.health);
-        this.HUD.survivors.setText('Survivors: ' + this.numSurvivors);
+        this.HUD.ammo.text.setText('' + this.localPlayer.gun.ammo);
+        this.HUD.survivors.text.setText('' + this.numSurvivors);
       }
 
   updateShadowTexture() {
@@ -235,10 +305,11 @@ export class GameController {
 
     let radius: number;
 
-    if (this.localPlayer.isZombie)
+    if (this.localPlayer.isZombie) {
       radius = 500;
-    else
+    } else {
       radius = 300;
+    }
 
     const heroX = this.localPlayer.character.x - this.game.camera.x + 30;
     const heroY = this.localPlayer.character.y - this.game.camera.y + 30;

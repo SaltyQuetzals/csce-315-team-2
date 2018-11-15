@@ -30,6 +30,7 @@ export class SocketController {
 
     this.socket.on('connect', () => {
       this.gameController.localPlayer.id = this.socket.id;
+      this.gameController.localPlayer.character.id = this.socket.id;
       this.gameController.localPlayer.username = this.username;
       this.gameController.players[this.socket.id] =
           this.gameController.localPlayer;
@@ -46,8 +47,6 @@ export class SocketController {
 
       this.socket.on('new player', (message: NewPlayerParams) => {
         const {roomHost, id, username, players} = message;
-        console.log(message);
-        console.log(players);
         this.initNewPlayer(roomHost, id, username, players);
       });
 
@@ -62,7 +61,7 @@ export class SocketController {
           'weapon fired', (message: {id: string, fireAngle: number}) => {
             const {id, fireAngle} = message;
             const gun = gameController.players[id].gun;
-            // gun.fireAngle = fireAngle;
+            gun.pGun.fireAngle = fireAngle;
             gun.shoot();
           });
 
@@ -123,7 +122,7 @@ export class SocketController {
             delete gameController.players[id];
             waiting.updatePlayerList(this.gameController.players);
             // if (message.roomHost === gameController.localPlayer.id)
-            // startGameButton.style.display = 'block';
+            // startGamebutton.style.display = 'block';
           });
 
       this.socket.on('err', (message: {}) => {
@@ -195,7 +194,6 @@ export class SocketController {
   initNewPlayer(
       roomHost: string, playerId: string, username: string,
       players: {[playerId: string]: string}): void {
-    console.log('init new players entered');
     let newPlayer = null;
     const startGameButton = document.getElementById('start');
     if (roomHost === this.gameController.localPlayer.id) {
@@ -204,16 +202,12 @@ export class SocketController {
     // console.log(JSON.stringify(Object.keys(this.gameController.players),
     // null, 3));
     if (playerId === this.gameController.localPlayer.id) {
-      console.log('Local Player');
-      console.log(players);
       this.gameController.localPlayer.username = username;
       // create all preexisting players
       for (const id in players) {
         if (id && id) {
           this.gameController.numSurvivors++;
           if (id !== this.gameController.localPlayer.id) {
-            console.log('Players in init NewPlayer');
-            console.log(players);
             newPlayer = initPlayer(id, players[id]);
             this.gameController.players[id] = newPlayer;
           }
@@ -252,6 +246,15 @@ export class SocketController {
         }
       }
     }
+    for (const playerKey of Object.keys(socketPlayers)) {
+      const avatar = this.gameController.players[playerKey].character;
+      // avatar.x = socketPlayers[playerKey].player.avatar.location[0];
+      // avatar.y = socketPlayers[playerKey].player.avatar.location[1];
+      if (playerKey === this.gameController.localPlayer.id) {
+        this.gameController.localPlayer.character = avatar;
+      }
+    }
+
     this.gameController.GAME_STARTED = true;
     const overlay: HTMLElement|null =
         document.getElementById('waiting-room-overlay');
@@ -268,6 +271,7 @@ export class SocketController {
         // Movement is disabled
         player.isDead = true;
         this.sendPlayerDied(killerId);
+        this.gameController.HUD.healthbar.width = 1.5 * player.health;
       }
       player.character.destroy();
     } else {
@@ -275,6 +279,9 @@ export class SocketController {
       // animate HIT
       player.character.animating = true;
       player.character.animations.play('hurt', 20, false);
+      if (player.id === this.gameController.localPlayer.id) {
+        this.gameController.HUD.healthbar.width = 1.5 * player.health;
+      }
     }
   }
 
@@ -300,5 +307,9 @@ export class SocketController {
       }
     }
     player.isDead = false;
+    if (player.id === this.gameController.localPlayer.id) {
+      this.gameController.HUD.healthbar.width = 1.5 * player.health;
+      this.gameController.localPlayer = player;
+    }
   }
 }

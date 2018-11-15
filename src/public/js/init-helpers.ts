@@ -73,8 +73,16 @@ export function initAvatar(
   avatar.id = player.id;
   game.game.physics.arcade.enable(avatar);
   game.targets.add(avatar);
-
   avatar.body.collideWorldBounds = true;
+
+  avatar.usernameText = game.game.add.text(avatar.width / 2, -28, player.username, {
+    font: 'bold 16px Annie Use Your Telescope',
+    fill: '#ffffff',
+    align: 'center'
+  });
+  avatar.usernameText.anchor.setTo(.5);
+  avatar.addChild(avatar.usernameText);
+
   if (game.localPlayer && (avatar.id !== game.localPlayer.id) &&
       (player.id !== '0')) {
     // game.bulletTargets.push(avatar);
@@ -82,9 +90,28 @@ export function initAvatar(
     // game.targets.add(avatar);
   } else {
     // Local player attributes
+
+    let color: string;
+    let colorNum: number;
+    if (player.isZombie) {
+      player.hitbox = initHitbox(avatar);
+      color = '#7CCB91';
+      colorNum = 0x7CCB91;
+    }
+    else {
+      color = '#EDD297';
+      colorNum = 0xEDD297;
+    }
+
+    avatar.usernameText.setStyle({
+      font: 'bold 16px Annie Use Your Telescope',
+      fill: color,
+      align: 'center'
+    });
+
     const userIndicator = game.game.add.graphics(0, 0);
-    userIndicator.lineStyle(2, 0x5ff0000, 1);
-    userIndicator.beginFill(0x5ff0000, 1);
+    userIndicator.lineStyle(2, colorNum, 1);
+    userIndicator.beginFill(colorNum, 1);
     userIndicator.drawTriangle(
         [
           new Phaser.Point(avatar.width / 2 - 10, -15),
@@ -96,9 +123,7 @@ export function initAvatar(
     avatar.addChild(userIndicator);
 
     player.facing = {x: 0, y: 0};
-    if (player.isZombie) {
-      player.hitbox = initHitbox(avatar);
-    }
+
   }
 
   avatar.animations.add('down', [0, 1, 2, 3], 10, false);

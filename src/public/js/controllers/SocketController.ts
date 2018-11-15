@@ -33,6 +33,7 @@ export class SocketController {
       this.gameController.localPlayer.id = this.socket.id;
       this.gameController.localPlayer.character.id = this.socket.id;
       this.gameController.localPlayer.username = this.username;
+      this.gameController.localPlayer.character.usernameText.setText(this.username);
       this.gameController.players[this.socket.id] =
           this.gameController.localPlayer;
       waiting.updateAccessCodeBox();

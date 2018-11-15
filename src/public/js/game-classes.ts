@@ -25,6 +25,7 @@ export class CustomSprite extends Phaser.Sprite {
   animating!: boolean;
   id!: string;
   frame!: number;
+  usernameText!: Phaser.Text;
 }
 
 export class CustomPlayer {

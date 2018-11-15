@@ -40,7 +40,8 @@ export class CustomPlayer {
   isDead!: boolean;
   facing!: {x: number; y: number;};
   hitbox!: Phaser.Graphics;
-
+  moving!: boolean;
+  
   constructor() {
     this.speed = PLAYER_SPEED;
   }

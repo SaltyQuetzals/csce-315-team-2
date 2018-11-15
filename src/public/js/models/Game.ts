@@ -149,7 +149,7 @@ export class GameController {
         // Keyboard Events
         this.localPlayer.keyboard = {...gameConstants.keysPressed};
         this.game.input.keyboard.onDownCallback = (event: KeyboardEvent) => {
-          if (this.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
+            if (this.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
               !this.localPlayer
                    .keyboard[gameConstants.KEYCODES[event.keyCode]]) {
             this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]] =

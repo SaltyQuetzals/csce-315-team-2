@@ -26,13 +26,12 @@ export function updateAccessCodeBox(): void {
   if (accessCodeBox) accessCodeBox.innerHTML = accessCode;
 }
 
-export function updatePlayerList(players: {[key: string]: CustomPlayer;}):
-    void {
+export function updatePlayerList(players: { [socketId: string]: string}):
+  void {
   const playerList = document.getElementById('player-list');
-  // console.log('Players', players);
   const newPlayerList = Object.keys(players).map((playerId) => {
     // console.log(playerId);
-    return '<li>' + players[playerId].username + '</li>';
+    return '<li>' + players[playerId] + '</li>';
   });
   if (playerList) playerList.innerHTML = newPlayerList.join('');
 }

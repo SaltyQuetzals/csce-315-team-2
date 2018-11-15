@@ -154,7 +154,7 @@ export function initPlayer(id: string, username: string) {
   return newPlayer;
 }
 
-export function initObstacles(obstacles: [Obstacle]) {
+export function initObstacles(obstacles: Obstacle[]) {
   for (let i = 0; i < obstacles.length; ++i) {
     const obstacle = game.game.add.graphics(
         obstacles[i].location[0], obstacles[i].location[1]);

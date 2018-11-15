@@ -23,6 +23,7 @@ export class GameController {
   bullets!: Phaser.Group;
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
+  hudObjects!: Phaser.Group;
   localPlayer!: gameClasses.CustomPlayer;
   username!: string;
   numSurvivors!: number;
@@ -185,6 +186,8 @@ export class GameController {
         healthbarBackground.endFill();
         healthbarBackground.alpha = .5;
 
+        this.hudObjects = this.game.add.group();
+
         this.HUD.healthbar = this.game.add.graphics(10, 10);
         this.HUD.healthbar.lineStyle(2, 0xaf0000, 1);
         this.HUD.healthbar.beginFill(0xaf0000, 1);
@@ -201,7 +204,6 @@ export class GameController {
               align: 'center'
             });
 
-
         this.HUD.survivors.graphic = this.game.add.sprite(
             gameConstants.GAME_VIEW_WIDTH - 100, 10, 'survivor_1');
         this.HUD.survivors.graphic.scale.setTo(.9, .9);
@@ -215,7 +217,7 @@ export class GameController {
               fill: '#5b5b5b',
               align: 'center'
             });
-
+    
         this.HUD.ammo.text.fixedToCamera = true;
         this.HUD.ammo.graphic.fixedToCamera = true;
         this.HUD.survivors.text.fixedToCamera = true;
@@ -237,6 +239,14 @@ export class GameController {
         this.endGame.fixedToCamera = true;
 
         this.socket = new SocketController(this.roomId, this.username, this);
+
+        this.game.world.bringToTop(this.shadowTexture);
+        this.game.world.bringToTop(this.lightSprite);
+        this.game.world.bringToTop(this.HUD.healthbar);
+        this.game.world.bringToTop(this.HUD.survivors.graphic);
+        this.game.world.bringToTop(this.HUD.survivors.text);
+        this.game.world.bringToTop(this.HUD.ammo.text);
+        this.game.world.bringToTop(this.HUD.ammo.graphic);
       }
 
 
@@ -296,19 +306,18 @@ export class GameController {
       }
 
   updateShadowTexture() {
-    this.shadowTexture.context.fillStyle = 'rgb(10, 10, 10)';
+    this.shadowTexture.fill(0,0,0,1);
     this.shadowTexture.context.fillRect(
-        0, 0, this.game.width, this.game.height);
+        -500, -500, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
 
-    this.game.world.bringToTop(this.shadowTexture);
-    this.game.world.bringToTop(this.lightSprite);
+    //this.game.world.bringToTop(this.HUD.ammo.health);
 
     let radius: number;
 
     if (this.localPlayer.isZombie) {
-      radius = 500;
+      radius = 400;
     } else {
-      radius = 300;
+      radius = 250;
     }
 
     const heroX = this.localPlayer.character.x - this.game.camera.x + 30;

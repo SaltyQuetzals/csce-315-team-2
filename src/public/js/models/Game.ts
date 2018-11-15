@@ -1,5 +1,5 @@
 import {Drop} from '../../../models/Drop';
-import {bulletHitHandler, killBullet, melee, pickupDrop, killBulletTest} from '../collisons-functs';
+import {bulletHitHandler, killBullet, killBulletTest, melee, pickupDrop} from '../collisons-functs';
 import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../game-classes';
 import * as gameConstants from '../game-constants';
@@ -21,12 +21,10 @@ export class GameController {
   localPlayer!: gameClasses.CustomPlayer;
   username: string;
   numSurvivors!: number;
-    HUD!: {
-        ammo: Phaser.Text;
-        health: Phaser.Text;
-        survivors: Phaser.Text;
-        healthbar: Phaser.Graphics;
-    };
+  HUD!: {
+    ammo: Phaser.Text; health: Phaser.Text; survivors: Phaser.Text;
+    healthbar: Phaser.Graphics;
+  };
   endGame!: Phaser.Text;
   constructor(roomId: string, username: string) {
     this.roomId = roomId;
@@ -38,25 +36,22 @@ export class GameController {
           create: this.create,
           update: this.update,
           render: this.render
-          });
+        });
+  }
 
-    }
+  //  The Google WebFont Loader will look for this object, so create it before
+  //  loading the script.
+  webFontConfig = {
+    google: {families: ['Annie Use Your Telescope']}
 
-    //  The Google WebFont Loader will look for this object, so create it before loading the script.
-    WebFontConfig = {
-        google: {
-            families: ['Annie Use Your Telescope']
-        }
-
-    };
+  };
 
   preload = ():
       void => {
-      console.log('Preloading');
+        console.log('Preloading');
         this.game.load.script(
             'Annie Use Your Telescope',
-            '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js'
-        );
+            '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
         this.game.stage.disableVisibilityChange = true;
 
         this.game.load.image('bg', '../assets/bg.png');
@@ -152,47 +147,59 @@ export class GameController {
             this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]] =
                 false;
           }
-      };
-      
-      this.HUD = Object();
-      this.HUD.ammo = this.game.add.text(
-          10, gameConstants.GAME_VIEW_HEIGHT - 50, 'Ammo: ',
-          { font: 'bold 30px Annie Use Your Telescope', fill: '#004887', align: 'center' });
-      this.HUD.health = this.game.add.text(
-          gameConstants.GAME_VIEW_WIDTH / 2 - 100,
-          gameConstants.GAME_VIEW_HEIGHT - 50, 'Health: ',
-          { font: 'bold 30px Annie Use Your Telescope', fill: '#af0000', align: 'center' });
-      this.HUD.survivors = this.game.add.text(
-          gameConstants.GAME_VIEW_WIDTH - 200,
-          gameConstants.GAME_VIEW_HEIGHT - 50, 'Survivors: ',
-          { font: 'bold 30px Annie Use Your Telescope', fill: '#004887', align: 'center' });
-      
-      const healthbarBackground = this.game.add.graphics(10, 10);
-      healthbarBackground.lineStyle(2, 0x5b5b5b, 1);
-      healthbarBackground.beginFill(0x5b5b5b, 1);
-      healthbarBackground.drawRect(0, 0, 150, 20);
-      healthbarBackground.endFill();
-      
-      this.HUD.healthbar = this.game.add.graphics(10, 10);
-      this.HUD.healthbar.lineStyle(2, 0xaf0000, 1);
-      this.HUD.healthbar.beginFill(0xaf0000, 1);
-      this.HUD.healthbar.drawRect(0, 0, 150, 20);
-      this.HUD.healthbar.endFill();
+        };
 
-      this.HUD.ammo.fixedToCamera = true;
-      this.HUD.health.fixedToCamera = true;
-      this.HUD.survivors.fixedToCamera = true;
-      this.HUD.healthbar.fixedToCamera = true;
+        this.HUD = Object();
+        this.HUD.ammo = this.game.add.text(
+            10, gameConstants.GAME_VIEW_HEIGHT - 50, 'Ammo: ', {
+              font: 'bold 30px Annie Use Your Telescope',
+              fill: '#004887',
+              align: 'center'
+            });
+        this.HUD.health = this.game.add.text(
+            gameConstants.GAME_VIEW_WIDTH / 2 - 100,
+            gameConstants.GAME_VIEW_HEIGHT - 50, 'Health: ', {
+              font: 'bold 30px Annie Use Your Telescope',
+              fill: '#af0000',
+              align: 'center'
+            });
+        this.HUD.survivors = this.game.add.text(
+            gameConstants.GAME_VIEW_WIDTH - 200,
+            gameConstants.GAME_VIEW_HEIGHT - 50, 'Survivors: ', {
+              font: 'bold 30px Annie Use Your Telescope',
+              fill: '#004887',
+              align: 'center'
+            });
 
-      this.endGame = this.game.add.text(
-          gameConstants.GAME_VIEW_WIDTH / 2,
-          gameConstants.GAME_VIEW_HEIGHT / 2, '',
-          { font: 'bold 100px Annie Use Your Telescope', fill: '#af0000', align: 'center' });
-      this.endGame.fixedToCamera = true;
+        const healthbarBackground = this.game.add.graphics(10, 10);
+        healthbarBackground.lineStyle(2, 0x5b5b5b, 1);
+        healthbarBackground.beginFill(0x5b5b5b, 1);
+        healthbarBackground.drawRect(0, 0, 150, 20);
+        healthbarBackground.endFill();
 
-      this.socket = new SocketController(this.roomId, this.username, this);
-    }
-    
+        this.HUD.healthbar = this.game.add.graphics(10, 10);
+        this.HUD.healthbar.lineStyle(2, 0xaf0000, 1);
+        this.HUD.healthbar.beginFill(0xaf0000, 1);
+        this.HUD.healthbar.drawRect(0, 0, 150, 20);
+        this.HUD.healthbar.endFill();
+
+        this.HUD.ammo.fixedToCamera = true;
+        this.HUD.health.fixedToCamera = true;
+        this.HUD.survivors.fixedToCamera = true;
+        this.HUD.healthbar.fixedToCamera = true;
+
+        this.endGame = this.game.add.text(
+            gameConstants.GAME_VIEW_WIDTH / 2,
+            gameConstants.GAME_VIEW_HEIGHT / 2, '', {
+              font: 'bold 100px Annie Use Your Telescope',
+              fill: '#af0000',
+              align: 'center'
+            });
+        this.endGame.fixedToCamera = true;
+
+        this.socket = new SocketController(this.roomId, this.username, this);
+      }
+
 
 
   update = ():
@@ -220,14 +227,12 @@ export class GameController {
             this.localPlayer.character, this.obstacles, undefined, undefined,
             this);
         this.game.physics.arcade.overlap(
-            this.bullets, this.obstacles, killBullet,
-            undefined, this);
+            this.bullets, this.obstacles, killBullet, undefined, this);
         this.game.physics.arcade.overlap(
-            this.bullets, this.targets, killBullet,
-            undefined, this);
+            this.bullets, this.targets, killBullet, undefined, this);
         this.game.physics.arcade.overlap(
-            this.bullets, this.localPlayer.character, killBulletTest,
-            undefined, this);
+            this.bullets, this.localPlayer.character, killBulletTest, undefined,
+            this);
         this.game.physics.arcade.overlap(
             this.localPlayer.character, this.dropSprites, pickupDrop, undefined,
             this);

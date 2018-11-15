@@ -217,7 +217,7 @@ export class GameController {
               fill: '#5b5b5b',
               align: 'center'
             });
-    
+
         this.HUD.ammo.text.fixedToCamera = true;
         this.HUD.ammo.graphic.fixedToCamera = true;
         this.HUD.survivors.text.fixedToCamera = true;
@@ -306,11 +306,11 @@ export class GameController {
       }
 
   updateShadowTexture() {
-    this.shadowTexture.fill(0,0,0,1);
+    this.shadowTexture.fill(0, 0, 0, 1);
     this.shadowTexture.context.fillRect(
         -500, -500, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
 
-    //this.game.world.bringToTop(this.HUD.ammo.health);
+    // this.game.world.bringToTop(this.HUD.ammo.health);
 
     let radius: number;
 

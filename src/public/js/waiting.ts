@@ -6,8 +6,18 @@ export interface Players {
 
 export function getAccessCode(): string {
   const pathName = window.location.pathname;
-  const splitPathName = pathName.split('/');
-  return splitPathName[2];
+  const url = pathName.split('/');
+  return url[url.length-1];
+}
+
+export function copyText(): void {
+  const el = document.createElement('textarea');
+  const url = window.location.href.split('?');
+  document.body.appendChild(el);
+  el.value = url[0]; 
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
 }
 
 export function updateAccessCodeBox(): void {

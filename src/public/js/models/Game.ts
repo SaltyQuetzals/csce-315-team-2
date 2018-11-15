@@ -239,6 +239,14 @@ export class GameController {
         this.endGame.fixedToCamera = true;
 
         this.socket = new SocketController(this.roomId, this.username, this);
+
+        this.game.world.bringToTop(this.shadowTexture);
+        this.game.world.bringToTop(this.lightSprite);
+        this.game.world.bringToTop(this.HUD.healthbar);
+        this.game.world.bringToTop(this.HUD.survivors.graphic);
+        this.game.world.bringToTop(this.HUD.survivors.text);
+        this.game.world.bringToTop(this.HUD.ammo.text);
+        this.game.world.bringToTop(this.HUD.ammo.graphic);
       }
 
 
@@ -302,13 +310,6 @@ export class GameController {
     this.shadowTexture.context.fillRect(
         -500, -500, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
 
-    this.game.world.bringToTop(this.shadowTexture);
-    this.game.world.bringToTop(this.lightSprite);
-    this.game.world.bringToTop(this.HUD.healthbar);
-    this.game.world.bringToTop(this.HUD.survivors.graphic);
-    this.game.world.bringToTop(this.HUD.survivors.text);
-    this.game.world.bringToTop(this.HUD.ammo.text);
-    this.game.world.bringToTop(this.HUD.ammo.graphic);
     //this.game.world.bringToTop(this.HUD.ammo.health);
 
     let radius: number;

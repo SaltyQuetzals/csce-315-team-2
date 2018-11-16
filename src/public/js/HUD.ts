@@ -28,7 +28,7 @@ export function updateHUD(): void {
         }
         
         if (isUndefined(game.HUD.radar.dots[playerId])) {
-            currentDot = game.game.add.graphics(0, 0);
+            currentDot = game.game.add.graphics(0,0);
 
             currentDot.beginFill(color, 1);
             currentDot.drawCircle(currentPlayer.character.world.x / 20, currentPlayer.character.world.y / 20, 8);
@@ -45,10 +45,6 @@ export function updateHUD(): void {
             currentDot = game.HUD.radar.dots[playerId];
             currentDot.centerX = currentPlayer.character.world.x / 20;
             currentDot.centerY = currentPlayer.character.world.y / 20;
-
-            console.log(game.HUD.radar.overlay);
-            console.log(currentDot.x);
-            console.log(currentDot.y);
         }
 
     });
@@ -88,36 +84,37 @@ export function createHUD(): void {
         });
 
     HUD.survivors.graphic = game.game.add.sprite(
-        gameConstants.GAME_VIEW_WIDTH - 100, 10, 'survivor_1');
-    HUD.survivors.graphic.scale.setTo(.9, .9);
+        gameConstants.GAME_VIEW_WIDTH - 200, 
+        gameConstants.GAME_VIEW_HEIGHT - 100, 'survivor_1');
+    HUD.survivors.graphic.scale.setTo(.5, .5);
     // HUD.survivors.graphic.tint = 0x5b5b5b;
     // HUD.survivors.graphic.alpha = .5;
     HUD.survivors.text = game.game.add.text(
-        gameConstants.GAME_VIEW_WIDTH - 95 +
+        HUD.survivors.graphic.x + 2 +
         HUD.survivors.graphic.width,
-        12, '', {
-            font: 'bold 40px Annie Use Your Telescope',
+        HUD.survivors.graphic.y, '', {
+            font: 'bold 30px Annie Use Your Telescope',
             fill: '#ffffff',
             align: 'center'
         });
 
     HUD.zombies.graphic = game.game.add.sprite(
-        gameConstants.GAME_VIEW_WIDTH - 100, 10 + HUD.survivors.graphic.height, 'zombie_1');
-    HUD.zombies.graphic.scale.setTo(.9, .9);
+        HUD.survivors.graphic.x, HUD.survivors.graphic.y + HUD.survivors.graphic.height + 10, 'zombie_1');
+    HUD.zombies.graphic.scale.setTo(.5, .5);
     // HUD.zombies.graphic.tint = 0x5b5b5b;
     // HUD.zombies.graphic.alpha = .5;
     HUD.zombies.text = game.game.add.text(
-        gameConstants.GAME_VIEW_WIDTH - 95 +
+        HUD.zombies.graphic.x + 2 +
         HUD.zombies.graphic.width,
-        12 + HUD.survivors.graphic.height, '', {
-            font: 'bold 40px Annie Use Your Telescope',
+        HUD.zombies.graphic.y, '', {
+            font: 'bold 30px Annie Use Your Telescope',
             fill: '#ffffff',
             align: 'center'
         });
 
     HUD.score = game.game.add.text(
-        gameConstants.GAME_VIEW_WIDTH - 160,
-        gameConstants.GAME_VIEW_HEIGHT - 10, '', {
+        gameConstants.GAME_VIEW_WIDTH -10 ,
+        50, '', {
             font: 'bold 40px Annie Use Your Telescope',
             fill: '#ffffff',
             boundsAlignH: 'right'
@@ -126,17 +123,17 @@ export function createHUD(): void {
 
     HUD.timer =
         game.game.add.text(gameConstants.GAME_VIEW_WIDTH / 2, 30, '' + (GAME_LENGTH - game.timer.seconds), {
-            font: 'bold 50px Annie Use Your Telescope',
+            font: 'bold 30px Annie Use Your Telescope',
             fill: '#ffffff',
             boundsAlignH: 'center'
         });
     HUD.timer.anchor.setTo(.5);
 
     HUD.radar.overlay = game.game.add.graphics(
-        gameConstants.GAME_VIEW_WIDTH - 130, gameConstants.GAME_VIEW_HEIGHT - 100);
+        gameConstants.GAME_VIEW_WIDTH - 140, gameConstants.GAME_VIEW_HEIGHT - 110);
     HUD.radar.overlay.lineStyle(2, 0x5b5b5b, 1);
     // HUD.radar.beginFill(0x5b5b5b, 1);
-    HUD.radar.overlay.drawRect(0, 0, 120, 90);
+    HUD.radar.overlay.drawRect(0, 0, 126, 94);
     // HUD.radar.endFill();
     HUD.radar.overlay.boundsPadding = 0;
 

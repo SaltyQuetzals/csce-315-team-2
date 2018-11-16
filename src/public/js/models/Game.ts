@@ -146,7 +146,7 @@ export class GameController {
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
       this.timer = this.game.time.create(true);
-      this.timer.loop(1000, (): void => { if (!this.localPlayer.isZombie) this.score += 5; });
+      this.timer.loop(5000, (): void => { if (!this.localPlayer.isZombie) this.score += 25; });
       this.timer.loop(3000, updateHUD);
       
 

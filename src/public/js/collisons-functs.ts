@@ -100,22 +100,21 @@ export async function melee(player: CustomPlayer) {
     const x = player.character.x + player.hitbox.x;
     const y = player.character.y + player.hitbox.y;
     //Emit
-    game.socket.sendZombieAttack(x, y);
+    game.socket.sendZombieAttack();
     //Instantiate bite anim
-    meleeAnim(player, 0, 0);
+    meleeAnim(player);
 
     await delay(ZOMBIE_ATTACK_DEBOUNCE);
     player.dbZombieAttack = false;
   }
 }
 
-export function meleeAnim(player:CustomPlayer, x: number, y: number){
-  const biteAnim = game.game.add.sprite(x, y, 'weapons');
+export function meleeAnim(player: CustomPlayer){
+  const biteAnim = game.game.add.sprite(0, 0, 'weapons', 20);
   player.hitbox.addChild(biteAnim);
   biteAnim.width = player.hitbox.width;
   biteAnim.height = player.hitbox.height;
   biteAnim.animations.add('Bite', [20, 21, 22, 23, 24], 30, false);
-  biteAnim.frame = 20;
 
   biteAnim.animations.play('Bite', 30, false, true);
 }

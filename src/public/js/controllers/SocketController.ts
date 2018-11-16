@@ -8,7 +8,7 @@ import {PLAYER_HEALTH} from '../game-constants';
 import {initAvatar, initDrops, initObstacles, initPlayer} from '../init-helpers';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
-import {animateAvatar} from '../movement';
+import {animateAvatar, shiftHitbox} from '../movement';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
 import * as waiting from '../waiting';
 import {switchGun} from '../weapon-functs';
@@ -67,6 +67,8 @@ export class SocketController {
       this.socket.on('player moved', (message: MovementParams) => {
         // console.log(game.players);
         const player = this.gameController.players[message.id];
+        player.facing = message.facing;
+        shiftHitbox(player);
         const avatar = player.character;
         const {x, y} = avatar;
         avatar.x = message.location.x;
@@ -136,10 +138,10 @@ export class SocketController {
       });
 
       this.socket.on(
-        'zombie attack', (message: {id: string, x: number, y: number}) => {
-          const {id, x, y} = message;
-          const player = this.gameController.players[id];
-          meleeAnim(player, x, y);
+        'zombie attack', (message: {zombieId: string}) => {
+          const {zombieId} = message;
+          const player = this.gameController.players[zombieId];
+          meleeAnim(player);
         }
       );
 
@@ -185,8 +187,8 @@ export class SocketController {
     this.socket.emit('start game', {roomId: this.roomId});
   }
 
-  sendMove(location: {x: number, y: number}): void {
-    this.socket.emit('move', {roomId: this.roomId, location});
+  sendMove(location: { x: number, y: number }, facing: { x: number, y: number }): void {
+    this.socket.emit('move', {roomId: this.roomId, location, facing});
   }
 
   sendChangeHealth(change: number): void {
@@ -205,8 +207,8 @@ export class SocketController {
     this.socket.emit('switch gun', {roomId: this.roomId, gun});
   }
 
-  sendZombieAttack(x: number, y: number): void{
-    this.socket.emit('zombie attack', {roomId: this.roomId, x, y});
+  sendZombieAttack(): void{
+    this.socket.emit('zombie attack', { roomId: this.roomId });
   }
 
   sendHit(id: string, damage: number): void {

@@ -43,6 +43,17 @@ export const DIRECTIONS = {
   WEST: -1
 };
 
+export const FACING = {
+  NORTH: 1,
+  NORTHEAST: 5,
+  EAST: 3,
+  SOUTHEAST: 6,
+  SOUTH: 2,
+  SOUTHWEST: -2,
+  WEST: -3,
+  NORTHWEST: -5
+};
+
 export const DROPIMAGES: {[key: string]: string} = {
   'automatic rifle': 'Automatic Rifle',
   'revolver': 'Revolver',

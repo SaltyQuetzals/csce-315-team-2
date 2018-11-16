@@ -32,8 +32,16 @@ app.get('/rooms/:roomCode', (req, res) => {
   const { username } = req.query;
 
   if (roomController.roomExists(roomCode)) {
+    console.log('test');
     if (roomController.getRoom(roomCode).gameInProgress) {
+      console.log('test2');
       res.redirect('/');
+    } else {
+      if (!username || username === '') {
+        res.redirect(`/username?roomcode=${roomCode}`);
+      } else {
+        res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
+      }
     }
   } else {
     if (!username || username === '') {
@@ -226,7 +234,7 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('zombie attack', loggerMeta);
-        socket.to(roomId).emit('zombie attack', {id: socket.id, x: x, y: y});
+        socket.to(roomId).emit('zombie attack', {id: socket.id, x, y});
       } else {
         console.log('Game not started');
       }
@@ -239,10 +247,11 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     const loggerMeta = { leaverId: socket.id };
     try {
-      const names = roomController.getNames(roomId);
       roomController.removePlayerFromRooms(socket.id);
+      const playerNames = roomController.getNames(roomId);
+      const roomHost = roomController.getRoomHost(roomId);
       logger.info('disconnect', loggerMeta);
-      socket.to(roomId).emit('player left', {username: names[socket.id]});
+      socket.to(roomId).emit('player left', {roomHost, playerNames});
     } catch (err) {
       logger.error('disconnect', { ...loggerMeta, err });
       console.error('disconnect', err);

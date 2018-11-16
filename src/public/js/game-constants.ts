@@ -1,6 +1,6 @@
 export const GAME_VIEW_WIDTH = window.innerWidth * 0.75;
 export const GAME_VIEW_HEIGHT = window.innerHeight * 0.75;
-console.log(`Size: ${GAME_VIEW_WIDTH}, ${GAME_VIEW_HEIGHT}`)
+console.log(`Size: ${GAME_VIEW_WIDTH}, ${GAME_VIEW_HEIGHT}`);
 // REMOVE LATER?
 export const BOARD_WIDTH = 2400;
 export const BOARD_HEIGHT = 1800;

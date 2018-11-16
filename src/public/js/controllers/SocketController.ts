@@ -12,6 +12,7 @@ import {animateAvatar} from '../movement';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
 import * as waiting from '../waiting';
 import {switchGun} from '../weapon-functs';
+import { updateHUDText } from '../HUD';
 import { melee, meleeAnim } from '../collisons-functs';
 
 export class SocketController {
@@ -137,17 +138,20 @@ export class SocketController {
       this.socket.on(
         'zombie attack', (message: {id: string, x: number, y: number}) => {
           const {id, x, y} = message;
-          // const player = this.gameController.players[id];
-          meleeAnim(x, y);
+          const player = this.gameController.players[id];
+          meleeAnim(player, x, y);
         }
       );
 
       this.socket.on(
-        'player left', (message: { players: { [socketId: string]: string }}) => {
-            const {players} = message;
-            waiting.updatePlayerList(players);
-            // if (message.roomHost === gameController.localPlayer.id)
-            // startGamebutton.style.display = 'block';
+        'player left', (message: { roomHost: string, playerNames: { [socketId: string]: string }}) => {
+          const { roomHost, playerNames } = message;
+          console.log(message);
+            this.roomHost = roomHost;
+            waiting.updatePlayerList(playerNames);
+            if (this.roomHost === this.socket.id) {
+              document.getElementById('start')!.style.display = 'block';
+            }
           });
 
       this.socket.on('err', (message: {}) => {
@@ -202,7 +206,7 @@ export class SocketController {
   }
 
   sendZombieAttack(x: number, y: number): void{
-    this.socket.emit('zombie attack', {roomId: this.roomId, x: x, y: y});
+    this.socket.emit('zombie attack', {roomId: this.roomId, x, y});
   }
 
   sendHit(id: string, damage: number): void {
@@ -226,6 +230,9 @@ export class SocketController {
     if (this.roomHost === this.socket.id) {
       startGameButton!.style.display = 'block';
     }
+    else {
+      startGameButton!.style.display = 'none';
+    }
     waiting.updatePlayerList(players);
   }
 
@@ -239,12 +246,14 @@ export class SocketController {
     for (const id in players) {
       if (id && id) {
         this.gameController.numSurvivors++;
+
         if (id !== this.gameController.localPlayer.id) {
           newPlayer = initPlayer(id, players[id]);
           this.gameController.players[id] = newPlayer;
         }
       }
     }
+    updateHUDText();
   }
 
   startGame(obstacles: Obstacle[], drops: { [dropId: number]: Drop; }, players: Players): void {
@@ -260,6 +269,7 @@ export class SocketController {
         const player = this.gameController.players[socketId];
         this.gameController.numSurvivors--;
         this.gameController.numZombies++;
+        updateHUDText();
         player.isZombie = true;
         const x = player.character.x;
         const y = player.character.y;
@@ -267,6 +277,8 @@ export class SocketController {
         player.character = initAvatar(player, 'zombie_1', x, y);
         if (player.id === this.gameController.localPlayer.id) {
           this.gameController.localPlayer = player;
+          this.gameController.HUD.ammo.graphic.kill();
+          this.gameController.HUD.ammo.text.kill();
         }
       }
     }
@@ -323,6 +335,11 @@ export class SocketController {
     } else {
       this.gameController.numZombies++;
       this.gameController.numSurvivors--;
+      updateHUDText();
+      if (playerId === this.socket.id) {
+        this.gameController.HUD.ammo.graphic.kill();
+        this.gameController.HUD.ammo.text.kill();
+      }
       player.isZombie = true;
       const x = player.character.x;
       const y = player.character.y;

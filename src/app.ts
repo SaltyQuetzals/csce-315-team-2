@@ -215,10 +215,11 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     const loggerMeta = {leaverId: socket.id};
     try {
-      const names = roomController.getNames(roomId);
       roomController.removePlayerFromRooms(socket.id);
+      const playerNames = roomController.getNames(roomId);
+      const roomHost = roomController.getRoomHost(roomId);
       logger.info('disconnect', loggerMeta);
-      socket.to(roomId).emit('player left', {username: names[socket.id]});
+      socket.to(roomId).emit('player left', {roomHost, playerNames});
     } catch (err) {
       logger.error('disconnect', {...loggerMeta, err});
       console.error('disconnect', err);

@@ -135,11 +135,14 @@ export class SocketController {
 
 
       this.socket.on(
-        'player left', (message: { players: { [socketId: string]: string }}) => {
-            const {players} = message;
-            waiting.updatePlayerList(players);
-            // if (message.roomHost === gameController.localPlayer.id)
-            // startGamebutton.style.display = 'block';
+        'player left', (message: { roomHost: string, playerNames: { [socketId: string]: string }}) => {
+          const { roomHost, playerNames } = message;
+          console.log(message);
+            this.roomHost = roomHost;
+            waiting.updatePlayerList(playerNames);
+            if (this.roomHost === this.socket.id) {
+              document.getElementById('start')!.style.display = 'block';
+            }
           });
 
       this.socket.on('err', (message: {}) => {
@@ -213,6 +216,9 @@ export class SocketController {
     const startGameButton = document.getElementById('start');
     if (this.roomHost === this.socket.id) {
       startGameButton!.style.display = 'block';
+    }
+    else {
+      startGameButton!.style.display = 'none';
     }
     waiting.updatePlayerList(players);
   }

@@ -32,8 +32,16 @@ app.get('/rooms/:roomCode', (req, res) => {
   const { username } = req.query;
 
   if (roomController.roomExists(roomCode)) {
+    console.log('test');
     if (roomController.getRoom(roomCode).gameInProgress) {
+      console.log('test2');
       res.redirect('/');
+    } else {
+      if (!username || username === '') {
+        res.redirect(`/username?roomcode=${roomCode}`);
+      } else {
+        res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
+      }
     }
   } else {
     if (!username || username === '') {
@@ -216,6 +224,23 @@ io.on('connection', socket => {
     } catch (err) {
       logger.error('switch gun', { ...loggerMeta, err });
       socket.emit('err', { message: err.message });
+    }
+  });
+
+  socket.on('zombie attack', (data)=> {
+    const {roomId, x, y} = data;
+    const loggerMeta = {roomId, playerId: socket.id, x, y};
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        logger.info('zombie attack', loggerMeta);
+        socket.to(roomId).emit('zombie attack', {id: socket.id, x, y});
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      logger.error('zombie attack', {...loggerMeta, err});
+      socket.emit('err', {message: err.message});
     }
   });
 

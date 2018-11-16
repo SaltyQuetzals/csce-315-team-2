@@ -218,7 +218,9 @@ export class GameController {
         // Loop through players (move non-LocalPlayer)
         if (this.localPlayer.keyboard['spacebar']) {
           if (this.localPlayer.isZombie) {
-            melee(this.localPlayer);
+            if(!this.localPlayer.dbZombieAttack){
+                melee(this.localPlayer);
+            }
           } else {
             fireGun();
           }

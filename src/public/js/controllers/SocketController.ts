@@ -13,6 +13,7 @@ import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from 
 import * as waiting from '../waiting';
 import {switchGun} from '../weapon-functs';
 import { updateHUDText } from '../HUD';
+import { melee, meleeAnim } from '../collisons-functs';
 
 export class SocketController {
   socket: Socket;
@@ -134,6 +135,13 @@ export class SocketController {
         }
       });
 
+      this.socket.on(
+        'zombie attack', (message: {id: string, x: number, y: number}) => {
+          const {id, x, y} = message;
+          const player = this.gameController.players[id];
+          meleeAnim(player, x, y);
+        }
+      );
 
       this.socket.on(
         'player left', (message: { roomHost: string, playerNames: { [socketId: string]: string }}) => {
@@ -195,6 +203,10 @@ export class SocketController {
 
   sendSwitchGun(gun: string): void {
     this.socket.emit('switch gun', {roomId: this.roomId, gun});
+  }
+
+  sendZombieAttack(x: number, y: number): void{
+    this.socket.emit('zombie attack', {roomId: this.roomId, x, y});
   }
 
   sendHit(id: string, damage: number): void {

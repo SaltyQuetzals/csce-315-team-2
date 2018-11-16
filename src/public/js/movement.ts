@@ -12,22 +12,22 @@ import {orientGun} from './weapon-functs';
 function shiftHitbox(player: CustomPlayer) {
   if (player.facing.x !== 0) {
     if (player.facing.x === DIRECTIONS.EAST) {
-      player.hitbox.x = player.character.width;
+      player.hitbox.centerX = player.character.width;
     } else {
-      player.hitbox.x = -player.character.width;
+      player.hitbox.centerX = 0;
     }
   } else {
-    player.hitbox.x = 0;
+    player.hitbox.centerX = player.character.width / 2;
   }
 
   if (player.facing.y !== 0) {
     if (player.facing.y === DIRECTIONS.SOUTH) {
-      player.hitbox.y = player.character.height;
+      player.hitbox.centerY = player.character.height;
     } else {
-      player.hitbox.y = -player.character.height;
+      player.hitbox.centerY = 0;
     }
   } else {
-    player.hitbox.y = 0;
+    player.hitbox.centerY = player.character.height / 2;
   }
 }
 

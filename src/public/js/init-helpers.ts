@@ -13,8 +13,8 @@ import * as GUNS from './models/Guns';
 
 export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
   const hitbox = game.game.add.graphics(0, 0);
-  // hitbox.lineStyle(2, 0x5ff0000, 1);
-  hitbox.drawRect(0, 0, character.width, character.height);
+  hitbox.lineStyle(2, 0x5ff0000, 1);
+  hitbox.drawRect(0, 0, character.width / 2, character.height / 2);
   hitbox.boundsPadding = 0;
 
   game.game.physics.arcade.enable(hitbox);

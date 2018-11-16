@@ -7,7 +7,7 @@ import * as gameConstants from '../game-constants';
 import {initPlayer} from '../init-helpers';
 import {movementHandler} from '../movement';
 import {fireGun} from '../weapon-functs';
-import { createHUD, updateHUD, updateHUDText } from '../HUD';
+import { createHUD, updateHUDText, updateRadar } from '../HUD';
 
 export class GameController {
   GAME_STARTED = false;
@@ -71,7 +71,8 @@ export class GameController {
         this.game.stage.disableVisibilityChange = true;
         this.game.load.image('tiles', '../assets/0x72_DungeonTilesetII_v1.png');
         this.game.load.tilemap(
-            'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
+          'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
+        this.game.load.image('brick', '../assets/brick.png');
         this.game.load.image('bullet', '../assets/bullet.png');
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
         this.game.load.image('Revolver', '../assets/Revolver.png');
@@ -147,9 +148,8 @@ export class GameController {
 
       this.timer = this.game.time.create(true);
       this.timer.loop(5000, (): void => { if (!this.localPlayer.isZombie) this.score += 25; updateHUDText(); });
-      this.timer.loop(3000, updateHUD);
+      this.timer.loop(100, updateRadar);
       
-
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
 

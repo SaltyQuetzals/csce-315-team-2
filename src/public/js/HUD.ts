@@ -14,7 +14,7 @@ export function updateHUDText(): void {
     game.HUD.score.setText('' + game.score);
 }
 
-export function updateHUD(): void {
+export function updateRadar(): void {
 
     const players = game.players;
     let currentPlayer: CustomPlayer;
@@ -38,22 +38,21 @@ export function updateHUD(): void {
         }
         
         if (isUndefined(game.HUD.radar.dots[playerId])) {
-            currentDot = game.game.add.graphics(0,0);
+            currentDot = game.game.add.graphics();
 
             currentDot.beginFill(color, 1);
             currentDot.drawCircle(currentPlayer.character.world.x / 20, currentPlayer.character.world.y / 20, 8);
             currentDot.endFill();
             currentDot.boundsPadding = 0;
-            currentDot.centerX = currentPlayer.character.world.x / 20;
+            currentDot.centerX = currentPlayer.character.world.x / 20 - 8;
             currentDot.centerY = currentPlayer.character.world.y / 20;
             game.HUD.radar.dots[playerId] = currentDot;
-
             game.HUD.radar.overlay.addChild(currentDot);
             game.game.world.bringToTop(game.HUD.radar.overlay);
         }
         else {
             currentDot = game.HUD.radar.dots[playerId];
-            currentDot.centerX = currentPlayer.character.world.x / 20;
+            currentDot.centerX = currentPlayer.character.world.x / 20 - 8;
             currentDot.centerY = currentPlayer.character.world.y / 20;
         }
 
@@ -143,7 +142,7 @@ export function createHUD(): void {
         gameConstants.GAME_VIEW_WIDTH - 140, gameConstants.GAME_VIEW_HEIGHT - 110);
     HUD.radar.overlay.lineStyle(2, 0x5b5b5b, 1);
     // HUD.radar.beginFill(0x5b5b5b, 1);
-    HUD.radar.overlay.drawRect(0, 0, 126, 94);
+    HUD.radar.overlay.drawRect(0, -8, 128, 98);
     // HUD.radar.endFill();
     HUD.radar.overlay.boundsPadding = 0;
 

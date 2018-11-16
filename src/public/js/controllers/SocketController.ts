@@ -156,7 +156,8 @@ export class SocketController {
 
       this.socket.on(
           'end game', (data: {zombies: boolean, survivors: boolean}) => {
-            const {zombies, survivors} = data;
+            const { zombies, survivors } = data;
+            this.gameController.timer.pause();
             if (zombies) {
               this.gameController.endGame.setText('Zombies win!');
               console.log('ZOMBIES WIN');

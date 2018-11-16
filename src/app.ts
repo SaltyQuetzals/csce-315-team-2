@@ -212,6 +212,23 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('zombie attack', (data)=> {
+    const {roomId, x, y} = data;
+    const loggerMeta = {roomId, playerId: socket.id, x, y};
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        logger.info('zombie attack', loggerMeta);
+        socket.to(roomId).emit('zombie attack', {id: socket.id, x: x, y: y});
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      logger.error('zombie attack', {...loggerMeta, err});
+      socket.emit('err', {message: err.message});
+    }
+  });
+
   socket.on('disconnect', () => {
     const loggerMeta = {leaverId: socket.id};
     try {

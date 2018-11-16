@@ -41,7 +41,8 @@ export class CustomPlayer {
   facing!: {x: number; y: number;};
   hitbox!: Phaser.Graphics;
   moving!: boolean;
-  
+  dbZombieAttack!: boolean;
+
   constructor() {
     this.speed = PLAYER_SPEED;
   }

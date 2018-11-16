@@ -1,5 +1,5 @@
 import {Drop} from '../../../models/Drop';
-import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH} from '../../../shared/constants';
+import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH, GAME_LENGTH} from '../../../shared/constants';
 import {bulletHitHandler, killBullet, melee, pickupDrop} from '../collisons-functs';
 import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../game-classes';
@@ -7,6 +7,7 @@ import * as gameConstants from '../game-constants';
 import {initPlayer} from '../init-helpers';
 import {movementHandler} from '../movement';
 import {fireGun} from '../weapon-functs';
+import { createHUD, updateHUD } from '../HUD';
 
 export class GameController {
   GAME_STARTED = false;
@@ -15,25 +16,31 @@ export class GameController {
   layer!: Phaser.TilemapLayer;
   map!: Phaser.Tilemap;
   game!: Phaser.Game;
-  socket!: SocketController;
+  socket: SocketController;
   roomId!: string;
   players!: {[key: string]: gameClasses.CustomPlayer};
   drops!: {[key: string]: Drop};
   targets!: Phaser.Group;
   bullets!: Phaser.Group;
   obstacles!: Phaser.Group;
-  dropSprites!: Phaser.Group;
-  hudObjects!: Phaser.Group;
-  localPlayer!: gameClasses.CustomPlayer;
+    dropSprites!: Phaser.Group;
+    localPlayer!: gameClasses.CustomPlayer;
+    score!: number;
   username!: string;
-  numSurvivors!: number;
+    numSurvivors!: number;  
+    numZombies!: number;
+    timer!: Phaser.Timer;
   HUD!: {
     ammo: {text: Phaser.Text; graphic: Phaser.Sprite, health: Phaser.Text};
-    survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
+      survivors: { text: Phaser.Text; graphic: Phaser.Sprite; }
+      zombies: { text: Phaser.Text; graphic: Phaser.Sprite; }
     healthbar: Phaser.Graphics;
+      timer: Phaser.Text;
+      score: Phaser.Text;
+      radar: { overlay: Phaser.Graphics; dots: { [id: string]: Phaser.Graphics } };
   };
   endGame!: Phaser.Text;
-  constructor(roomId: string, username: string) {
+  constructor(roomId: string, username: string, socketController: SocketController) {
     this.roomId = roomId;
     this.username = username;
     this.game = new Phaser.Game(
@@ -43,7 +50,9 @@ export class GameController {
           create: this.create,
           update: this.update,
           render: this.render
-        });
+          });
+      this.socket = socketController;
+      this.socket.gameController = this;
   }
 
   //  The Google WebFont Loader will look for this object, so create it before
@@ -102,9 +111,11 @@ export class GameController {
         this.map = this.game.add.tilemap('map');
         this.map.addTilesetImage('0x72_DungeonTilesetII_v1', 'tiles');
 
-        this.layer = this.map.createLayer('Tile Layer 1');
-        this.layer.scale.setTo(3);
-        this.layer.resizeWorld();
+      this.layer = this.map.createLayer('Tile Layer 1');
+      this.layer.scale.setTo(3);
+
+      this.game.world.setBounds(0, 0, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
+
 
         this.shadowTexture =
             this.game.add.bitmapData(this.game.width, this.game.height);
@@ -134,13 +145,19 @@ export class GameController {
         this.localPlayer.id = '0';
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
+      this.timer = this.game.time.create(true);
+      this.timer.loop(1000, (): void => { if (!this.localPlayer.isZombie) this.score += 5; });
+      this.timer.loop(3000, updateHUD);
+      
 
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
 
         this.game.camera.follow(this.localPlayer.cameraSprite);
 
-        this.numSurvivors = 0;
+      this.score = 0;
+      this.numSurvivors = 0;
+      this.numZombies = 0;
 
         // Controls
         this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -175,80 +192,20 @@ export class GameController {
           }
         };
 
-        this.HUD = Object();
-        this.HUD.ammo = Object();
-        this.HUD.survivors = Object();
-
-        const healthbarBackground = this.game.add.graphics(10, 10);
-        healthbarBackground.lineStyle(2, 0x5b5b5b, 1);
-        healthbarBackground.beginFill(0x5b5b5b, 1);
-        healthbarBackground.drawRect(0, 0, 150, 20);
-        healthbarBackground.endFill();
-        healthbarBackground.alpha = .5;
-
-        this.hudObjects = this.game.add.group();
-
-        this.HUD.healthbar = this.game.add.graphics(10, 10);
-        this.HUD.healthbar.lineStyle(2, 0xaf0000, 1);
-        this.HUD.healthbar.beginFill(0xaf0000, 1);
-        this.HUD.healthbar.drawRect(0, 0, 150, 20);
-        this.HUD.healthbar.endFill();
-        // this.HUD.healthbar.alpha = .5;
-
-        this.HUD.ammo.graphic = this.game.add.sprite(10, 40, 'HUDammo');
-        // this.HUD.ammo.graphic.alpha = .5;
-        this.HUD.ammo.text =
-            this.game.add.text(10 + this.HUD.ammo.graphic.width + 10, 35, '', {
-              font: 'bold 40px Annie Use Your Telescope',
-              fill: '#ffffff',
-              align: 'center'
-            });
-
-        this.HUD.survivors.graphic = this.game.add.sprite(
-            gameConstants.GAME_VIEW_WIDTH - 100, 10, 'survivor_1');
-        this.HUD.survivors.graphic.scale.setTo(.9, .9);
-        // this.HUD.survivors.graphic.tint = 0x5b5b5b;
-        // this.HUD.survivors.graphic.alpha = .5;
-        this.HUD.survivors.text = this.game.add.text(
-            gameConstants.GAME_VIEW_WIDTH - 95 +
-                this.HUD.survivors.graphic.width,
-            12, '', {
-              font: 'bold 40px Annie Use Your Telescope',
-              fill: '#ffffff',
-              align: 'center'
-            });
-
-        this.HUD.ammo.text.fixedToCamera = true;
-        this.HUD.ammo.graphic.fixedToCamera = true;
-        this.HUD.survivors.text.fixedToCamera = true;
-        this.HUD.survivors.graphic.fixedToCamera = true;
-        this.HUD.healthbar.fixedToCamera = true;
-        healthbarBackground.fixedToCamera = true;
-
-
-
-        this.endGame = this.game.add.text(
-            gameConstants.GAME_VIEW_WIDTH / 2,
-            gameConstants.GAME_VIEW_HEIGHT / 2, '', {
+      this.endGame = this.game.add.text(
+          gameConstants.GAME_VIEW_WIDTH / 2,
+          gameConstants.GAME_VIEW_HEIGHT / 2, '', {
               font: 'bold 100px Annie Use Your Telescope',
               fill: '#af0000',
               boundsAlignH: 'center',
               boundsAlignV: 'middle'
-            });
-        this.endGame.anchor.setTo(.5);
-        this.endGame.fixedToCamera = true;
+          });
+      this.endGame.anchor.setTo(.5);
+      this.endGame.fixedToCamera = true;
 
-        this.socket = new SocketController(this.roomId, this.username, this);
+      
+      createHUD();
 
-        this.game.world.bringToTop(this.shadowTexture);
-        this.game.world.bringToTop(this.lightSprite);
-        this.game.world.bringToTop(healthbarBackground);
-        this.game.world.bringToTop(this.HUD.healthbar);
-        this.game.world.bringToTop(this.HUD.survivors.graphic);
-        this.game.world.bringToTop(this.HUD.survivors.text);
-        this.game.world.bringToTop(this.HUD.ammo.text);
-        this.game.world.bringToTop(this.HUD.ammo.graphic);
-        this.game.world.bringToTop(this.endGame);
       }
 
 
@@ -305,6 +262,10 @@ export class GameController {
 
         this.HUD.ammo.text.setText('' + this.localPlayer.gun.ammo);
         this.HUD.survivors.text.setText('' + this.numSurvivors);
+        this.HUD.zombies.text.setText('' + this.numZombies);
+
+        this.HUD.timer.setText('' + (GAME_LENGTH - Math.floor(this.timer.seconds)));
+        this.HUD.score.setText('' + this.score);
       }
 
   updateShadowTexture() {

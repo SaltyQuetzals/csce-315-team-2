@@ -90,7 +90,7 @@ io.on('connection', socket => {
   const players = roomController.getNames(roomId);
   const roomHost = roomController.getRoomHost(roomId);
   io.in(roomId).emit(
-    'new player', { roomHost, id: socket.id, username, players });
+      'new player', {roomHost, newPlayerId: socket.id, playerNames: players});
 
   socket.on('start game', data => {
     const { roomId } = data;
@@ -98,9 +98,10 @@ io.on('connection', socket => {
     try {
       const room = roomController.getRoom(roomId);
       if (!room.gameInProgress) {
+        const players = roomController.getNames(roomId);
         const initialState = roomController.startGame(roomId);
-        logger.info('Start game', { roomId, initialState });
-        io.in(roomId).emit('start game', initialState);
+        logger.info('Start game', {roomId, initialState});
+        io.in(roomId).emit('start game', {initialState, playerNames: players });
       } else {
         console.log('Game already started');
       }
@@ -221,9 +222,10 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     const loggerMeta = { leaverId: socket.id };
     try {
+      const names = roomController.getNames(roomId);
       roomController.removePlayerFromRooms(socket.id);
       logger.info('disconnect', loggerMeta);
-      socket.to(roomId).emit('player left', { id: socket.id });
+      socket.to(roomId).emit('player left', {username: names[socket.id]});
     } catch (err) {
       logger.error('disconnect', { ...loggerMeta, err });
       console.error('disconnect', err);

@@ -15,11 +15,12 @@ import {switchGun} from '../weapon-functs';
 
 export class SocketController {
   socket: Socket;
-  private gameController: GameController;
+  gameController!: GameController;
   private roomId: string;
   private username: string;
+  private roomHost!: string;
   constructor(
-      roomId: string, username: string, gameController: GameController) {
+      roomId: string, username: string) {
     this.socket = io.connect('/', {
       // query: `roomId=${roomId}`,
       query: {roomId, username}
@@ -27,34 +28,43 @@ export class SocketController {
 
     this.roomId = roomId;
     this.username = username;
-    this.gameController = gameController;
 
     this.socket.on('connect', () => {
-      this.gameController.localPlayer.id = this.socket.id;
-      this.gameController.localPlayer.character.id = this.socket.id;
-      this.gameController.localPlayer.username = this.username;
-      this.gameController.localPlayer.character.usernameText.setText(this.username);
-      this.gameController.players[this.socket.id] =
-          this.gameController.localPlayer;
+
       waiting.updateAccessCodeBox();
 
       // console.log(this.gameController.localPlayer.id);
       console.log('Connected successfully.');
 
-      this.socket.on('start game', (message: StartGameParams) => {
-        console.log('Received start game event');
-        const {obstacles, drops, players} = message;
-        this.startGame(obstacles, drops, players);
+      this.socket.on('new player', (message: NewPlayerParams) => {
+        const { roomHost, newPlayerId, playerNames } = message;
+        this.roomHost = roomHost;
+        if (newPlayerId === this.socket.id) {
+          this.username = username;
+        }
+        this.playerJoined(playerNames);
       });
 
-      this.socket.on('new player', (message: NewPlayerParams) => {
-        const {roomHost, id, username, players} = message;
-        this.initNewPlayer(roomHost, id, username, players);
+      this.socket.on('start game', (message: StartGameParams) => {
+        console.log('Received start game event');
+        const { initialState, playerNames } = message;
+        // const { roomHost, id, username, players } = message;
+
+        this.gameController.localPlayer.id = this.socket.id;
+        this.gameController.localPlayer.character.id = this.socket.id;
+        this.gameController.localPlayer.username = this.username;
+        this.gameController.localPlayer.character.usernameText.setText(this.username);
+        this.gameController.players[this.socket.id] =
+          this.gameController.localPlayer;
+
+        
+        this.initNewPlayers(playerNames);
+        this.startGame(initialState.obstacles, initialState.drops, initialState.players);
       });
 
       this.socket.on('player moved', (message: MovementParams) => {
         // console.log(game.players);
-        const player = this.gameController.players[message.id]
+        const player = this.gameController.players[message.id];
         const avatar = player.character;
         const {x, y} = avatar;
         avatar.x = message.location.x;
@@ -68,7 +78,7 @@ export class SocketController {
       this.socket.on(
           'weapon fired', (message: {id: string, fireAngle: number}) => {
             const {id, fireAngle} = message;
-            const gun = gameController.players[id].gun;
+            const gun = this.gameController.players[id].gun;
             gun.pGun.fireAngle = fireAngle;
             gun.shoot();
           });
@@ -107,7 +117,7 @@ export class SocketController {
 
       this.socket.on('switch gun', (message: {id: string, gun: string}) => {
         const {id, gun} = message;
-        const player = gameController.players[id];
+        const player = this.gameController.players[id];
         switch (gun) {
           case 'revolver':
             switchGun(player.gun, new Revolver());
@@ -125,10 +135,9 @@ export class SocketController {
 
 
       this.socket.on(
-          'player left', (message: {id: string, roomHost: string}) => {
-            const {id} = message;
-            delete gameController.players[id];
-            waiting.updatePlayerList(this.gameController.players);
+        'player left', (message: { players: { [socketId: string]: string }}) => {
+            const {players} = message;
+            waiting.updatePlayerList(players);
             // if (message.roomHost === gameController.localPlayer.id)
             // startGamebutton.style.display = 'block';
           });
@@ -149,10 +158,10 @@ export class SocketController {
           'end game', (data: {zombies: boolean, survivors: boolean}) => {
             const {zombies, survivors} = data;
             if (zombies) {
-              gameController.endGame.setText('Zombies win!');
+              this.gameController.endGame.setText('Zombies win!');
               console.log('ZOMBIES WIN');
             } else {
-              gameController.endGame.setText('Survivors win!');
+              this.gameController.endGame.setText('Survivors win!');
               console.log('SURVIVORS WIN');
             }
           });
@@ -199,40 +208,33 @@ export class SocketController {
     });
   }
 
-  initNewPlayer(
-      roomHost: string, playerId: string, username: string,
-      players: {[playerId: string]: string}): void {
-    let newPlayer = null;
+  playerJoined(players: { [socketId: string]: string }): void {
     const startGameButton = document.getElementById('start');
-    if (roomHost === this.gameController.localPlayer.id) {
+    if (this.roomHost === this.socket.id) {
       startGameButton!.style.display = 'block';
     }
-    // console.log(JSON.stringify(Object.keys(this.gameController.players),
-    // null, 3));
-    if (playerId === this.gameController.localPlayer.id) {
-      this.gameController.localPlayer.username = username;
-      // create all preexisting players
-      for (const id in players) {
-        if (id && id) {
-          this.gameController.numSurvivors++;
-          if (id !== this.gameController.localPlayer.id) {
-            newPlayer = initPlayer(id, players[id]);
-            this.gameController.players[id] = newPlayer;
-          }
-        }
-      }
-    } else {
-      // create only new player
-      // console.log('Another player has joined the room!');
-      newPlayer = initPlayer(playerId, players[playerId]);
-      this.gameController.players[playerId] = newPlayer;
-      this.gameController.numSurvivors++;
-      // console.log(newPlayer.id);
-    }
-    waiting.updatePlayerList(this.gameController.players);
+    waiting.updatePlayerList(players);
   }
 
-  startGame(obstacles: [Obstacle], drops: [Drop], players: Players): void {
+  initNewPlayers(
+      // roomHost: string, playerId: string, username: string,
+      players: {[playerId: string]: string}): void {
+    let newPlayer = null;
+    console.log(players);
+      
+    // create all preexisting players
+    for (const id in players) {
+      if (id && id) {
+        this.gameController.numSurvivors++;
+        if (id !== this.gameController.localPlayer.id) {
+          newPlayer = initPlayer(id, players[id]);
+          this.gameController.players[id] = newPlayer;
+        }
+      }
+    }
+  }
+
+  startGame(obstacles: Obstacle[], drops: { [dropId: number]: Drop; }, players: Players): void {
     initObstacles(obstacles);
     initDrops(drops);
     const socketPlayers: Players = players;
@@ -263,6 +265,7 @@ export class SocketController {
       }
     }
 
+    console.log("Reached html display");
     this.gameController.GAME_STARTED = true;
     const overlay: HTMLElement|null =
         document.getElementById('waiting-room-overlay');

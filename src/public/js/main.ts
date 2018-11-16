@@ -14,7 +14,8 @@ const roomId = splitUrl[splitUrl.length - 1];
 
 const username = waiting.getUserName();
 
-export let game = new GameController(roomId, username);
+export let socket = new SocketController(roomId, username);
+export let game = new GameController(roomId, username, socket);
 
 const startGameButton = document.getElementById('start');
 

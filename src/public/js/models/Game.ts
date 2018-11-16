@@ -15,7 +15,7 @@ export class GameController {
   layer!: Phaser.TilemapLayer;
   map!: Phaser.Tilemap;
   game!: Phaser.Game;
-  socket!: SocketController;
+  socket: SocketController;
   roomId!: string;
   players!: {[key: string]: gameClasses.CustomPlayer};
   drops!: {[key: string]: Drop};
@@ -33,7 +33,7 @@ export class GameController {
     healthbar: Phaser.Graphics;
   };
   endGame!: Phaser.Text;
-  constructor(roomId: string, username: string) {
+  constructor(roomId: string, username: string, socketController: SocketController) {
     this.roomId = roomId;
     this.username = username;
     this.game = new Phaser.Game(
@@ -43,7 +43,9 @@ export class GameController {
           create: this.create,
           update: this.update,
           render: this.render
-        });
+          });
+      this.socket = socketController;
+      this.socket.gameController = this;
   }
 
   //  The Google WebFont Loader will look for this object, so create it before
@@ -237,8 +239,6 @@ export class GameController {
             });
         this.endGame.anchor.setTo(.5);
         this.endGame.fixedToCamera = true;
-
-        this.socket = new SocketController(this.roomId, this.username, this);
 
         this.game.world.bringToTop(this.shadowTexture);
         this.game.world.bringToTop(this.lightSprite);

@@ -3,11 +3,14 @@ import {Obstacle} from '../../models/Obstacle';
 import {Player} from '../../models/Player';
 
 import {CustomPlayer} from './game-classes';
+import { InitialState } from '../../models/Leaderboard';
 
 export type StartGameParams = {
-  obstacles: [Obstacle],
-  drops: [Drop],
-  players: Players
+  initialState: InitialState,
+  // obstacles: [Obstacle],
+  // drops: [Drop],
+  // players: Players
+  playerNames: { [socketId: string]: string }
 };
 
 export type MovementParams = {
@@ -15,11 +18,17 @@ export type MovementParams = {
   location: {x: number, y: number}
 };
 
+// export interface NewPlayerParams {
+//   roomHost: string;
+//   id: string;
+//   username: string;
+//   players: {[socketId: string]: string};
+// }
+
 export interface NewPlayerParams {
   roomHost: string;
-  id: string;
-  username: string;
-  players: {[socketId: string]: string};
+  newPlayerId: string;
+  playerNames: { [socketId: string]: string };
 }
 
 export interface Players {

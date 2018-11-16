@@ -7,7 +7,7 @@ import * as gameConstants from '../game-constants';
 import {initPlayer} from '../init-helpers';
 import {movementHandler} from '../movement';
 import {fireGun} from '../weapon-functs';
-import { createHUD, updateHUD } from '../HUD';
+import { createHUD, updateHUD, updateHUDText } from '../HUD';
 
 export class GameController {
   GAME_STARTED = false;
@@ -146,7 +146,7 @@ export class GameController {
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
       this.timer = this.game.time.create(true);
-      this.timer.loop(5000, (): void => { if (!this.localPlayer.isZombie) this.score += 25; });
+      this.timer.loop(5000, (): void => { if (!this.localPlayer.isZombie) this.score += 25; updateHUDText(); });
       this.timer.loop(3000, updateHUD);
       
 
@@ -259,13 +259,7 @@ export class GameController {
       void => {
         // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
         // game.localPlayer.gun.debug(20, 128);
-
-        this.HUD.ammo.text.setText('' + this.localPlayer.gun.ammo);
-        this.HUD.survivors.text.setText('' + this.numSurvivors);
-        this.HUD.zombies.text.setText('' + this.numZombies);
-
         this.HUD.timer.setText('' + (GAME_LENGTH - Math.floor(this.timer.seconds)));
-        this.HUD.score.setText('' + this.score);
       }
 
   updateShadowTexture() {

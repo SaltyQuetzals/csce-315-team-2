@@ -1,12 +1,14 @@
 import {Gun} from './game-classes';
 import {game} from './main';
 import {Weapon} from './models/Guns';
+import { updateHUDText } from './HUD';
 
 export function fireGun() {
   if (game.localPlayer.gun.ammo > 0) {
     if (game.localPlayer.gun.shoot()) {
       --game.localPlayer.gun.ammo;
       game.socket.sendFireGun(game.localPlayer.gun.pGun.fireAngle);
+      updateHUDText();
     }
   }
 }

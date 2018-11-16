@@ -5,6 +5,7 @@ import {CustomPlayer, CustomSprite} from './game-classes';
 import {game} from './main';
 import {AutomaticRifle, Revolver, SawnOffShotgun} from './models/Guns';
 import {switchGun} from './weapon-functs';
+import { updateHUDText } from './HUD';
 
 export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
   const drop: Drop = game.drops[dropSprite.id];
@@ -29,7 +30,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
         default:
           break;
       }
-
+      updateHUDText();
     } else {
       const type = drop.item.type;
       // console.log(type);
@@ -48,6 +49,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           break;
         case 'Jackpot':
           player.gun.ammo += player.gun.clipSize;
+          updateHUDText();
           break;
         default:
           break;
@@ -86,15 +88,17 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
     target.character.animations.play('hurt', 20, false);
     game.score += 20;
   }
+  updateHUDText();
 }
 
 export function melee(player: CustomPlayer) {
   game.game.physics.arcade.overlap(
       player.hitbox, game.targets, meleeHit, undefined, game);
   //Instantiate bite anim
-  const x = player.character.x + player.hitbox.x;
-  const y = player.character.y + player.hitbox.y;
-  const biteAnim = game.game.add.sprite(x, y, 'weapons');
+  const biteAnim = game.game.add.sprite(0, 0, 'weapons');
+  player.hitbox.addChild(biteAnim);
+  biteAnim.width = player.hitbox.width;
+  biteAnim.height = player.hitbox.height;
   biteAnim.animations.add('Bite', [20, 21, 22, 23, 24], 30, false);
   biteAnim.frame = 20;
   //Play & kill on complete

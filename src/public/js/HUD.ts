@@ -4,6 +4,16 @@ import { GAME_LENGTH } from "../../shared/constants";
 import { CustomPlayer } from "./game-classes";
 import { isUndefined } from "util";
 
+export function updateHUDText(): void {
+
+    game.HUD.survivors.text.setText('' + game.numSurvivors);
+    game.HUD.zombies.text.setText('' + game.numZombies);
+    if (!game.localPlayer.isZombie) {
+        game.HUD.ammo.text.setText('' + game.localPlayer.gun.ammo);
+    }
+    game.HUD.score.setText('' + game.score);
+}
+
 export function updateHUD(): void {
 
     const players = game.players;

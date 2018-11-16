@@ -1,5 +1,5 @@
 import {CustomPlayer, CustomSprite, Gun} from './game-classes';
-import {DIRECTIONS} from './game-constants';
+import {DIRECTIONS, FACING} from './game-constants';
 import {game} from './main';
 import {orientGun} from './weapon-functs';
 
@@ -9,7 +9,7 @@ import {orientGun} from './weapon-functs';
 // }
 // keys index changed, making this invalid
 
-function shiftHitbox(player: CustomPlayer) {
+export function shiftHitbox(player: CustomPlayer) {
   if (player.facing.x !== 0) {
     if (player.facing.x === DIRECTIONS.EAST) {
       player.hitbox.centerX = player.character.width;
@@ -141,7 +141,7 @@ export function movementHandler(
         player.moving = false;
     }
     const location = {x: Number(avatar.body.x), y: Number(avatar.body.y)};
-    game.socket.sendMove(location);
+    game.socket.sendMove(location, player.facing);
     if (player.isZombie) {
       shiftHitbox(player);
     }

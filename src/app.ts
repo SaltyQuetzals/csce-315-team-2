@@ -130,18 +130,19 @@ io.on('connection', socket => {
   });
 
   socket.on('move', data => {
-    const { roomId, location } = data;
+    const { roomId, location, facing } = data;
 
     const loggerMeta = {
       roomId,
       location,
+      facing,
       socketId: socket.id,
     };
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('move', loggerMeta);
-        socket.to(roomId).emit('player moved', { id: socket.id, location });
+        socket.to(roomId).emit('player moved', { id: socket.id, location, facing });
       } else {
         console.log('Game not started');
       }
@@ -228,13 +229,13 @@ io.on('connection', socket => {
   });
 
   socket.on('zombie attack', (data)=> {
-    const {roomId, x, y} = data;
-    const loggerMeta = {roomId, playerId: socket.id, x, y};
+    const {roomId } = data;
+    const loggerMeta = {roomId, playerId: socket.id };
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('zombie attack', loggerMeta);
-        socket.to(roomId).emit('zombie attack', {id: socket.id, x, y});
+        socket.to(roomId).emit('zombie attack', {zombieId: socket.id});
       } else {
         console.log('Game not started');
       }

@@ -82,6 +82,9 @@ export function initAvatar(
   });
   avatar.usernameText.anchor.setTo(.5);
   avatar.addChild(avatar.usernameText);
+  if (player.isZombie) {
+    player.hitbox = initHitbox(avatar);
+  }
 
   if (game.localPlayer && (avatar.id !== game.localPlayer.id) &&
       (player.id !== '0')) {
@@ -94,7 +97,6 @@ export function initAvatar(
     let color: string;
     let colorNum: number;
     if (player.isZombie) {
-      player.hitbox = initHitbox(avatar);
       color = '#7CCB91';
       colorNum = 0x7CCB91;
     }

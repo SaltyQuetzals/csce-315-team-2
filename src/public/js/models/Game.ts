@@ -118,7 +118,7 @@ export class GameController {
 
 
         this.shadowTexture =
-            this.game.add.bitmapData(this.game.width, this.game.height);
+            this.game.add.bitmapData(this.game.width + 10, this.game.height + 10);
 
         this.lightSprite = this.game.add.image(
             this.game.camera.x, this.game.camera.y, this.shadowTexture);
@@ -205,6 +205,16 @@ export class GameController {
 
       
       createHUD();
+    
+      //Creating line for the border around the game
+      let graphics = this.game.add.graphics(0,0);
+      graphics.lineStyle(10, 0x000000, 1);
+      graphics.lineTo(window.innerWidth, 0);
+      graphics.lineTo(window.innerWidth, window.innerHeight);
+      graphics.lineTo(0, window.innerHeight);
+      graphics.lineTo(0,0);
+      graphics.fixedToCamera = true;
+
 
       }
 

@@ -45,3 +45,9 @@ export function getUserName(): string {
     return '';
   }
 }
+
+export function showWaiting(): void{
+  document.getElementById('waiting-room-overlay')!.style.display = 'inherit';
+  document.getElementById('background')!.style.display = 'inherit';
+  document.getElementById('start')!.style.display = 'inherit';
+}

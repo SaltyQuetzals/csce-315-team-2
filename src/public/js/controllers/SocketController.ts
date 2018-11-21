@@ -11,6 +11,7 @@ import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
 import * as waiting from '../waiting';
+import * as main from '../main';
 import {switchGun} from '../weapon-functs';
 import { updateHUDText } from '../HUD';
 import { melee, meleeAnim } from '../collisons-functs';
@@ -179,6 +180,8 @@ export class SocketController {
               this.gameController.endGame.setText('Survivors win!');
               console.log('SURVIVORS WIN');
             }
+
+            setTimeout(main.restartGame, 5000);
           });
     });
   }

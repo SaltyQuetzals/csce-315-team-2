@@ -38,7 +38,13 @@ function startGame(): void {
   document.getElementById('start')!.style.display = 'none';
   // console.log(game);
   // console.log(game.socket);
+  console.log("Hello");
   game.socket.sendStartGame();
+}
+
+export function restartGame(): void{
+  game = new GameController(roomId, username, socket);
+  waiting.showWaiting();
 }
 
 if (startGameButton) {

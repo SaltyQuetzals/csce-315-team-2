@@ -1,22 +1,22 @@
-import { game } from "./main";
-import * as gameConstants from "./game-constants";
+import { room } from "./main";
+import * as gameConstants from "./helper/game-constants";
 import { GAME_LENGTH } from "../../shared/constants";
-import { CustomPlayer } from "./game-classes";
+import { CustomPlayer } from "./classes/game-classes";
 import { isUndefined } from "util";
 
 export function updateHUDText(): void {
 
-    game.HUD.survivors.text.setText('' + game.numSurvivors);
-    game.HUD.zombies.text.setText('' + game.numZombies);
-    if (!game.localPlayer.isZombie) {
-        game.HUD.ammo.text.setText('' + game.localPlayer.gun.ammo);
+    room.game.HUD.survivors.text.setText('' + room.game.numSurvivors);
+    room.game.HUD.zombies.text.setText('' + room.game.numZombies);
+    if (!room.game.localPlayer.isZombie) {
+        room.game.HUD.ammo.text.setText('' + room.game.localPlayer.gun.ammo);
     }
-    game.HUD.score.setText('' + game.score);
+    room.game.HUD.score.setText('' + room.game.score);
 }
 
 export function updateHUD(): void {
 
-    const players = game.players;
+    const players = room.game.players;
     let currentPlayer: CustomPlayer;
     let currentDot: Phaser.Graphics;
     let color = 0xffffff;
@@ -25,10 +25,10 @@ export function updateHUD(): void {
         // console.log(playerId);
         currentPlayer = players[playerId];
         color = 0x5b5b5b;
-        if (playerId === game.localPlayer.id) {
+        if (playerId === room.game.localPlayer.id) {
             color = 0xffffff;
         }
-        else if (game.localPlayer.isZombie && !currentPlayer.isZombie) {
+        else if (room.game.localPlayer.isZombie && !currentPlayer.isZombie) {
                 color = 0xaf0000;
         }
         else {
@@ -37,8 +37,8 @@ export function updateHUD(): void {
             }
         }
         
-        if (isUndefined(game.HUD.radar.dots[playerId])) {
-            currentDot = game.game.add.graphics(0,0);
+        if (isUndefined(room.game.HUD.radar.dots[playerId])) {
+            currentDot = room.game.game.add.graphics(0,0);
 
             currentDot.beginFill(color, 1);
             currentDot.drawCircle(currentPlayer.character.world.x / 20, currentPlayer.character.world.y / 20, 8);
@@ -46,13 +46,13 @@ export function updateHUD(): void {
             currentDot.boundsPadding = 0;
             currentDot.centerX = currentPlayer.character.world.x / 20;
             currentDot.centerY = currentPlayer.character.world.y / 20;
-            game.HUD.radar.dots[playerId] = currentDot;
+            room.game.HUD.radar.dots[playerId] = currentDot;
 
-            game.HUD.radar.overlay.addChild(currentDot);
-            game.game.world.bringToTop(game.HUD.radar.overlay);
+            room.game.HUD.radar.overlay.addChild(currentDot);
+            room.game.game.world.bringToTop(room.game.HUD.radar.overlay);
         }
         else {
-            currentDot = game.HUD.radar.dots[playerId];
+            currentDot = room.game.HUD.radar.dots[playerId];
             currentDot.centerX = currentPlayer.character.world.x / 20;
             currentDot.centerY = currentPlayer.character.world.y / 20;
         }
@@ -61,8 +61,8 @@ export function updateHUD(): void {
 }
 
 export function createHUD(): void {
-    game.HUD = Object();
-    const HUD = game.HUD;
+    room.game.HUD = Object();
+    const HUD = room.game.HUD;
 
     HUD.ammo = Object();
     HUD.survivors = Object();
@@ -70,36 +70,36 @@ export function createHUD(): void {
     HUD.radar = Object();
     HUD.radar.dots = {};
 
-    const healthbarBackground = game.game.add.graphics(10, 10);
+    const healthbarBackground = room.game.game.add.graphics(10, 10);
     healthbarBackground.lineStyle(2, 0x5b5b5b, 1);
     healthbarBackground.beginFill(0x5b5b5b, 1);
     healthbarBackground.drawRect(0, 0, 150, 20);
     healthbarBackground.endFill();
     healthbarBackground.alpha = .5;
 
-    HUD.healthbar = game.game.add.graphics(10, 10);
+    HUD.healthbar = room.game.game.add.graphics(10, 10);
     HUD.healthbar.lineStyle(2, 0xaf0000, 1);
     HUD.healthbar.beginFill(0xaf0000, 1);
     HUD.healthbar.drawRect(0, 0, 150, 20);
     HUD.healthbar.endFill();
     // HUD.healthbar.alpha = .5;
 
-    HUD.ammo.graphic = game.game.add.sprite(10, 40, 'HUDammo');
+    HUD.ammo.graphic = room.game.game.add.sprite(10, 40, 'HUDammo');
     // HUD.ammo.graphic.alpha = .5;
     HUD.ammo.text =
-        game.game.add.text(10 + HUD.ammo.graphic.width + 10, 35, '', {
+        room.game.game.add.text(10 + HUD.ammo.graphic.width + 10, 35, '', {
             font: 'bold 40px Annie Use Your Telescope',
             fill: '#ffffff',
             align: 'center'
         });
 
-    HUD.survivors.graphic = game.game.add.sprite(
+    HUD.survivors.graphic = room.game.game.add.sprite(
         gameConstants.GAME_VIEW_WIDTH - 200, 
         gameConstants.GAME_VIEW_HEIGHT - 100, 'survivor_1');
     HUD.survivors.graphic.scale.setTo(.5, .5);
     // HUD.survivors.graphic.tint = 0x5b5b5b;
     // HUD.survivors.graphic.alpha = .5;
-    HUD.survivors.text = game.game.add.text(
+    HUD.survivors.text = room.game.game.add.text(
         HUD.survivors.graphic.x + 2 +
         HUD.survivors.graphic.width,
         HUD.survivors.graphic.y, '', {
@@ -108,12 +108,12 @@ export function createHUD(): void {
             align: 'center'
         });
 
-    HUD.zombies.graphic = game.game.add.sprite(
+    HUD.zombies.graphic = room.game.game.add.sprite(
         HUD.survivors.graphic.x, HUD.survivors.graphic.y + HUD.survivors.graphic.height + 10, 'zombie_1');
     HUD.zombies.graphic.scale.setTo(.5, .5);
     // HUD.zombies.graphic.tint = 0x5b5b5b;
     // HUD.zombies.graphic.alpha = .5;
-    HUD.zombies.text = game.game.add.text(
+    HUD.zombies.text = room.game.game.add.text(
         HUD.zombies.graphic.x + 2 +
         HUD.zombies.graphic.width,
         HUD.zombies.graphic.y, '', {
@@ -122,7 +122,7 @@ export function createHUD(): void {
             align: 'center'
         });
 
-    HUD.score = game.game.add.text(
+    HUD.score = room.game.game.add.text(
         gameConstants.GAME_VIEW_WIDTH -10 ,
         50, '', {
             font: 'bold 40px Annie Use Your Telescope',
@@ -132,14 +132,14 @@ export function createHUD(): void {
     HUD.score.anchor.setTo(1);
 
     HUD.timer =
-        game.game.add.text(gameConstants.GAME_VIEW_WIDTH / 2, 30, '' + (GAME_LENGTH - game.timer.seconds), {
+        room.game.game.add.text(gameConstants.GAME_VIEW_WIDTH / 2, 30, '' + (GAME_LENGTH - room.game.timer.seconds), {
             font: 'bold 30px Annie Use Your Telescope',
             fill: '#ffffff',
             boundsAlignH: 'center'
         });
     HUD.timer.anchor.setTo(.5);
 
-    HUD.radar.overlay = game.game.add.graphics(
+    HUD.radar.overlay = room.game.game.add.graphics(
         gameConstants.GAME_VIEW_WIDTH - 140, gameConstants.GAME_VIEW_HEIGHT - 110);
     HUD.radar.overlay.lineStyle(2, 0x5b5b5b, 1);
     // HUD.radar.beginFill(0x5b5b5b, 1);
@@ -159,21 +159,21 @@ export function createHUD(): void {
     HUD.score.fixedToCamera = true;
     HUD.radar.overlay.fixedToCamera = true;
 
-    game.game.world.bringToTop(game.shadowTexture);
-    game.game.world.bringToTop(game.lightSprite);
+    room.game.game.world.bringToTop(room.game.shadowTexture);
+    room.game.game.world.bringToTop(room.game.lightSprite);
 
-    game.game.world.bringToTop(healthbarBackground);
-    game.game.world.bringToTop(HUD.healthbar);
-    game.game.world.bringToTop(HUD.survivors.graphic);
-    game.game.world.bringToTop(HUD.survivors.text);
-    game.game.world.bringToTop(HUD.zombies.graphic);
-    game.game.world.bringToTop(HUD.zombies.text);
-    game.game.world.bringToTop(HUD.ammo.text);
-    game.game.world.bringToTop(HUD.ammo.graphic);
-    game.game.world.bringToTop(HUD.timer);
+    room.game.game.world.bringToTop(healthbarBackground);
+    room.game.game.world.bringToTop(HUD.healthbar);
+    room.game.game.world.bringToTop(HUD.survivors.graphic);
+    room.game.game.world.bringToTop(HUD.survivors.text);
+    room.game.game.world.bringToTop(HUD.zombies.graphic);
+    room.game.game.world.bringToTop(HUD.zombies.text);
+    room.game.game.world.bringToTop(HUD.ammo.text);
+    room.game.game.world.bringToTop(HUD.ammo.graphic);
+    room.game.game.world.bringToTop(HUD.timer);
     HUD.score.bringToTop();
-    game.game.world.bringToTop(HUD.radar.overlay);
-    game.game.world.bringToTop(game.endGame);
+    room.game.game.world.bringToTop(HUD.radar.overlay);
+    room.game.game.world.bringToTop(room.game.endGame);
 
     return;
 }

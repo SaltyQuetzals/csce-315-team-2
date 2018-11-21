@@ -1,12 +1,12 @@
 import {Drop} from '../../../models/Drop';
 import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH, GAME_LENGTH} from '../../../shared/constants';
-import {bulletHitHandler, killBullet, melee, pickupDrop} from '../collisons-functs';
+import {bulletHitHandler, killBullet, melee, pickupDrop} from '../helper/collisons-functs';
 import {SocketController} from '../controllers/SocketController';
-import * as gameClasses from '../game-classes';
-import * as gameConstants from '../game-constants';
-import {initPlayer} from '../init-helpers';
+import * as gameClasses from '../classes/game-classes';
+import * as gameConstants from '../helper/game-constants';
+import {initPlayer} from '../helper/init-helpers';
 import {movementHandler} from '../movement';
-import {fireGun} from '../weapon-functs';
+import {fireGun} from '../helper/weapon-functs';
 import { createHUD, updateHUD, updateHUDText } from '../HUD';
 
 export class GameController {

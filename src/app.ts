@@ -121,11 +121,12 @@ io.on('connection', socket => {
 
   socket.on('end game', data => {
     const { zombies, survivors, roomId } = data;
+
     logger.info('Game over', { roomId });
     const room = roomController.getRoom(roomId);
     if (room.gameInProgress) {
       room.gameInProgress = false;
-      io.in(roomId).emit('end game', { zombies, survivors });
+      io.in(roomId).emit('end game', { zombies, survivors, leaderBoard: room.leaderboard});
     }
   });
 

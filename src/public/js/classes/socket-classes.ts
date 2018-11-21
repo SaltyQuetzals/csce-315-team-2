@@ -1,9 +1,9 @@
-import {Drop} from '../../models/Drop';
-import {Obstacle} from '../../models/Obstacle';
-import {Player} from '../../models/Player';
+import {Drop} from '../../../models/Drop';
+import {Obstacle} from '../../../models/Obstacle';
+import {Player} from '../../../models/Player';
 
 import {CustomPlayer} from './game-classes';
-import { InitialState } from '../../models/Leaderboard';
+import { InitialState } from '../../../models/Leaderboard';
 
 export type StartGameParams = {
   initialState: InitialState,

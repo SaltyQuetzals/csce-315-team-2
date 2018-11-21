@@ -1,7 +1,7 @@
-import {CustomPlayer, CustomSprite, Gun} from './game-classes';
-import {DIRECTIONS, FACING} from './game-constants';
-import {game} from './main';
-import {orientGun} from './weapon-functs';
+import {CustomPlayer, CustomSprite, Gun} from './classes/game-classes';
+import {DIRECTIONS, FACING} from './helper/game-constants';
+import {room} from './main';
+import {orientGun} from './helper/weapon-functs';
 
 
 // function any(dict: {[key: string]: number}) {
@@ -141,7 +141,7 @@ export function movementHandler(
         player.moving = false;
     }
     const location = {x: Number(avatar.body.x), y: Number(avatar.body.y)};
-    game.socket.sendMove(location, player.facing);
+    room.game.socket.sendMove(location, player.facing);
     if (player.isZombie) {
       shiftHitbox(player);
     }

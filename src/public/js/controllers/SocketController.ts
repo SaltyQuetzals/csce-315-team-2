@@ -3,18 +3,17 @@ import * as socket from 'socket.io-client';
 import {Drop} from '../../../models/Drop';
 import {Obstacle} from '../../../models/Obstacle';
 import {Player} from '../../../models/Player';
-import {CustomPlayer, Gun} from '../game-classes';
-import {PLAYER_HEALTH} from '../game-constants';
-import {initAvatar, initDrops, initObstacles, initPlayer} from '../init-helpers';
+import {CustomPlayer, Gun} from '../classes/game-classes';
+import {PLAYER_HEALTH} from '../helper/game-constants';
+import {initAvatar, initDrops, initObstacles, initPlayer} from '../helper/init-helpers';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
-import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
-import * as waiting from '../waiting';
-import * as main from '../main';
-import {switchGun} from '../weapon-functs';
+import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../classes/socket-classes';
+import {room} from '../main';
+import {switchGun} from '../helper/weapon-functs';
 import { updateHUDText } from '../HUD';
-import { melee, meleeAnim } from '../collisons-functs';
+import { melee, meleeAnim } from '../helper/collisons-functs';
 
 export class SocketController {
   socket: Socket;
@@ -34,7 +33,7 @@ export class SocketController {
 
     this.socket.on('connect', () => {
 
-      waiting.updateAccessCodeBox();
+      room.updateAccessCodeBox();
 
       // console.log(this.gameController.localPlayer.id);
       console.log('Connected successfully.');
@@ -151,7 +150,7 @@ export class SocketController {
           const { roomHost, playerNames } = message;
           console.log(message);
             this.roomHost = roomHost;
-            waiting.updatePlayerList(playerNames);
+            room.updatePlayerList(playerNames);
             if (this.roomHost === this.socket.id) {
               document.getElementById('start')!.style.display = 'block';
             }
@@ -170,8 +169,8 @@ export class SocketController {
       });
 
       this.socket.on(
-          'end game', (data: {zombies: boolean, survivors: boolean}) => {
-            const { zombies, survivors } = data;
+          'end game', (data: {zombies: boolean, survivors: boolean, leaderBoard: {}}) => {
+            const { zombies, survivors, leaderBoard } = data;
             this.gameController.timer.pause();
             if (zombies) {
               this.gameController.endGame.setText('Zombies win!');
@@ -180,8 +179,9 @@ export class SocketController {
               this.gameController.endGame.setText('Survivors win!');
               console.log('SURVIVORS WIN');
             }
+            console.log("LeaderBoard:", leaderBoard);
 
-            setTimeout(main.restartGame, 5000);
+            setTimeout(room.restartGame.bind(room), 5000);
           });
     });
   }
@@ -238,7 +238,7 @@ export class SocketController {
     else {
       startGameButton!.style.display = 'none';
     }
-    waiting.updatePlayerList(players);
+    room.updatePlayerList(players);
   }
 
   initNewPlayers(

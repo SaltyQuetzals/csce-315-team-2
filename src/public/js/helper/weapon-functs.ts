@@ -1,7 +1,7 @@
 import {Gun} from '../classes/game-classes';
+import {updateHUDText} from '../HUD';
 import {room} from '../main';
 import {Weapon} from '../models/Guns';
-import { updateHUDText } from '../HUD';
 
 export function fireGun() {
   if (room.game.localPlayer.gun.ammo > 0) {

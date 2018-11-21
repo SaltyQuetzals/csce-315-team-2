@@ -2,11 +2,13 @@ import {Drop} from '../../../models/Drop';
 import {Player} from '../../../models/Player';
 import {delay} from '../../../shared/functions';
 import {CustomPlayer, CustomSprite} from '../classes/game-classes';
+import {updateHUDText} from '../HUD';
 import {room} from '../main';
 import {AutomaticRifle, Revolver, SawnOffShotgun} from '../models/Guns';
-import {switchGun} from './weapon-functs';
-import { updateHUDText } from '../HUD';
+
 import {ZOMBIE_ATTACK_DEBOUNCE} from './game-constants';
+import {switchGun} from './weapon-functs';
+
 export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
   const drop: Drop = room.game.drops[dropSprite.id];
   dropSprite.destroy();
@@ -92,16 +94,16 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
 }
 
 export async function melee(player: CustomPlayer) {
-  if(!player.dbZombieAttack){
+  if (!player.dbZombieAttack) {
     player.dbZombieAttack = true;
     room.game.game.physics.arcade.overlap(
         player.hitbox, room.game.targets, meleeHit, undefined, room.game);
-    
+
     const x = player.character.x + player.hitbox.x;
     const y = player.character.y + player.hitbox.y;
-    //Emit
+    // Emit
     room.game.socket.sendZombieAttack();
-    //Instantiate bite anim
+    // Instantiate bite anim
     meleeAnim(player);
 
     await delay(ZOMBIE_ATTACK_DEBOUNCE);
@@ -109,7 +111,7 @@ export async function melee(player: CustomPlayer) {
   }
 }
 
-export function meleeAnim(player: CustomPlayer){
+export function meleeAnim(player: CustomPlayer) {
   const biteAnim = room.game.game.add.sprite(0, 0, 'weapons', 20);
   player.hitbox.addChild(biteAnim);
   biteAnim.width = player.hitbox.width;

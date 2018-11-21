@@ -1,13 +1,13 @@
 import {Drop} from '../../../models/Drop';
 import {GAME_BOARD_HEIGHT, GAME_BOARD_WIDTH, GAME_LENGTH} from '../../../shared/constants';
-import {bulletHitHandler, killBullet, melee, pickupDrop} from '../helper/collisons-functs';
-import {SocketController} from '../controllers/SocketController';
 import * as gameClasses from '../classes/game-classes';
+import {SocketController} from '../controllers/SocketController';
+import {bulletHitHandler, killBullet, melee, pickupDrop} from '../helper/collisons-functs';
 import * as gameConstants from '../helper/game-constants';
 import {initPlayer} from '../helper/init-helpers';
-import {movementHandler} from '../movement';
 import {fireGun} from '../helper/weapon-functs';
-import { createHUD, updateHUD, updateHUDText } from '../HUD';
+import {createHUD, updateHUD, updateHUDText} from '../HUD';
+import {movementHandler} from '../movement';
 
 export class GameController {
   GAME_STARTED = false;
@@ -23,24 +23,25 @@ export class GameController {
   targets!: Phaser.Group;
   bullets!: Phaser.Group;
   obstacles!: Phaser.Group;
-    dropSprites!: Phaser.Group;
-    localPlayer!: gameClasses.CustomPlayer;
-    score!: number;
+  dropSprites!: Phaser.Group;
+  localPlayer!: gameClasses.CustomPlayer;
+  score!: number;
   username!: string;
-    numSurvivors!: number;  
-    numZombies!: number;
-    timer!: Phaser.Timer;
+  numSurvivors!: number;
+  numZombies!: number;
+  timer!: Phaser.Timer;
   HUD!: {
     ammo: {text: Phaser.Text; graphic: Phaser.Sprite, health: Phaser.Text};
-      survivors: { text: Phaser.Text; graphic: Phaser.Sprite; }
-      zombies: { text: Phaser.Text; graphic: Phaser.Sprite; }
+    survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
+    zombies: {text: Phaser.Text; graphic: Phaser.Sprite;}
     healthbar: Phaser.Graphics;
-      timer: Phaser.Text;
-      score: Phaser.Text;
-      radar: { overlay: Phaser.Graphics; dots: { [id: string]: Phaser.Graphics } };
+    timer: Phaser.Text;
+    score: Phaser.Text;
+    radar: {overlay: Phaser.Graphics; dots: {[id: string]: Phaser.Graphics}};
   };
   endGame!: Phaser.Text;
-  constructor(roomId: string, username: string, socketController: SocketController) {
+  constructor(
+      roomId: string, username: string, socketController: SocketController) {
     this.roomId = roomId;
     this.username = username;
     this.game = new Phaser.Game(
@@ -50,9 +51,9 @@ export class GameController {
           create: this.create,
           update: this.update,
           render: this.render
-          });
-      this.socket = socketController;
-      this.socket.gameController = this;
+        });
+    this.socket = socketController;
+    this.socket.gameController = this;
   }
 
   //  The Google WebFont Loader will look for this object, so create it before
@@ -111,14 +112,14 @@ export class GameController {
         this.map = this.game.add.tilemap('map');
         this.map.addTilesetImage('0x72_DungeonTilesetII_v1', 'tiles');
 
-      this.layer = this.map.createLayer('Tile Layer 1');
-      this.layer.scale.setTo(3);
+        this.layer = this.map.createLayer('Tile Layer 1');
+        this.layer.scale.setTo(3);
 
-      this.game.world.setBounds(0, 0, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
+        this.game.world.setBounds(0, 0, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
 
 
-        this.shadowTexture =
-            this.game.add.bitmapData(this.game.width + 10, this.game.height + 10);
+        this.shadowTexture = this.game.add.bitmapData(
+            this.game.width + 10, this.game.height + 10);
 
         this.lightSprite = this.game.add.image(
             this.game.camera.x, this.game.camera.y, this.shadowTexture);
@@ -145,19 +146,22 @@ export class GameController {
         this.localPlayer.id = '0';
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
-      this.timer = this.game.time.create(true);
-      this.timer.loop(5000, (): void => { if (!this.localPlayer.isZombie) this.score += 25; updateHUDText(); });
-      this.timer.loop(3000, updateHUD);
-      
+        this.timer = this.game.time.create(true);
+        this.timer.loop(5000, (): void => {
+          if (!this.localPlayer.isZombie) this.score += 25;
+          updateHUDText();
+        });
+        this.timer.loop(3000, updateHUD);
+
 
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
 
         this.game.camera.follow(this.localPlayer.cameraSprite);
 
-      this.score = 0;
-      this.numSurvivors = 0;
-      this.numZombies = 0;
+        this.score = 0;
+        this.numSurvivors = 0;
+        this.numZombies = 0;
 
         // Controls
         this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -166,7 +170,7 @@ export class GameController {
         // Keyboard Events
         this.localPlayer.keyboard = {...gameConstants.keysPressed};
         this.game.input.keyboard.onDownCallback = (event: KeyboardEvent) => {
-            if (this.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
+          if (this.GAME_STARTED && gameConstants.KEYCODES[event.keyCode] &&
               !this.localPlayer
                    .keyboard[gameConstants.KEYCODES[event.keyCode]]) {
             this.localPlayer.keyboard[gameConstants.KEYCODES[event.keyCode]] =
@@ -192,30 +196,28 @@ export class GameController {
           }
         };
 
-      this.endGame = this.game.add.text(
-          gameConstants.GAME_VIEW_WIDTH / 2,
-          gameConstants.GAME_VIEW_HEIGHT / 2, '', {
+        this.endGame = this.game.add.text(
+            gameConstants.GAME_VIEW_WIDTH / 2,
+            gameConstants.GAME_VIEW_HEIGHT / 2, '', {
               font: 'bold 100px Annie Use Your Telescope',
               fill: '#af0000',
               boundsAlignH: 'center',
               boundsAlignV: 'middle'
-          });
-      this.endGame.anchor.setTo(.5);
-      this.endGame.fixedToCamera = true;
-
-      
-      createHUD();
-    
-      //Creating line for the border around the game
-      let graphics = this.game.add.graphics(0,0);
-      graphics.lineStyle(10, 0x000000, 1);
-      graphics.lineTo(window.innerWidth, 0);
-      graphics.lineTo(window.innerWidth, window.innerHeight);
-      graphics.lineTo(0, window.innerHeight);
-      graphics.lineTo(0,0);
-      graphics.fixedToCamera = true;
+            });
+        this.endGame.anchor.setTo(.5);
+        this.endGame.fixedToCamera = true;
 
 
+        createHUD();
+
+        // Creating line for the border around the game
+        const graphics = this.game.add.graphics(0, 0);
+        graphics.lineStyle(10, 0x000000, 1);
+        graphics.lineTo(window.innerWidth, 0);
+        graphics.lineTo(window.innerWidth, window.innerHeight);
+        graphics.lineTo(0, window.innerHeight);
+        graphics.lineTo(0, 0);
+        graphics.fixedToCamera = true;
       }
 
 
@@ -228,8 +230,8 @@ export class GameController {
         // Loop through players (move non-LocalPlayer)
         if (this.localPlayer.keyboard['spacebar']) {
           if (this.localPlayer.isZombie) {
-            if(!this.localPlayer.dbZombieAttack){
-                melee(this.localPlayer);
+            if (!this.localPlayer.dbZombieAttack) {
+              melee(this.localPlayer);
             }
           } else {
             fireGun();
@@ -271,7 +273,8 @@ export class GameController {
       void => {
         // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
         // game.localPlayer.gun.debug(20, 128);
-        this.HUD.timer.setText('' + (GAME_LENGTH - Math.floor(this.timer.seconds)));
+        this.HUD.timer.setText(
+            '' + (GAME_LENGTH - Math.floor(this.timer.seconds)));
       }
 
   updateShadowTexture() {

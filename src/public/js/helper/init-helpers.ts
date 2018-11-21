@@ -4,12 +4,12 @@ import {isUndefined} from 'util';
 import {Drop} from '../../../models/Drop';
 import {Obstacle} from '../../../models/Obstacle';
 import {delay} from '../../../shared/functions';
-
 import {CustomPlayer, CustomSprite, Gun} from '../classes/game-classes';
-import * as gameConstants from './game-constants';
 import {room} from '../main';
 import {GameController} from '../models/Game';
 import * as GUNS from '../models/Guns';
+
+import * as gameConstants from './game-constants';
 
 export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
   const hitbox = room.game.game.add.graphics(0, 0);
@@ -75,11 +75,12 @@ export function initAvatar(
   room.game.targets.add(avatar);
   avatar.body.collideWorldBounds = true;
 
-  avatar.usernameText = room.game.game.add.text(avatar.width / 2, -28, player.username, {
-    font: 'bold 16px Annie Use Your Telescope',
-    fill: '#ffffff',
-    align: 'center'
-  });
+  avatar.usernameText =
+      room.game.game.add.text(avatar.width / 2, -28, player.username, {
+        font: 'bold 16px Annie Use Your Telescope',
+        fill: '#ffffff',
+        align: 'center'
+      });
   avatar.usernameText.anchor.setTo(.5);
   avatar.addChild(avatar.usernameText);
   if (player.isZombie) {
@@ -99,8 +100,7 @@ export function initAvatar(
     if (player.isZombie) {
       color = '#7CCB91';
       colorNum = 0x7CCB91;
-    }
-    else {
+    } else {
       color = '#EDD297';
       colorNum = 0xEDD297;
     }
@@ -125,7 +125,6 @@ export function initAvatar(
     avatar.addChild(userIndicator);
 
     player.facing = {x: 0, y: 0};
-
   }
 
   avatar.animations.add('down', [0, 1, 2, 3], 10, false);

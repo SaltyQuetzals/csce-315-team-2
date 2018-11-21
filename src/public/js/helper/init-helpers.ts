@@ -1,23 +1,23 @@
 import {Image, Loader, Sprite, Weapon} from 'phaser-ce';
 import {isUndefined} from 'util';
 
-import {Drop} from '../../models/Drop';
-import {Obstacle} from '../../models/Obstacle';
-import {delay} from '../../shared/functions';
+import {Drop} from '../../../models/Drop';
+import {Obstacle} from '../../../models/Obstacle';
+import {delay} from '../../../shared/functions';
+import {CustomPlayer, CustomSprite, Gun} from '../classes/game-classes';
+import {room} from '../main';
+import {GameController} from '../models/Game';
+import * as GUNS from '../models/Guns';
 
-import {CustomPlayer, CustomSprite, Gun} from './game-classes';
 import * as gameConstants from './game-constants';
-import {game} from './main';
-import {GameController} from './models/Game';
-import * as GUNS from './models/Guns';
 
 export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
-  const hitbox = game.game.add.graphics(0, 0);
+  const hitbox = room.game.game.add.graphics(0, 0);
   // hitbox.lineStyle(2, 0x5ff0000, 1);
   hitbox.drawRect(0, 0, character.width / 2, character.height / 2);
   hitbox.boundsPadding = 0;
 
-  game.game.physics.arcade.enable(hitbox);
+  room.game.game.physics.arcade.enable(hitbox);
 
   character.addChild(hitbox);
 
@@ -27,18 +27,18 @@ export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
 export function initGun(
     character: CustomSprite, weapon: GUNS.Weapon = new GUNS.Revolver()) {
   const newGun = new Gun();
-  newGun.pGun = game.game.add.weapon(30, 'weapons');
+  newGun.pGun = room.game.game.add.weapon(30, 'weapons');
   newGun.name = weapon.constructor.name;
 
-  game.game.physics.arcade.enable(newGun.pGun.bullets);
-  game.bullets.add(newGun.pGun.bullets);
+  room.game.game.physics.arcade.enable(newGun.pGun.bullets);
+  room.game.bullets.add(newGun.pGun.bullets);
 
   // Create bullets
   newGun.pGun.addBulletAnimation('bullet', [15, 16, 17, 18, 19], 60, true);
   newGun.pGun.bulletAnimation = 'bullet';
 
   // Create handles
-  newGun.handle = game.game.add.sprite(0, 0, 'weapons');
+  newGun.handle = room.game.game.add.sprite(0, 0, 'weapons');
   newGun.handle.animations.add('Revolver', [0, 1, 2, 3, 4], 30, false);
   newGun.handle.animations.add('SawnOffShotgun', [5, 6, 7, 8, 9], 30, false);
   newGun.handle.animations.add(
@@ -67,26 +67,27 @@ export function initAvatar(
     y = gameConstants.GAME_VIEW_HEIGHT / 2 - 200): CustomSprite {
   // const avatar = new CustomSprite(game.game, x, y, spriteSheet);
   const avatar: CustomSprite =
-      game.game.add.sprite(x, y, spriteSheet) as CustomSprite;
+      room.game.game.add.sprite(x, y, spriteSheet) as CustomSprite;
   // avatar = this.game.add.avatar(x, y, spriteSheet);
   avatar.frame = 1;
   avatar.id = player.id;
-  game.game.physics.arcade.enable(avatar);
-  game.targets.add(avatar);
+  room.game.game.physics.arcade.enable(avatar);
+  room.game.targets.add(avatar);
   avatar.body.collideWorldBounds = true;
 
-  avatar.usernameText = game.game.add.text(avatar.width / 2, -28, player.username, {
-    font: 'bold 16px Annie Use Your Telescope',
-    fill: '#ffffff',
-    align: 'center'
-  });
+  avatar.usernameText =
+      room.game.game.add.text(avatar.width / 2, -28, player.username, {
+        font: 'bold 16px Annie Use Your Telescope',
+        fill: '#ffffff',
+        align: 'center'
+      });
   avatar.usernameText.anchor.setTo(.5);
   avatar.addChild(avatar.usernameText);
   if (player.isZombie) {
     player.hitbox = initHitbox(avatar);
   }
 
-  if (game.localPlayer && (avatar.id !== game.localPlayer.id) &&
+  if (room.game.localPlayer && (avatar.id !== room.game.localPlayer.id) &&
       (player.id !== '0')) {
     // game.bulletTargets.push(avatar);
     // console.log(game.bulletTargets);
@@ -99,8 +100,7 @@ export function initAvatar(
     if (player.isZombie) {
       color = '#7CCB91';
       colorNum = 0x7CCB91;
-    }
-    else {
+    } else {
       color = '#EDD297';
       colorNum = 0xEDD297;
     }
@@ -111,7 +111,7 @@ export function initAvatar(
       align: 'center'
     });
 
-    const userIndicator = game.game.add.graphics(0, 0);
+    const userIndicator = room.game.game.add.graphics(0, 0);
     userIndicator.lineStyle(2, colorNum, 1);
     userIndicator.beginFill(colorNum, 1);
     userIndicator.drawTriangle(
@@ -125,7 +125,6 @@ export function initAvatar(
     avatar.addChild(userIndicator);
 
     player.facing = {x: 0, y: 0};
-
   }
 
   avatar.animations.add('down', [0, 1, 2, 3], 10, false);
@@ -136,7 +135,7 @@ export function initAvatar(
   const hurt = avatar.animations.add('hurt', [20, 21, 22, 23, 24], 10, false);
   avatar.animations.currentAnim.onComplete.add(() => {
     avatar.animating = false;
-  }, game);
+  }, room.game);
   avatar.animations.add('attack', [14, 19, 4, 9]);
 
   return avatar;
@@ -158,7 +157,7 @@ export function initPlayer(id: string, username: string) {
 
 export function initObstacles(obstacles: Obstacle[]) {
   for (let i = 0; i < obstacles.length; ++i) {
-    const obstacle = game.game.add.graphics(
+    const obstacle = room.game.game.add.graphics(
         obstacles[i].location[0], obstacles[i].location[1]);
     obstacle.lineStyle(2, 0x5b5b5b, 1);
     obstacle.beginFill(0x5b5b5b, 1);
@@ -166,10 +165,10 @@ export function initObstacles(obstacles: Obstacle[]) {
     obstacle.endFill();
     obstacle.boundsPadding = 0;
 
-    game.game.physics.arcade.enable(obstacle);
+    room.game.game.physics.arcade.enable(obstacle);
     obstacle.body.immovable = true;
 
-    game.obstacles.add(obstacle);
+    room.game.obstacles.add(obstacle);
   }
 }
 
@@ -188,14 +187,14 @@ export function initDrops(drops: {[key: number]: Drop}) {
       }
 
       const sprite =
-          game.game.add.sprite(drop.location[0], drop.location[1], image);
+          room.game.game.add.sprite(drop.location[0], drop.location[1], image);
       drop.sprite = sprite as CustomSprite;
       drop.sprite.id = String(drop.id);
 
-      game.game.physics.arcade.enable(drop.sprite);
+      room.game.game.physics.arcade.enable(drop.sprite);
 
-      game.drops[drop.id] = drop;
-      game.dropSprites.add(drop.sprite);
+      room.game.drops[drop.id] = drop;
+      room.game.dropSprites.add(drop.sprite);
     }
   }
 }

@@ -1,22 +1,22 @@
-import {Drop} from '../../models/Drop';
-import {Obstacle} from '../../models/Obstacle';
-import {Player} from '../../models/Player';
+import {Drop} from '../../../models/Drop';
+import {InitialState} from '../../../models/Leaderboard';
+import {Obstacle} from '../../../models/Obstacle';
+import {Player} from '../../../models/Player';
 
 import {CustomPlayer} from './game-classes';
-import { InitialState } from '../../models/Leaderboard';
 
 export type StartGameParams = {
   initialState: InitialState,
   // obstacles: [Obstacle],
   // drops: [Drop],
   // players: Players
-  playerNames: { [socketId: string]: string }
+  playerNames: {[socketId: string]: string}
 };
 
 export type MovementParams = {
   id: string,
-  location: { x: number, y: number },
-  facing: { x: number, y: number }
+  location: {x: number, y: number},
+  facing: {x: number, y: number}
 };
 
 // export interface NewPlayerParams {
@@ -29,7 +29,7 @@ export type MovementParams = {
 export interface NewPlayerParams {
   roomHost: string;
   newPlayerId: string;
-  playerNames: { [socketId: string]: string };
+  playerNames: {[socketId: string]: string};
 }
 
 export interface Players {

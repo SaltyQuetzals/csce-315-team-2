@@ -143,19 +143,19 @@ export class SocketController {
         meleeAnim(player);
       });
 
-      this.socket.on(
-          'player left', (message: {
-                           roomHost: string,
-                           playerNames: {[socketId: string]: string}, leaderBoard: LeaderBoard
-                         }) => {
-            const {roomHost, playerNames, leaderBoard} = message;
-            console.log(message);
-            this.roomHost = roomHost;
-            room.updatePlayerList(playerNames, leaderBoard);
-            if (this.roomHost === this.socket.id) {
-              document.getElementById('start')!.style.display = 'block';
-            }
-          });
+      this.socket.on('player left', (message: {
+                                      roomHost: string,
+                                      playerNames: {[socketId: string]: string},
+                                      leaderBoard: LeaderBoard
+                                    }) => {
+        const {roomHost, playerNames, leaderBoard} = message;
+        console.log(message);
+        this.roomHost = roomHost;
+        room.updatePlayerList(playerNames, leaderBoard);
+        if (this.roomHost === this.socket.id) {
+          document.getElementById('start')!.style.display = 'block';
+        }
+      });
 
       this.socket.on('err', (message: {}) => {
         console.error(message);
@@ -169,23 +169,26 @@ export class SocketController {
         }
       });
 
-      this.socket.on(
-          'end game',
-          (data: {zombies: boolean, survivors: boolean, leaderBoard: {}, playerNames: {}}) => {
-            const {zombies, survivors, leaderBoard, playerNames} = data;
-            console.log(leaderBoard);
-            this.gameController.timer.pause();
-            if (zombies) {
-              this.gameController.endGame.setText('Zombies win!');
-              console.log('ZOMBIES WIN');
-            } else {
-              this.gameController.endGame.setText('Survivors win!');
-              console.log('SURVIVORS WIN');
-            }
+      this.socket.on('end game', (data: {
+                                   zombies: boolean,
+                                   survivors: boolean,
+                                   leaderBoard: {},
+                                   playerNames: {}
+                                 }) => {
+        const {zombies, survivors, leaderBoard, playerNames} = data;
+        console.log(leaderBoard);
+        this.gameController.timer.pause();
+        if (zombies) {
+          this.gameController.endGame.setText('Zombies win!');
+          console.log('ZOMBIES WIN');
+        } else {
+          this.gameController.endGame.setText('Survivors win!');
+          console.log('SURVIVORS WIN');
+        }
 
-            const restart = room.restartGame.bind(room);
-            setTimeout(restart(playerNames, leaderBoard), 5000);
-          });
+        const restart = room.restartGame.bind(room);
+        setTimeout(restart(playerNames, leaderBoard), 5000);
+      });
     });
   }
 
@@ -234,7 +237,8 @@ export class SocketController {
     });
   }
 
-  playerJoined(players: {[socketId: string]: string}, leaderBoard: LeaderBoard): void {
+  playerJoined(players: {[socketId: string]: string}, leaderBoard: LeaderBoard):
+      void {
     const startGameButton = document.getElementById('start');
     if (this.roomHost === this.socket.id) {
       startGameButton!.style.display = 'block';

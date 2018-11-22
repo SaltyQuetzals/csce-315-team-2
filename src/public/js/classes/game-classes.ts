@@ -50,12 +50,6 @@ export class CustomPlayer {
 
 export interface LeaderBoard {
   players: {
-    [playerId: string]:{
-      name: string,
-      stats: {
-        kills: number,
-        deaths: number
-      }
-    }
-  }
+    [playerId: string]: {name: string, stats: {kills: number, deaths: number}}
+  };
 }

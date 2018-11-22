@@ -3,7 +3,7 @@ import * as socket from 'socket.io-client';
 import {Drop} from '../../../models/Drop';
 import {Obstacle} from '../../../models/Obstacle';
 import {Player} from '../../../models/Player';
-import {CustomPlayer, Gun} from '../classes/game-classes';
+import {CustomPlayer, Gun, LeaderBoard} from '../classes/game-classes';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../classes/socket-classes';
 import {melee, meleeAnim} from '../helper/collisons-functs';
 import {PLAYER_HEALTH} from '../helper/game-constants';
@@ -37,12 +37,12 @@ export class SocketController {
       console.log('Connected successfully.');
 
       this.socket.on('new player', (message: NewPlayerParams) => {
-        const {roomHost, newPlayerId, playerNames} = message;
+        const {roomHost, newPlayerId, playerNames, leaderBoard} = message;
         this.roomHost = roomHost;
         if (newPlayerId === this.socket.id) {
           this.username = username;
         }
-        this.playerJoined(playerNames);
+        this.playerJoined(playerNames, leaderBoard);
       });
 
       this.socket.on('start game', (message: StartGameParams) => {
@@ -143,19 +143,19 @@ export class SocketController {
         meleeAnim(player);
       });
 
-      this.socket.on(
-          'player left', (message: {
-                           roomHost: string,
-                           playerNames: {[socketId: string]: string}
-                         }) => {
-            const {roomHost, playerNames} = message;
-            console.log(message);
-            this.roomHost = roomHost;
-            room.updatePlayerList(playerNames);
-            if (this.roomHost === this.socket.id) {
-              document.getElementById('start')!.style.display = 'block';
-            }
-          });
+      this.socket.on('player left', (message: {
+                                      roomHost: string,
+                                      playerNames: {[socketId: string]: string},
+                                      leaderBoard: LeaderBoard
+                                    }) => {
+        const {roomHost, playerNames, leaderBoard} = message;
+        console.log(message);
+        this.roomHost = roomHost;
+        room.updatePlayerList(playerNames, leaderBoard);
+        if (this.roomHost === this.socket.id) {
+          document.getElementById('start')!.style.display = 'block';
+        }
+      });
 
       this.socket.on('err', (message: {}) => {
         console.error(message);
@@ -169,22 +169,26 @@ export class SocketController {
         }
       });
 
-      this.socket.on(
-          'end game',
-          (data: {zombies: boolean, survivors: boolean, leaderBoard: {}}) => {
-            const {zombies, survivors, leaderBoard} = data;
-            this.gameController.timer.pause();
-            if (zombies) {
-              this.gameController.endGame.setText('Zombies win!');
-              console.log('ZOMBIES WIN');
-            } else {
-              this.gameController.endGame.setText('Survivors win!');
-              console.log('SURVIVORS WIN');
-            }
-            console.log('LeaderBoard:', leaderBoard);
+      this.socket.on('end game', (data: {
+                                   zombies: boolean,
+                                   survivors: boolean,
+                                   leaderBoard: {},
+                                   playerNames: {}
+                                 }) => {
+        const {zombies, survivors, leaderBoard, playerNames} = data;
+        console.log(leaderBoard);
+        this.gameController.timer.pause();
+        if (zombies) {
+          this.gameController.endGame.setText('Zombies win!');
+          console.log('ZOMBIES WIN');
+        } else {
+          this.gameController.endGame.setText('Survivors win!');
+          console.log('SURVIVORS WIN');
+        }
 
-            setTimeout(room.restartGame.bind(room), 5000);
-          });
+        const restart = room.restartGame.bind(room);
+        setTimeout(restart(playerNames, leaderBoard), 5000);
+      });
     });
   }
 
@@ -233,14 +237,15 @@ export class SocketController {
     });
   }
 
-  playerJoined(players: {[socketId: string]: string}): void {
+  playerJoined(players: {[socketId: string]: string}, leaderBoard: LeaderBoard):
+      void {
     const startGameButton = document.getElementById('start');
     if (this.roomHost === this.socket.id) {
       startGameButton!.style.display = 'block';
     } else {
       startGameButton!.style.display = 'none';
     }
-    room.updatePlayerList(players);
+    room.updatePlayerList(players, leaderBoard);
   }
 
   initNewPlayers(

@@ -13,16 +13,22 @@
 <body id="noPad">
     <div id="background" class="background-wrapper" style="z-index: 5">
     </div>
-    <div id="waiting-room-overlay" class="center-container" style="z-index: 10">
+    <div id="waiting-room-overlay" class="center-container" style="z-index: 10; display: inherit">
         <h1>Untitled Zombie Game ... 3?</h1>
-        <div style="display: flex" class="access-code-container">
+        <div style="display: flex; margin: auto" class="access-code-container">
             <h3>ACCESS CODE:&nbsp;</h3>
             <h3 style="letter-spacing: 2px" id="accessCode"></h3>
             <i class="fas fa-copy" id="copy" style="cursor: pointer; padding: 45px"></i>
         </div>
-        <h2>Players</h2>
-        <ul id="player-list">
-        </ul>
+        <table>
+            <tbody id="player-list">
+                <tr>
+                    <th>Player</th>
+                    <th>Kills</th>
+                    <th>Deaths</th>
+                </tr>
+            </tbody>
+        </table>
         <button id="start">Start Game</button>
     </div>
     <div id="room-full-dialog" style="display: none">

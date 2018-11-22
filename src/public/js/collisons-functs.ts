@@ -68,10 +68,19 @@ export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
   }
   let x = bullet.x;
   let y = bullet.y;
+  let lookVector = bullet.body.velocity;
+  let lookVectorX = Math.abs(lookVector.x)/ lookVector.x;
+  lookVectorX = lookVectorX ? lookVectorX : 0;
+  let lookVectorY = Math.abs(lookVector.y)/ lookVector.y;
+  lookVectorY = lookVectorY ? lookVectorY : 0;
+
   bullet.kill();
-  //let impact = game.game.add.sprite(x-bullet.width/2, y-bullet.height/2, 'weapons');
-  //impact.animations.add('hit', [25, 26, 27, 28, 29], 20, false);
-  //impact.play('hit', 20, false, true);
+  let impactX = x - bullet.width/2 + lookVectorX*bullet.width*0.75;
+  let impactY = y - bullet.height/2 + lookVectorY*bullet.height/2;
+  
+  let impact = game.game.add.sprite(impactX, impactY, 'weapons');
+  impact.animations.add('hit', [25, 26, 27, 28, 29], 20, false);
+  impact.play('hit', 20, false, true);
 }
 
 export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {

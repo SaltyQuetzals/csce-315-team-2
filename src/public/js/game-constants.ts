@@ -11,7 +11,7 @@ export const PLAYER_HEALTH = 100;
 export const PLAYER_SPEED = 200;
 
 export const ZOMBIE_ATTACK_DEBOUNCE = 1000;
-
+export const SOUND_TOLERANCE = 800;
 export const KEYCODES: {[key: number]: string} = {
   37: 'left',
   38: 'up',

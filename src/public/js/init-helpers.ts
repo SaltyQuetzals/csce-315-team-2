@@ -138,7 +138,8 @@ export function initAvatar(
     avatar.animating = false;
   }, game);
   avatar.animations.add('attack', [14, 19, 4, 9]);
-
+  avatar.animations.add('die', [25, 26, 27, 28, 29]);
+  avatar.animations.add('revive', [30, 31, 32, 33, 34]);
   return avatar;
 }
 

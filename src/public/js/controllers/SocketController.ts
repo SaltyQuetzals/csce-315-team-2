@@ -14,6 +14,7 @@ import * as waiting from '../waiting';
 import {switchGun} from '../weapon-functs';
 import { updateHUDText } from '../HUD';
 import { melee, meleeAnim } from '../collisons-functs';
+import { game } from '../main';
 
 export class SocketController {
   socket: Socket;
@@ -84,7 +85,12 @@ export class SocketController {
             const {id, fireAngle} = message;
             const gun = this.gameController.players[id].gun;
             gun.pGun.fireAngle = fireAngle;
-            gun.shoot();
+            if(gun.shoot()){
+              let dx = this.gameController.players[id].character.x - this.gameController.localPlayer.character.x;
+              let dy = this.gameController.players[id].character.y - this.gameController.localPlayer.character.y;
+              let volume = this.gameController.soundGauger(dx, dy);
+              this.gameController.customSounds.shoot.play(undefined, undefined, volume);
+            }
           });
 
       this.socket.on(
@@ -172,12 +178,22 @@ export class SocketController {
           'end game', (data: {zombies: boolean, survivors: boolean}) => {
             const { zombies, survivors } = data;
             this.gameController.timer.pause();
+
             if (zombies) {
               this.gameController.endGame.setText('Zombies win!');
               console.log('ZOMBIES WIN');
             } else {
               this.gameController.endGame.setText('Survivors win!');
               console.log('SURVIVORS WIN');
+            }
+
+            //Only play winning music if localplayer is human
+            game.customSounds.gameBg.stop();
+            if (game.localPlayer.isZombie){
+              game.customSounds.loss.play(undefined, undefined, undefined, true);
+            }
+            else{
+              game.customSounds.win.play(undefined, undefined, undefined, true);
             }
           });
     });
@@ -300,19 +316,23 @@ export class SocketController {
     const background: HTMLElement|null = document!.getElementById('background');
     background!.style.display = 'none';
     this.gameController.timer.start();
+    this.gameController.customSounds.gameBg.play(undefined, undefined, undefined, true);
   }
 
   playerHit(victimId: string, killerId: string, damage: number): void {
+    console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
     const player = this.gameController.players[victimId];
     if (player.health <= damage) {
-      player.health = 0;
-      if (victimId === this.gameController.localPlayer.id) {
-        // Movement is disabled
-        player.isDead = true;
-        this.sendPlayerDied(killerId);
-        this.gameController.HUD.healthbar.width = 1.5 * player.health;
+      if(!player.isDead){
+        player.health = 0;
+        if (victimId === this.gameController.localPlayer.id) {
+          // Movement is disabled
+          player.isDead = true;
+          this.sendPlayerDied(killerId);
+          this.gameController.HUD.healthbar.width = 1.5 * player.health;
+        }
+        player.character.animations.play('die', 15, false);
       }
-      player.character.destroy();
     } else {
       player.health -= damage;
       // animate HIT
@@ -333,6 +353,7 @@ export class SocketController {
     if (player.isZombie) {
       const x = player.character.x;
       const y = player.character.y;
+      player.character.destroy();
       player.character = initAvatar(player, 'zombie_1', x, y);
     } else {
       this.gameController.numZombies++;
@@ -351,7 +372,13 @@ export class SocketController {
         this.sendGameEnded();
       }
     }
-    player.isDead = false;
+    player.character.animations.play('revive', 15, false).onComplete.add(
+      ()=>{
+        player.isDead = false;
+      },
+      this
+    );
+    // player.isDead = false;
     if (player.id === this.gameController.localPlayer.id) {
       this.gameController.HUD.healthbar.width = 1.5 * player.health;
       this.gameController.localPlayer = player;

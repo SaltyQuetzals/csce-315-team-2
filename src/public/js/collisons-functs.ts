@@ -75,15 +75,19 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
   if (enemy.id === game.localPlayer.id || enemy.id === '0') {
     return;
   }
+  let target = game.players[enemy.id];
+  if (target.isDead){
+    return;
+  }
   game.socket.sendHit(enemy.id, game.localPlayer.gun.damage);
-  if (game.localPlayer.gun.damage >= game.players[enemy.id].health) {
+  if (game.localPlayer.gun.damage >= target.health) {
     killBullet(bullet, enemy);
-    enemy.kill();
+    target.isDead = true;
+    enemy.animations.play('die', 15, false);
     game.score += 100;
   } else {
-    game.players[enemy.id].health -= game.localPlayer.gun.damage;
+    target.health -= game.localPlayer.gun.damage;
     // animate HIT
-    const target = game.players[enemy.id];
     target.character.animating = true;
     target.character.animations.play('hurt', 20, false);
     game.score += 20;
@@ -103,7 +107,6 @@ export async function melee(player: CustomPlayer) {
     game.socket.sendZombieAttack();
     //Instantiate bite anim
     meleeAnim(player);
-
     await delay(ZOMBIE_ATTACK_DEBOUNCE);
     player.dbZombieAttack = false;
   }
@@ -117,19 +120,27 @@ export function meleeAnim(player: CustomPlayer){
   biteAnim.animations.add('Bite', [20, 21, 22, 23, 24], 30, false);
 
   biteAnim.animations.play('Bite', 30, false, true);
+
+  let dx = game.localPlayer.character.x - player.character.x;
+  let dy = game.localPlayer.character.y - player.character.y;
+  let volume = game.soundGauger(dx, dy);
+  game.customSounds.bite.play(undefined, undefined, volume, false);
 }
 
 export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {
   const meleeDamage = 100;
-
+  let target = game.players[enemy.id];
   if (enemy.id === game.localPlayer.id || enemy.id === '0') {
     return;
   }
-
+  if (target.isDead){
+    return;
+  }
   game.socket.sendHit(enemy.id, meleeDamage);
 
-  if (meleeDamage >= game.players[enemy.id].health) {
-    enemy.kill();
+  if (meleeDamage >= target.health) {
+    target.isDead = true;
+    enemy.animations.play('die', 15, false);
     game.score += 100;
   } else {
     game.players[enemy.id].health -= meleeDamage;

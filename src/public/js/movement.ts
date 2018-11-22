@@ -10,24 +10,26 @@ import {orientGun} from './weapon-functs';
 // keys index changed, making this invalid
 
 export function shiftHitbox(player: CustomPlayer) {
-  if (player.facing.x !== 0) {
-    if (player.facing.x === DIRECTIONS.EAST) {
-      player.hitbox.centerX = player.character.width;
+  if(player.hitbox){
+    if (player.facing.x !== 0) {
+      if (player.facing.x === DIRECTIONS.EAST) {
+        player.hitbox.centerX = player.character.width;
+      } else {
+        player.hitbox.centerX = 0;
+      }
     } else {
-      player.hitbox.centerX = 0;
+      player.hitbox.centerX = player.character.width / 2;
     }
-  } else {
-    player.hitbox.centerX = player.character.width / 2;
-  }
 
-  if (player.facing.y !== 0) {
-    if (player.facing.y === DIRECTIONS.SOUTH) {
-      player.hitbox.centerY = player.character.height;
+    if (player.facing.y !== 0) {
+      if (player.facing.y === DIRECTIONS.SOUTH) {
+        player.hitbox.centerY = player.character.height;
+      } else {
+        player.hitbox.centerY = 0;
+      }
     } else {
-      player.hitbox.centerY = 0;
+      player.hitbox.centerY = player.character.height / 2;
     }
-  } else {
-    player.hitbox.centerY = player.character.height / 2;
   }
 }
 

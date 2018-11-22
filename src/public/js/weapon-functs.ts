@@ -9,7 +9,7 @@ export function fireGun() {
       --game.localPlayer.gun.ammo;
       game.socket.sendFireGun(game.localPlayer.gun.pGun.fireAngle);
       updateHUDText();
-      game.customSounds.shoot.play(undefined, undefined, undefined, false);
+      game.localPlayer.customSounds.shoot.play(undefined, undefined, undefined, false);
     }
   }
 }

@@ -83,13 +83,14 @@ export class SocketController {
       this.socket.on(
           'weapon fired', (message: {id: string, fireAngle: number}) => {
             const {id, fireAngle} = message;
-            const gun = this.gameController.players[id].gun;
+            let shooter = this.gameController.players[id];
+            const gun = shooter.gun;
             gun.pGun.fireAngle = fireAngle;
             if(gun.shoot()){
-              let dx = this.gameController.players[id].character.x - this.gameController.localPlayer.character.x;
-              let dy = this.gameController.players[id].character.y - this.gameController.localPlayer.character.y;
+              let dx = shooter.character.x - this.gameController.localPlayer.character.x;
+              let dy = shooter.character.y - this.gameController.localPlayer.character.y;
               let volume = this.gameController.soundGauger(dx, dy);
-              this.gameController.customSounds.shoot.play(undefined, undefined, volume);
+              shooter.customSounds.shoot.play(undefined, undefined, volume);
             }
           });
 

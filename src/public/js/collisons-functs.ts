@@ -66,7 +66,12 @@ export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
       return;
     }
   }
+  let x = bullet.x;
+  let y = bullet.y;
   bullet.kill();
+  //let impact = game.game.add.sprite(x-bullet.width/2, y-bullet.height/2, 'weapons');
+  //impact.animations.add('hit', [25, 26, 27, 28, 29], 20, false);
+  //impact.play('hit', 20, false, true);
 }
 
 export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
@@ -124,7 +129,7 @@ export function meleeAnim(player: CustomPlayer){
   let dx = game.localPlayer.character.x - player.character.x;
   let dy = game.localPlayer.character.y - player.character.y;
   let volume = game.soundGauger(dx, dy);
-  game.customSounds.bite.play(undefined, undefined, volume, false);
+  player.customSounds.bite.play(undefined, undefined, volume, false);
 }
 
 export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {

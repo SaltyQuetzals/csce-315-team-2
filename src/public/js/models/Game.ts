@@ -42,10 +42,6 @@ export class GameController {
   endGame!: Phaser.Text;
   customSounds!: {
       gameBg: Phaser.Sound;
-      shoot: Phaser.Sound;
-      bite: Phaser.Sound;
-      death: Phaser.Sound;
-      hit: Phaser.Sound;
       loss: Phaser.Sound;
       win: Phaser.Sound;
   }
@@ -227,10 +223,6 @@ export class GameController {
       //AUDIO
       this.customSounds = {
         gameBg: this.game.add.audio('main_bg'),
-        shoot: this.game.add.audio('shoot'),
-        bite: this.game.add.audio('bite'),
-        death: this.game.add.audio('death'),
-        hit: this.game.add.audio('hit'),
         win: this.game.add.audio('win'),
         loss: this.game.add.audio('loss'),
       };

@@ -154,6 +154,13 @@ export function initPlayer(id: string, username: string) {
   newPlayer.isZombie = false;
   newPlayer.isDead = false;
   newPlayer.character.animating = false;  // Added for anim priority
+  newPlayer.customSounds = {
+    shoot: game.game.add.audio('shoot'),
+    bite: game.game.add.audio('bite'),
+    death: game.game.add.audio('death'),
+    hit: game.game.add.audio('hit'),
+  }
+
   return newPlayer;
 }
 

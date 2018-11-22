@@ -25,6 +25,10 @@
     z-index: 10;
 }
 
+#waiting-room-overlay td{
+    text-align: center;
+}
+
 canvas{
     position: fixed;
     left: 50%;

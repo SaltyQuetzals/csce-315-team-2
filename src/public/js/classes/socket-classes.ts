@@ -3,7 +3,7 @@ import {InitialState} from '../../../models/Leaderboard';
 import {Obstacle} from '../../../models/Obstacle';
 import {Player} from '../../../models/Player';
 
-import {CustomPlayer} from './game-classes';
+import {CustomPlayer, LeaderBoard} from './game-classes';
 
 export type StartGameParams = {
   initialState: InitialState,
@@ -30,6 +30,7 @@ export interface NewPlayerParams {
   roomHost: string;
   newPlayerId: string;
   playerNames: {[socketId: string]: string};
+  leaderBoard: LeaderBoard;
 }
 
 export interface Players {

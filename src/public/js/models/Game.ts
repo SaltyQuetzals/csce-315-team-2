@@ -40,8 +40,12 @@ export class GameController {
     radar: {overlay: Phaser.Graphics; dots: {[id: string]: Phaser.Graphics}};
   };
   endGame!: Phaser.Text;
-  constructor(
-      roomId: string, username: string, socketController: SocketController) {
+  customSounds!: {
+      gameBg: Phaser.Sound;
+      loss: Phaser.Sound;
+      win: Phaser.Sound;
+  }
+  constructor(roomId: string, username: string, socketController: SocketController) {
     this.roomId = roomId;
     this.username = username;
     this.game = new Phaser.Game(
@@ -102,6 +106,15 @@ export class GameController {
         this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         // this.scale.pageAlignHorizontally = true;
         this.game.scale.pageAlignVertically = true;
+
+        //AUDIO
+        this.game.load.audio('main_bg', ['../assets/sounds/move_fast.wav']);
+        this.game.load.audio('shoot', ['../assets/sounds/Shoot.wav']);
+        this.game.load.audio('bite', ['../assets/sounds/Bite.wav']);
+        this.game.load.audio('death', ['../assets/sounds/Death.wav']);
+        this.game.load.audio('hit', ['../assets/sounds/Hit.wav']);
+        this.game.load.audio('loss', ['../assets/sounds/gentlemen.wav']);
+        this.game.load.audio('win', ['../assets/sounds/we_did_it.wav']);
       }
 
   create = ():
@@ -210,6 +223,12 @@ export class GameController {
 
         createHUD();
 
+      //AUDIO
+      this.customSounds = {
+        gameBg: this.game.add.audio('main_bg'),
+        win: this.game.add.audio('win'),
+        loss: this.game.add.audio('loss'),
+      };
         // Creating line for the border around the game
         const graphics = this.game.add.graphics(0, 0);
         graphics.lineStyle(10, 0x000000, 1);
@@ -306,5 +325,15 @@ export class GameController {
     this.shadowTexture.context.fill();
 
     this.shadowTexture.dirty = true;
+  }
+
+  soundGauger(dx: number, dy: number): number{
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist < gameConstants.SOUND_TOLERANCE){
+        return 1 - (dist/gameConstants.SOUND_TOLERANCE);
+    }
+    else{
+        return 0;
+    }
   }
 }

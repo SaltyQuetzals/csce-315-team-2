@@ -68,7 +68,21 @@ export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
       return;
     }
   }
+  let x = bullet.x;
+  let y = bullet.y;
+  let lookVector = bullet.body.velocity;
+  let lookVectorX = Math.abs(lookVector.x)/ lookVector.x;
+  lookVectorX = lookVectorX ? lookVectorX : 0;
+  let lookVectorY = Math.abs(lookVector.y)/ lookVector.y;
+  lookVectorY = lookVectorY ? lookVectorY : 0;
+
   bullet.kill();
+  let impactX = x - bullet.width/2 + lookVectorX*bullet.width*0.75;
+  let impactY = y - bullet.height/2 + lookVectorY*bullet.height/2;
+  
+  let impact = room.game.game.add.sprite(impactX, impactY, 'weapons');
+  impact.animations.add('hit', [25, 26, 27, 28, 29], 20, false);
+  impact.play('hit', 20, false, true);
 }
 
 export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
@@ -77,15 +91,19 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
   if (enemy.id === room.game.localPlayer.id || enemy.id === '0') {
     return;
   }
+  let target = room.game.players[enemy.id];
+  if (target.isDead){
+    return;
+  }
   room.game.socket.sendHit(enemy.id, room.game.localPlayer.gun.damage);
-  if (room.game.localPlayer.gun.damage >= room.game.players[enemy.id].health) {
+  if (room.game.localPlayer.gun.damage >= target.health) {
     killBullet(bullet, enemy);
-    enemy.kill();
+    target.isDead = true;
+    enemy.animations.play('die', 15, false);
     room.game.score += 100;
   } else {
-    room.game.players[enemy.id].health -= room.game.localPlayer.gun.damage;
+    target.health -= room.game.localPlayer.gun.damage;
     // animate HIT
-    const target = room.game.players[enemy.id];
     target.character.animating = true;
     target.character.animations.play('hurt', 20, false);
     room.game.score += 20;
@@ -105,7 +123,6 @@ export async function melee(player: CustomPlayer) {
     room.game.socket.sendZombieAttack();
     // Instantiate bite anim
     meleeAnim(player);
-
     await delay(ZOMBIE_ATTACK_DEBOUNCE);
     player.dbZombieAttack = false;
   }
@@ -119,19 +136,27 @@ export function meleeAnim(player: CustomPlayer) {
   biteAnim.animations.add('Bite', [20, 21, 22, 23, 24], 30, false);
 
   biteAnim.animations.play('Bite', 30, false, true);
+
+  let dx = room.game.localPlayer.character.x - player.character.x;
+  let dy = room.game.localPlayer.character.y - player.character.y;
+  let volume = room.game.soundGauger(dx, dy);
+  player.customSounds.bite.play(undefined, undefined, volume, false);
 }
 
 export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {
   const meleeDamage = 100;
-
+  let target = room.game.players[enemy.id];
   if (enemy.id === room.game.localPlayer.id || enemy.id === '0') {
     return;
   }
-
+  if (target.isDead){
+    return;
+  }
   room.game.socket.sendHit(enemy.id, meleeDamage);
 
-  if (meleeDamage >= room.game.players[enemy.id].health) {
-    enemy.kill();
+  if (meleeDamage >= target.health) {
+    target.isDead = true;
+    enemy.animations.play('die', 15, false);
     room.game.score += 100;
   } else {
     room.game.players[enemy.id].health -= meleeDamage;

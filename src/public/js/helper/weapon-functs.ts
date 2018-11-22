@@ -9,6 +9,7 @@ export function fireGun() {
       --room.game.localPlayer.gun.ammo;
       room.game.socket.sendFireGun(room.game.localPlayer.gun.pGun.fireAngle);
       updateHUDText();
+      room.game.localPlayer.customSounds.shoot.play(undefined, undefined, undefined, false);
     }
   }
 }

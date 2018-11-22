@@ -137,7 +137,8 @@ export function initAvatar(
     avatar.animating = false;
   }, room.game);
   avatar.animations.add('attack', [14, 19, 4, 9]);
-
+  avatar.animations.add('die', [25, 26, 27, 28, 29]);
+  avatar.animations.add('revive', [30, 31, 32, 33, 34]);
   return avatar;
 }
 
@@ -152,6 +153,13 @@ export function initPlayer(id: string, username: string) {
   newPlayer.isZombie = false;
   newPlayer.isDead = false;
   newPlayer.character.animating = false;  // Added for anim priority
+  newPlayer.customSounds = {
+    shoot: room.game.game.add.audio('shoot'),
+    bite: room.game.game.add.audio('bite'),
+    death: room.game.game.add.audio('death'),
+    hit: room.game.game.add.audio('hit'),
+  }
+
   return newPlayer;
 }
 

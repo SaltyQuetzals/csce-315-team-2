@@ -42,6 +42,12 @@ export class CustomPlayer {
   hitbox!: Phaser.Graphics;
   moving!: boolean;
   dbZombieAttack!: boolean;
+  customSounds!: {
+    shoot: Phaser.Sound;
+    bite: Phaser.Sound;
+    death: Phaser.Sound;
+    hit: Phaser.Sound;
+  }
 
   constructor() {
     this.speed = PLAYER_SPEED;

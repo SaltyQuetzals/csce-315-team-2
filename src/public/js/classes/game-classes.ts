@@ -53,3 +53,9 @@ export class CustomPlayer {
     this.speed = PLAYER_SPEED;
   }
 }
+
+export interface LeaderBoard {
+  players: {
+    [playerId: string]: {name: string, stats: {kills: number, deaths: number}}
+  };
+}

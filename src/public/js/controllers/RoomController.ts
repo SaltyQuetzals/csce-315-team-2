@@ -1,4 +1,6 @@
+import {LeaderBoard} from '../classes/game-classes';
 import {GameController} from '../models/Game';
+
 import {SocketController} from './SocketController';
 
 export class RoomController {
@@ -31,8 +33,9 @@ export class RoomController {
     if (this.snackbar) {
       this.snackbar.className = 'show';
       setTimeout(() => {
-        if (this.snackbar)
+        if (this.snackbar) {
           this.snackbar.className = this.snackbar.className.replace('show', '');
+        }
       }, 3000);
     }
   }
@@ -44,13 +47,16 @@ export class RoomController {
     this.game.socket.sendStartGame();
   }
 
-  restartGame(): void {
+  restartGame(
+      playerNames: {[socketId: string]: string},
+      leaderBoard: LeaderBoard): void {
     this.game.game.sound.stopAll();
     this.game = new GameController(this.roomId, this.username, this.socket);
     this.showWaiting();
+    this.updatePlayerList(playerNames, leaderBoard);
   }
 
-  onCopyButtonPressed() {
+  onCopyButtonPressed(): void {
     this.copyText();
     this.showSnackBar();
   }
@@ -87,13 +93,26 @@ export class RoomController {
     if (accessCodeBox) accessCodeBox.innerHTML = accessCode;
   }
 
-  updatePlayerList(playerNames: {[socketId: string]: string}): void {
-    const playerList = document.getElementById('player-list');
+  updatePlayerList(
+      playerNames: {[socketId: string]: string},
+      leaderBoard: LeaderBoard): void {
+    const playerList = document.getElementById('player-list')!;
+    const templateBeginning =
+        '<table><tbody id=\'player-list\'><tr><th>Player</th><th>Kills</th><th>Deaths</th></tr>';
+    const templateEnding = '</tbody></table>';
     const newPlayerList = Object.keys(playerNames).map((playerId) => {
-      // console.log(playerId);
-      return '<li>' + playerNames[playerId] + '</li>';
+      const kills = leaderBoard.players[playerId] ?
+          leaderBoard.players[playerId].stats.kills :
+          0;
+      const deaths = leaderBoard.players[playerId] ?
+          leaderBoard.players[playerId].stats.deaths :
+          0;
+      return `<tr><td>${playerNames[playerId]}</td><td>${kills}</td><td>${
+          deaths}</td></tr>`;
     });
-    if (playerList) playerList.innerHTML = newPlayerList.join('');
+    if (playerList)
+      playerList.innerHTML =
+          templateBeginning + newPlayerList.join('') + templateEnding;
   }
 
   getAccessCode(): string {

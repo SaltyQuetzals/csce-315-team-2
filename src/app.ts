@@ -97,8 +97,12 @@ io.on('connection', socket => {
   roomController.addPlayerToRoom(roomId, socket.id, username);
   const players = roomController.getNames(roomId);
   const roomHost = roomController.getRoomHost(roomId);
-  io.in(roomId).emit(
-      'new player', {roomHost, newPlayerId: socket.id, playerNames: players});
+  io.in(roomId).emit('new player', {
+    roomHost,
+    newPlayerId: socket.id,
+    playerNames: players,
+    leaderBoard: roomController.getRoom(roomId).leaderboard
+  });
 
   socket.on('start game', data => {
     const {roomId} = data;
@@ -124,10 +128,15 @@ io.on('connection', socket => {
 
     logger.info('Game over', {roomId});
     const room = roomController.getRoom(roomId);
+    const players = roomController.getNames(roomId);
     if (room.gameInProgress) {
       room.gameInProgress = false;
-      io.in(roomId).emit(
-          'end game', {zombies, survivors, leaderBoard: room.leaderboard});
+      io.in(roomId).emit('end game', {
+        zombies,
+        survivors,
+        leaderBoard: room.leaderboard,
+        playerNames: players
+      });
     }
   });
 
@@ -255,7 +264,11 @@ io.on('connection', socket => {
       const playerNames = roomController.getNames(roomId);
       const roomHost = roomController.getRoomHost(roomId);
       logger.info('disconnect', loggerMeta);
-      socket.to(roomId).emit('player left', {roomHost, playerNames});
+      socket.to(roomId).emit('player left', {
+        roomHost,
+        playerNames,
+        leaderBoard: roomController.getRoom(roomId).leaderboard
+      });
     } catch (err) {
       logger.error('disconnect', {...loggerMeta, err});
       console.error('disconnect', err);

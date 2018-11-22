@@ -1,4 +1,4 @@
-import {CustomSprite} from '../public/js/game-classes';
+import {CustomSprite} from '../public/js/classes/game-classes';
 import {Weapon} from '../public/js/models/Guns';
 import * as constants from '../shared/constants';
 

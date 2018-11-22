@@ -1,7 +1,7 @@
-import {CustomPlayer, CustomSprite, Gun} from './game-classes';
-import {DIRECTIONS, FACING} from './game-constants';
-import {game} from './main';
-import {orientGun} from './weapon-functs';
+import {CustomPlayer, CustomSprite, Gun} from './classes/game-classes';
+import {DIRECTIONS, FACING} from './helper/game-constants';
+import {orientGun} from './helper/weapon-functs';
+import {room} from './main';
 
 
 // function any(dict: {[key: string]: number}) {
@@ -33,34 +33,35 @@ export function shiftHitbox(player: CustomPlayer) {
   }
 }
 
-export function animateAvatar(avatar: CustomSprite, dx: number, dy: number, gun?: Gun) {
+export function animateAvatar(
+    avatar: CustomSprite, dx: number, dy: number, gun?: Gun) {
   if (!avatar.animating) {
-    if (dy === 0 && dx === 0){
-        avatar.animations.stop();
+    if (dy === 0 && dx === 0) {
+      avatar.animations.stop();
     }
     // Up-Down Anim Precedence
     else if (dy !== 0) {
       if (dy > 0) {
         avatar.animations.play('down', 10, false);
-        if(gun){
-            orientGun(gun, 'down');
+        if (gun) {
+          orientGun(gun, 'down');
         }
       } else {
         avatar.animations.play('up', 10, false);
-        if(gun){
-            orientGun(gun, 'up');
+        if (gun) {
+          orientGun(gun, 'up');
         }
       }
     } else {
       if (dx > 0) {
         avatar.animations.play('right', 10, false);
-        if(gun){
-            orientGun(gun, 'right');
+        if (gun) {
+          orientGun(gun, 'right');
         }
       } else {
         avatar.animations.play('left', 10, false);
-        if(gun){
-            orientGun(gun, 'left');
+        if (gun) {
+          orientGun(gun, 'left');
         }
       }
     }
@@ -136,14 +137,13 @@ export function movementHandler(
     // zombie.anims.play('idle');
   }
   if (eventShouldBeEmitted || player.moving) {
-    if(!player.moving){
-        player.moving = true;
-    }
-    else if(!eventShouldBeEmitted){
-        player.moving = false;
+    if (!player.moving) {
+      player.moving = true;
+    } else if (!eventShouldBeEmitted) {
+      player.moving = false;
     }
     const location = {x: Number(avatar.body.x), y: Number(avatar.body.y)};
-    game.socket.sendMove(location, player.facing);
+    room.game.socket.sendMove(location, player.facing);
     if (player.isZombie) {
       shiftHitbox(player);
     }

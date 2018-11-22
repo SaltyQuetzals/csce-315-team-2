@@ -3,18 +3,17 @@ import * as socket from 'socket.io-client';
 import {Drop} from '../../../models/Drop';
 import {Obstacle} from '../../../models/Obstacle';
 import {Player} from '../../../models/Player';
-import {CustomPlayer, Gun} from '../game-classes';
-import {PLAYER_HEALTH} from '../game-constants';
-import {initAvatar, initDrops, initObstacles, initPlayer} from '../init-helpers';
+import {CustomPlayer, Gun} from '../classes/game-classes';
+import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../classes/socket-classes';
+import {melee, meleeAnim} from '../helper/collisons-functs';
+import {PLAYER_HEALTH} from '../helper/game-constants';
+import {initAvatar, initDrops, initObstacles, initPlayer} from '../helper/init-helpers';
+import {switchGun} from '../helper/weapon-functs';
+import {updateHUDText} from '../HUD';
+import {room} from '../main';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
-import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
-import * as waiting from '../waiting';
-import {switchGun} from '../weapon-functs';
-import { updateHUDText } from '../HUD';
-import { melee, meleeAnim } from '../collisons-functs';
-import { game } from '../main';
 
 export class SocketController {
   socket: Socket;
@@ -22,8 +21,7 @@ export class SocketController {
   private roomId: string;
   private username: string;
   private roomHost!: string;
-  constructor(
-      roomId: string, username: string) {
+  constructor(roomId: string, username: string) {
     this.socket = io.connect('/', {
       // query: `roomId=${roomId}`,
       query: {roomId, username}
@@ -33,14 +31,13 @@ export class SocketController {
     this.username = username;
 
     this.socket.on('connect', () => {
-
-      waiting.updateAccessCodeBox();
+      room.updateAccessCodeBox();
 
       // console.log(this.gameController.localPlayer.id);
       console.log('Connected successfully.');
 
       this.socket.on('new player', (message: NewPlayerParams) => {
-        const { roomHost, newPlayerId, playerNames } = message;
+        const {roomHost, newPlayerId, playerNames} = message;
         this.roomHost = roomHost;
         if (newPlayerId === this.socket.id) {
           this.username = username;
@@ -50,19 +47,21 @@ export class SocketController {
 
       this.socket.on('start game', (message: StartGameParams) => {
         console.log('Received start game event');
-        const { initialState, playerNames } = message;
+        const {initialState, playerNames} = message;
         // const { roomHost, id, username, players } = message;
 
         this.gameController.localPlayer.id = this.socket.id;
         this.gameController.localPlayer.character.id = this.socket.id;
         this.gameController.localPlayer.username = this.username;
-        this.gameController.localPlayer.character.usernameText.setText(this.username);
+        this.gameController.localPlayer.character.usernameText.setText(
+            this.username);
         this.gameController.players[this.socket.id] =
-          this.gameController.localPlayer;
+            this.gameController.localPlayer;
 
-        
+
         this.initNewPlayers(playerNames);
-        this.startGame(initialState.obstacles, initialState.drops, initialState.players);
+        this.startGame(
+            initialState.obstacles, initialState.drops, initialState.players);
       });
 
       this.socket.on('player moved', (message: MovementParams) => {
@@ -144,20 +143,21 @@ export class SocketController {
         }
       });
 
-      this.socket.on(
-        'zombie attack', (message: {zombieId: string}) => {
-          const {zombieId} = message;
-          const player = this.gameController.players[zombieId];
-          meleeAnim(player);
-        }
-      );
+      this.socket.on('zombie attack', (message: {zombieId: string}) => {
+        const {zombieId} = message;
+        const player = this.gameController.players[zombieId];
+        meleeAnim(player);
+      });
 
       this.socket.on(
-        'player left', (message: { roomHost: string, playerNames: { [socketId: string]: string }}) => {
-          const { roomHost, playerNames } = message;
-          console.log(message);
+          'player left', (message: {
+                           roomHost: string,
+                           playerNames: {[socketId: string]: string}
+                         }) => {
+            const {roomHost, playerNames} = message;
+            console.log(message);
             this.roomHost = roomHost;
-            waiting.updatePlayerList(playerNames);
+            room.updatePlayerList(playerNames);
             if (this.roomHost === this.socket.id) {
               document.getElementById('start')!.style.display = 'block';
             }
@@ -176,8 +176,9 @@ export class SocketController {
       });
 
       this.socket.on(
-          'end game', (data: {zombies: boolean, survivors: boolean}) => {
-            const { zombies, survivors } = data;
+          'end game',
+          (data: {zombies: boolean, survivors: boolean, leaderBoard: {}}) => {
+            const {zombies, survivors, leaderBoard} = data;
             this.gameController.timer.pause();
 
             if (zombies) {
@@ -189,13 +190,16 @@ export class SocketController {
             }
 
             //Only play winning music if localplayer is human
-            game.customSounds.gameBg.stop();
-            if (game.localPlayer.isZombie){
-              game.customSounds.loss.play(undefined, undefined, undefined, true);
+            room.game.customSounds.gameBg.stop();
+            if (room.game.localPlayer.isZombie){
+              room.game.customSounds.loss.play(undefined, undefined, undefined, true);
             }
             else{
-              game.customSounds.win.play(undefined, undefined, undefined, true);
+              room.game.customSounds.win.play(undefined, undefined, undefined, true);
             }
+            console.log('LeaderBoard:', leaderBoard);
+
+            setTimeout(room.restartGame.bind(room), 5000);
           });
     });
   }
@@ -204,7 +208,8 @@ export class SocketController {
     this.socket.emit('start game', {roomId: this.roomId});
   }
 
-  sendMove(location: { x: number, y: number }, facing: { x: number, y: number }): void {
+  sendMove(location: {x: number, y: number}, facing: {x: number, y: number}):
+      void {
     this.socket.emit('move', {roomId: this.roomId, location, facing});
   }
 
@@ -224,8 +229,8 @@ export class SocketController {
     this.socket.emit('switch gun', {roomId: this.roomId, gun});
   }
 
-  sendZombieAttack(): void{
-    this.socket.emit('zombie attack', { roomId: this.roomId });
+  sendZombieAttack(): void {
+    this.socket.emit('zombie attack', {roomId: this.roomId});
   }
 
   sendHit(id: string, damage: number): void {
@@ -244,15 +249,14 @@ export class SocketController {
     });
   }
 
-  playerJoined(players: { [socketId: string]: string }): void {
+  playerJoined(players: {[socketId: string]: string}): void {
     const startGameButton = document.getElementById('start');
     if (this.roomHost === this.socket.id) {
       startGameButton!.style.display = 'block';
-    }
-    else {
+    } else {
       startGameButton!.style.display = 'none';
     }
-    waiting.updatePlayerList(players);
+    room.updatePlayerList(players);
   }
 
   initNewPlayers(
@@ -260,7 +264,7 @@ export class SocketController {
       players: {[playerId: string]: string}): void {
     let newPlayer = null;
     console.log(players);
-      
+
     // create all preexisting players
     for (const id in players) {
       if (id && id) {
@@ -275,7 +279,9 @@ export class SocketController {
     updateHUDText();
   }
 
-  startGame(obstacles: Obstacle[], drops: { [dropId: number]: Drop; }, players: Players): void {
+  startGame(
+      obstacles: Obstacle[], drops: {[dropId: number]: Drop;},
+      players: Players): void {
     initObstacles(obstacles);
     initDrops(drops);
     const socketPlayers: Players = players;

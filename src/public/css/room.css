@@ -5,6 +5,16 @@
     padding: 0;
 }
 
+#black-border{
+    width: calc(100vw - 20px);
+    height: calc(100vh - 20px);
+    border: 10px solid black;
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    z-index: 9;
+}
+
 .waiting-room-overlay{
     display: fixed;
     width: 100vw;
@@ -13,6 +23,10 @@
     left: 0;
     background-color: black;
     z-index: 10;
+}
+
+#waiting-room-overlay td{
+    text-align: center;
 }
 
 canvas{

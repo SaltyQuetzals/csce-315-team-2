@@ -3,17 +3,17 @@ import * as socket from 'socket.io-client';
 import {Drop} from '../../../models/Drop';
 import {Obstacle} from '../../../models/Obstacle';
 import {Player} from '../../../models/Player';
-import {CustomPlayer, Gun} from '../game-classes';
-import {PLAYER_HEALTH} from '../game-constants';
-import {initAvatar, initDrops, initObstacles, initPlayer} from '../init-helpers';
+import {CustomPlayer, Gun, LeaderBoard} from '../classes/game-classes';
+import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../classes/socket-classes';
+import {melee, meleeAnim} from '../helper/collisons-functs';
+import {PLAYER_HEALTH} from '../helper/game-constants';
+import {initAvatar, initDrops, initObstacles, initPlayer} from '../helper/init-helpers';
+import {switchGun} from '../helper/weapon-functs';
+import {updateHUDText} from '../HUD';
+import {room} from '../main';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
-import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../socket-classes';
-import * as waiting from '../waiting';
-import {switchGun} from '../weapon-functs';
-import { updateHUDText } from '../HUD';
-import { melee, meleeAnim } from '../collisons-functs';
 
 export class SocketController {
   socket: Socket;
@@ -21,8 +21,7 @@ export class SocketController {
   private roomId: string;
   private username: string;
   private roomHost!: string;
-  constructor(
-      roomId: string, username: string) {
+  constructor(roomId: string, username: string) {
     this.socket = io.connect('/', {
       // query: `roomId=${roomId}`,
       query: {roomId, username}
@@ -32,36 +31,37 @@ export class SocketController {
     this.username = username;
 
     this.socket.on('connect', () => {
-
-      waiting.updateAccessCodeBox();
+      room.updateAccessCodeBox();
 
       // console.log(this.gameController.localPlayer.id);
       console.log('Connected successfully.');
 
       this.socket.on('new player', (message: NewPlayerParams) => {
-        const { roomHost, newPlayerId, playerNames } = message;
+        const {roomHost, newPlayerId, playerNames, leaderBoard} = message;
         this.roomHost = roomHost;
         if (newPlayerId === this.socket.id) {
           this.username = username;
         }
-        this.playerJoined(playerNames);
+        this.playerJoined(playerNames, leaderBoard);
       });
 
       this.socket.on('start game', (message: StartGameParams) => {
         console.log('Received start game event');
-        const { initialState, playerNames } = message;
+        const {initialState, playerNames} = message;
         // const { roomHost, id, username, players } = message;
 
         this.gameController.localPlayer.id = this.socket.id;
         this.gameController.localPlayer.character.id = this.socket.id;
         this.gameController.localPlayer.username = this.username;
-        this.gameController.localPlayer.character.usernameText.setText(this.username);
+        this.gameController.localPlayer.character.usernameText.setText(
+            this.username);
         this.gameController.players[this.socket.id] =
-          this.gameController.localPlayer;
+            this.gameController.localPlayer;
 
-        
+
         this.initNewPlayers(playerNames);
-        this.startGame(initialState.obstacles, initialState.drops, initialState.players);
+        this.startGame(
+            initialState.obstacles, initialState.drops, initialState.players);
       });
 
       this.socket.on('player moved', (message: MovementParams) => {
@@ -82,9 +82,15 @@ export class SocketController {
       this.socket.on(
           'weapon fired', (message: {id: string, fireAngle: number}) => {
             const {id, fireAngle} = message;
-            const gun = this.gameController.players[id].gun;
+            let shooter = this.gameController.players[id];
+            const gun = shooter.gun;
             gun.pGun.fireAngle = fireAngle;
-            gun.shoot();
+            if(gun.shoot()){
+              let dx = shooter.character.x - this.gameController.localPlayer.character.x;
+              let dy = shooter.character.y - this.gameController.localPlayer.character.y;
+              let volume = this.gameController.soundGauger(dx, dy);
+              shooter.customSounds.shoot.play(undefined, undefined, volume);
+            }
           });
 
       this.socket.on(
@@ -137,24 +143,25 @@ export class SocketController {
         }
       });
 
-      this.socket.on(
-        'zombie attack', (message: {zombieId: string}) => {
-          const {zombieId} = message;
-          const player = this.gameController.players[zombieId];
-          meleeAnim(player);
-        }
-      );
+      this.socket.on('zombie attack', (message: {zombieId: string}) => {
+        const {zombieId} = message;
+        const player = this.gameController.players[zombieId];
+        meleeAnim(player);
+      });
 
-      this.socket.on(
-        'player left', (message: { roomHost: string, playerNames: { [socketId: string]: string }}) => {
-          const { roomHost, playerNames } = message;
-          console.log(message);
-            this.roomHost = roomHost;
-            waiting.updatePlayerList(playerNames);
-            if (this.roomHost === this.socket.id) {
-              document.getElementById('start')!.style.display = 'block';
-            }
-          });
+      this.socket.on('player left', (message: {
+                                      roomHost: string,
+                                      playerNames: {[socketId: string]: string},
+                                      leaderBoard: LeaderBoard
+                                    }) => {
+        const {roomHost, playerNames, leaderBoard} = message;
+        console.log(message);
+        this.roomHost = roomHost;
+        room.updatePlayerList(playerNames, leaderBoard);
+        if (this.roomHost === this.socket.id) {
+          document.getElementById('start')!.style.display = 'block';
+        }
+      });
 
       this.socket.on('err', (message: {}) => {
         console.error(message);
@@ -168,18 +175,35 @@ export class SocketController {
         }
       });
 
-      this.socket.on(
-          'end game', (data: {zombies: boolean, survivors: boolean}) => {
-            const { zombies, survivors } = data;
-            this.gameController.timer.pause();
-            if (zombies) {
-              this.gameController.endGame.setText('Zombies win!');
-              console.log('ZOMBIES WIN');
-            } else {
-              this.gameController.endGame.setText('Survivors win!');
-              console.log('SURVIVORS WIN');
-            }
-          });
+      this.socket.on('end game', (data: {
+                                   zombies: boolean,
+                                   survivors: boolean,
+                                   leaderBoard: {},
+                                   playerNames: {}
+                                 }) => {
+        const {zombies, survivors, leaderBoard, playerNames} = data;
+        console.log(leaderBoard);
+        this.gameController.timer.pause();
+        if (zombies) {
+          this.gameController.endGame.setText('Zombies win!');
+          console.log('ZOMBIES WIN');
+        } else {
+          this.gameController.endGame.setText('Survivors win!');
+          console.log('SURVIVORS WIN');
+        }
+
+        //Only play winning music if localplayer is human
+        room.game.customSounds.gameBg.stop();
+        if (room.game.localPlayer.isZombie){
+          room.game.customSounds.loss.play(undefined, undefined, undefined, true);
+        }
+        else{
+          room.game.customSounds.win.play(undefined, undefined, undefined, true);
+        }
+        
+        const restart = room.restartGame.bind(room);
+        setTimeout(restart(playerNames, leaderBoard), 5000);
+      });
     });
   }
 
@@ -187,7 +211,8 @@ export class SocketController {
     this.socket.emit('start game', {roomId: this.roomId});
   }
 
-  sendMove(location: { x: number, y: number }, facing: { x: number, y: number }): void {
+  sendMove(location: {x: number, y: number}, facing: {x: number, y: number}):
+      void {
     this.socket.emit('move', {roomId: this.roomId, location, facing});
   }
 
@@ -207,8 +232,8 @@ export class SocketController {
     this.socket.emit('switch gun', {roomId: this.roomId, gun});
   }
 
-  sendZombieAttack(): void{
-    this.socket.emit('zombie attack', { roomId: this.roomId });
+  sendZombieAttack(): void {
+    this.socket.emit('zombie attack', {roomId: this.roomId});
   }
 
   sendHit(id: string, damage: number): void {
@@ -227,15 +252,15 @@ export class SocketController {
     });
   }
 
-  playerJoined(players: { [socketId: string]: string }): void {
+  playerJoined(players: {[socketId: string]: string}, leaderBoard: LeaderBoard):
+      void {
     const startGameButton = document.getElementById('start');
     if (this.roomHost === this.socket.id) {
       startGameButton!.style.display = 'block';
-    }
-    else {
+    } else {
       startGameButton!.style.display = 'none';
     }
-    waiting.updatePlayerList(players);
+    room.updatePlayerList(players, leaderBoard);
   }
 
   initNewPlayers(
@@ -243,7 +268,7 @@ export class SocketController {
       players: {[playerId: string]: string}): void {
     let newPlayer = null;
     console.log(players);
-      
+
     // create all preexisting players
     for (const id in players) {
       if (id && id) {
@@ -258,7 +283,9 @@ export class SocketController {
     updateHUDText();
   }
 
-  startGame(obstacles: Obstacle[], drops: { [dropId: number]: Drop; }, players: Players): void {
+  startGame(
+      obstacles: Obstacle[], drops: {[dropId: number]: Drop;},
+      players: Players): void {
     initObstacles(obstacles);
     initDrops(drops);
     const socketPlayers: Players = players;
@@ -300,19 +327,23 @@ export class SocketController {
     const background: HTMLElement|null = document!.getElementById('background');
     background!.style.display = 'none';
     this.gameController.timer.start();
+    this.gameController.customSounds.gameBg.play(undefined, undefined, undefined, true);
   }
 
   playerHit(victimId: string, killerId: string, damage: number): void {
+    console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
     const player = this.gameController.players[victimId];
     if (player.health <= damage) {
-      player.health = 0;
-      if (victimId === this.gameController.localPlayer.id) {
-        // Movement is disabled
-        player.isDead = true;
-        this.sendPlayerDied(killerId);
-        this.gameController.HUD.healthbar.width = 1.5 * player.health;
+      if(!player.isDead){
+        player.health = 0;
+        if (victimId === this.gameController.localPlayer.id) {
+          // Movement is disabled
+          player.isDead = true;
+          this.sendPlayerDied(killerId);
+          this.gameController.HUD.healthbar.width = 1.5 * player.health;
+        }
+        player.character.animations.play('die', 15, false);
       }
-      player.character.destroy();
     } else {
       player.health -= damage;
       // animate HIT
@@ -333,6 +364,7 @@ export class SocketController {
     if (player.isZombie) {
       const x = player.character.x;
       const y = player.character.y;
+      player.character.destroy();
       player.character = initAvatar(player, 'zombie_1', x, y);
     } else {
       this.gameController.numZombies++;
@@ -351,7 +383,13 @@ export class SocketController {
         this.sendGameEnded();
       }
     }
-    player.isDead = false;
+    player.character.animations.play('revive', 15, false).onComplete.add(
+      ()=>{
+        player.isDead = false;
+      },
+      this
+    );
+    // player.isDead = false;
     if (player.id === this.gameController.localPlayer.id) {
       this.gameController.HUD.healthbar.width = 1.5 * player.health;
       this.gameController.localPlayer = player;

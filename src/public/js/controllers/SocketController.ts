@@ -5,15 +5,16 @@ import {Obstacle} from '../../../models/Obstacle';
 import {Player} from '../../../models/Player';
 import {CustomPlayer, Gun, LeaderBoard} from '../classes/game-classes';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../classes/socket-classes';
-import {melee, meleeAnim} from '../helper/collisons-functs';
+import {melee, meleeAnim, deactivateDrop} from '../helper/collisons-functs';
 import {PLAYER_HEALTH} from '../helper/game-constants';
 import {initAvatar, initDrops, initObstacles, initPlayer} from '../helper/init-helpers';
 import {switchGun} from '../helper/weapon-functs';
-import {updateHUDText} from '../HUD';
+import {updateHUDText, togglePowerup} from '../HUD';
 import {room} from '../main';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
+import { delay } from '../../../shared/functions';
 
 export class SocketController {
   socket: Socket;
@@ -82,13 +83,13 @@ export class SocketController {
       this.socket.on(
           'weapon fired', (message: {id: string, fireAngle: number}) => {
             const {id, fireAngle} = message;
-            let shooter = this.gameController.players[id];
+            const shooter = this.gameController.players[id];
             const gun = shooter.gun;
             gun.pGun.fireAngle = fireAngle;
             if(gun.shoot()){
-              let dx = shooter.character.x - this.gameController.localPlayer.character.x;
-              let dy = shooter.character.y - this.gameController.localPlayer.character.y;
-              let volume = this.gameController.soundGauger(dx, dy);
+              const dx = shooter.character.x - this.gameController.localPlayer.character.x;
+              const dy = shooter.character.y - this.gameController.localPlayer.character.y;
+              const volume = this.gameController.soundGauger(dx, dy);
               shooter.customSounds.shoot.play(undefined, undefined, volume);
             }
           });
@@ -120,10 +121,10 @@ export class SocketController {
           });
 
       this.socket.on(
-          'powerup expired',
-          (message: {}) => {
-              // Reset stats
-          });
+        'deactivate drop', (message: { type: string }) => {
+          const { type } = message;
+          deactivateDrop(type);
+      });
 
       this.socket.on('switch gun', (message: {id: string, gun: string}) => {
         const {id, gun} = message;
@@ -201,10 +202,16 @@ export class SocketController {
           room.game.customSounds.win.play(undefined, undefined, undefined, true);
         }
         
-        const restart = room.restartGame.bind(room);
-        setTimeout(restart(playerNames, leaderBoard), 5000);
+        this.gameOver().then(() => {
+          const restart = room.restartGame.bind(room);
+          setTimeout(restart(playerNames, leaderBoard), 5000);
+        });
       });
     });
+  }
+
+  async gameOver() {
+    await delay(8000);
   }
 
   sendStartGame(): void {
@@ -220,8 +227,8 @@ export class SocketController {
     this.socket.emit('change health', {roomId: this.roomId, change});
   }
 
-  sendActivateDrop(id: number): void {
-    this.socket.emit('activate', {roomId: this.roomId, id});
+  sendActivateDrop(id: number, type: string): void {
+    this.socket.emit('activate', {roomId: this.roomId, id, type});
   }
 
   sendFireGun(fireAngle: number): void {

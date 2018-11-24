@@ -3,7 +3,7 @@ import path = require('path');
 import * as socketio from 'socket.io';
 import http = require('http');
 import * as session from 'express-session';
-import {random} from './shared/functions';
+import {random, delay} from './shared/functions';
 import bodyParser = require('body-parser');
 import {RoomController} from './controllers/RoomController';
 
@@ -113,7 +113,18 @@ io.on('connection', socket => {
         const players = roomController.getNames(roomId);
         const initialState = roomController.startGame(roomId);
         logger.info('Start game', {roomId, initialState});
-        io.in(roomId).emit('start game', {initialState, playerNames: players});
+        io.in(roomId).emit('start game', { initialState, playerNames: players });
+        roomController.startTimer().then(() => {
+          if (room.gameInProgress) {
+            room.gameInProgress = false;
+            io.in(roomId).emit('end game', {
+              zombies: false,
+              survivors: true,
+              leaderBoard: room.leaderboard,
+              playerNames: players
+            });
+          }
+        });
       } else {
         console.log('Game already started');
       }
@@ -277,13 +288,16 @@ io.on('connection', socket => {
 
   socket.on('activate', (data) => {
     // Remove PowerUp from gameboard, and activate it on the specific Player.
-    const {roomId, id} = data;
-    const loggerMeta = {roomId, playerId: socket.id, dropId: id};
+    const {roomId, id, type} = data;
+    const loggerMeta = {roomId, playerId: socket.id, dropId: id, dropType: type};
     try {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('activate', loggerMeta);
-        socket.to(roomId).emit('activated drop', {id});
+        socket.to(roomId).emit('activated drop', { id });
+        room.leaderboard.dropCollected(type).then(() => {
+          socket.emit('deactivate drop', { type });
+        });
       } else {
         console.log('Game not started');
       }

@@ -6,7 +6,7 @@ import {bulletHitHandler, killBullet, melee, pickupDrop} from '../helper/colliso
 import * as gameConstants from '../helper/game-constants';
 import {initPlayer} from '../helper/init-helpers';
 import {fireGun} from '../helper/weapon-functs';
-import {createHUD, updateHUD, updateHUDText} from '../HUD';
+import {createHUD, updateHUDText, updateRadar} from '../HUD';
 import {movementHandler} from '../movement';
 
 export class GameController {
@@ -35,16 +35,17 @@ export class GameController {
     survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
     zombies: {text: Phaser.Text; graphic: Phaser.Sprite;}
     healthbar: Phaser.Graphics;
+    powerups: { hammertime: Phaser.Sprite; weirdFlex: Phaser.Sprite; }
     timer: Phaser.Text;
     score: Phaser.Text;
     radar: {overlay: Phaser.Graphics; dots: {[id: string]: Phaser.Graphics}};
   };
   endGame!: Phaser.Text;
-  customSounds!: {
-      gameBg: Phaser.Sound;
-      loss: Phaser.Sound;
-      win: Phaser.Sound;
-  }
+    customSounds!: {
+        gameBg: Phaser.Sound;
+        loss: Phaser.Sound;
+        win: Phaser.Sound;
+    };
   constructor(roomId: string, username: string, socketController: SocketController) {
     this.roomId = roomId;
     this.username = username;
@@ -76,7 +77,8 @@ export class GameController {
         this.game.stage.disableVisibilityChange = true;
         this.game.load.image('tiles', '../assets/0x72_DungeonTilesetII_v1.png');
         this.game.load.tilemap(
-            'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
+          'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
+        this.game.load.image('brick', '../assets/brick.png');
         this.game.load.image('bullet', '../assets/bullet.png');
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
         this.game.load.image('Revolver', '../assets/Revolver.png');
@@ -159,14 +161,13 @@ export class GameController {
         this.localPlayer.id = '0';
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
-        this.timer = this.game.time.create(true);
-        this.timer.loop(5000, (): void => {
+      this.timer = this.game.time.create(true);
+      this.timer.loop(5000, (): void => {
           if (!this.localPlayer.isZombie) this.score += 25;
           updateHUDText();
-        });
-        this.timer.loop(3000, updateHUD);
-
-
+      });
+      this.timer.loop(100, updateRadar);
+      
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
 
@@ -328,7 +329,7 @@ export class GameController {
   }
 
   soundGauger(dx: number, dy: number): number{
-    let dist = Math.sqrt(dx*dx + dy*dy);
+    const dist = Math.sqrt(dx*dx + dy*dy);
     if(dist < gameConstants.SOUND_TOLERANCE){
         return 1 - (dist/gameConstants.SOUND_TOLERANCE);
     }

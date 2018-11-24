@@ -158,25 +158,19 @@ export function initPlayer(id: string, username: string) {
     bite: room.game.game.add.audio('bite'),
     death: room.game.game.add.audio('death'),
     hit: room.game.game.add.audio('hit'),
-  }
+  };
 
   return newPlayer;
 }
 
 export function initObstacles(obstacles: Obstacle[]) {
   for (let i = 0; i < obstacles.length; ++i) {
-    const obstacle = room.game.game.add.graphics(
-        obstacles[i].location[0], obstacles[i].location[1]);
-    obstacle.lineStyle(2, 0x5b5b5b, 1);
-    obstacle.beginFill(0x5b5b5b, 1);
-    obstacle.drawRect(0, 0, obstacles[i].width, obstacles[i].height);
-    obstacle.endFill();
-    obstacle.boundsPadding = 0;
-
-    room.game.game.physics.arcade.enable(obstacle);
-    obstacle.body.immovable = true;
-
-    room.game.obstacles.add(obstacle);
+    const brickWall = room.game.game.add.tileSprite(
+      obstacles[i].location[0], obstacles[i].location[1],
+      obstacles[i].width, obstacles[i].height, 'brick');
+    room.game.game.physics.arcade.enable(brickWall);
+    brickWall.body.immovable = true;
+    room.game.obstacles.add(brickWall);
   }
 }
 

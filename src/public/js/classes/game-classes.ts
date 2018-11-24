@@ -52,7 +52,7 @@ export class CustomPlayer {
     bite: Phaser.Sound;
     death: Phaser.Sound;
     hit: Phaser.Sound;
-  }
+  };
 
   constructor() {
     this.speed = PLAYER_SPEED;

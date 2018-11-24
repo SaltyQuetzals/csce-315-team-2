@@ -83,13 +83,13 @@ export class SocketController {
       this.socket.on(
           'weapon fired', (message: {id: string, fireAngle: number}) => {
             const {id, fireAngle} = message;
-            let shooter = this.gameController.players[id];
+            const shooter = this.gameController.players[id];
             const gun = shooter.gun;
             gun.pGun.fireAngle = fireAngle;
             if(gun.shoot()){
-              let dx = shooter.character.x - this.gameController.localPlayer.character.x;
-              let dy = shooter.character.y - this.gameController.localPlayer.character.y;
-              let volume = this.gameController.soundGauger(dx, dy);
+              const dx = shooter.character.x - this.gameController.localPlayer.character.x;
+              const dy = shooter.character.y - this.gameController.localPlayer.character.y;
+              const volume = this.gameController.soundGauger(dx, dy);
               shooter.customSounds.shoot.play(undefined, undefined, volume);
             }
           });
@@ -205,7 +205,7 @@ export class SocketController {
         this.gameOver().then(() => {
           const restart = room.restartGame.bind(room);
           setTimeout(restart(playerNames, leaderBoard), 5000);
-        })
+        });
       });
     });
   }

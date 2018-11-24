@@ -144,6 +144,12 @@ export class SocketController {
         }
       });
 
+      this.socket.on('change gun damage', (message: { id: string, damage: number }) => {
+        const { id, damage } = message;
+        const player = this.gameController.players[id];
+        player.gun.damage = damage;
+      });
+
       this.socket.on('zombie attack', (message: {zombieId: string}) => {
         const {zombieId} = message;
         const player = this.gameController.players[zombieId];
@@ -237,6 +243,10 @@ export class SocketController {
 
   sendSwitchGun(gun: string): void {
     this.socket.emit('switch gun', {roomId: this.roomId, gun});
+  }
+
+  sendChangeGunDamage(damage: number): void {
+    this.socket.emit('change gun damage', { roomId: this.roomId, damage });
   }
 
   sendZombieAttack(): void {
@@ -348,6 +358,8 @@ export class SocketController {
           player.isDead = true;
           this.sendPlayerDied(killerId);
           this.gameController.HUD.healthbar.width = 1.5 * player.health;
+          this.gameController.deaths += 1;
+          updateHUDText();
         }
         player.character.animations.play('die', 15, false);
       }

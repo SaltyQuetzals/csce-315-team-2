@@ -251,6 +251,23 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('change gun damage', data => {
+    const { roomId, damage } = data;
+    const loggerMeta = { roomId, damage, playerId: socket.id };
+    try {
+      const room = roomController.getRoom(roomId);
+      if (room.gameInProgress) {
+        logger.info('change gun damage', loggerMeta);
+        socket.to(roomId).emit('change gun damage', { id: socket.id, damage });
+      } else {
+        console.log('Game not started');
+      }
+    } catch (err) {
+      logger.error('change gun damage', { ...loggerMeta, err });
+      socket.emit('err', { message: err.message });
+    }
+  });
+
   socket.on('zombie attack', (data) => {
     const {roomId} = data;
     const loggerMeta = {roomId, playerId: socket.id};

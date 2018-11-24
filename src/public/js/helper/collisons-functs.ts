@@ -11,6 +11,9 @@ import {switchGun} from './weapon-functs';
 
 export function deactivateDrop(type: string) {
   const player = room.game.localPlayer;
+  if (player.isZombie) {
+    return;
+  }
   switch (type) {
     case 'WeirdFlex':
       player.gun.damage -= player.gun.damageBonus;
@@ -83,6 +86,9 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           break;
       }
     }
+  }
+  else {
+    room.game.socket.sendActivateDrop(drop.id, drop.item.type);
   }
 }
 

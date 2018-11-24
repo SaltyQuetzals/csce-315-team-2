@@ -66,6 +66,17 @@ export class Leaderboard {
     await delay(delayMillis);
   }
 
+  async dropCollected(type: string) {
+    let delayMS: number;
+    if (type === "Hammertime") {
+      delayMS = 10000;
+    }
+    else {
+      delayMS = 20000;
+    }
+    await delay(delayMS);
+  }
+
 
   get humansRemaining(): number {
     let humans = 0;

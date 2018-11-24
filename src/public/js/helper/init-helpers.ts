@@ -158,7 +158,7 @@ export function initPlayer(id: string, username: string) {
     bite: room.game.game.add.audio('bite'),
     death: room.game.game.add.audio('death'),
     hit: room.game.game.add.audio('hit'),
-  }
+  };
 
   return newPlayer;
 }

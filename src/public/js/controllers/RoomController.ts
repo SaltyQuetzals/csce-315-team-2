@@ -110,9 +110,10 @@ export class RoomController {
       return `<tr><td>${playerNames[playerId]}</td><td>${kills}</td><td>${
           deaths}</td></tr>`;
     });
-    if (playerList)
+    if (playerList) {
       playerList.innerHTML =
-          templateBeginning + newPlayerList.join('') + templateEnding;
+        templateBeginning + newPlayerList.join('') + templateEnding;
+    }
   }
 
   getAccessCode(): string {

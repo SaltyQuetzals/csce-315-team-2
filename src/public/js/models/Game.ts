@@ -35,6 +35,7 @@ export class GameController {
     survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
     zombies: {text: Phaser.Text; graphic: Phaser.Sprite;}
     healthbar: Phaser.Graphics;
+    powerups: { hammertime: Phaser.Sprite; weirdFlex: Phaser.Sprite; }
     timer: Phaser.Text;
     score: Phaser.Text;
     radar: {overlay: Phaser.Graphics; dots: {[id: string]: Phaser.Graphics}};

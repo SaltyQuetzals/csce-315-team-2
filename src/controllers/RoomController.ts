@@ -1,4 +1,6 @@
 import {InitialState, Leaderboard} from '../models/Leaderboard';
+import { delay } from '../shared/functions';
+import { GAME_LENGTH } from '../shared/constants';
 
 export type GameRoom = {
   roomLeader: string,
@@ -101,6 +103,10 @@ class RoomController {
       return initialState;
     }
     return;
+  }
+
+  async startTimer() {
+    await delay(GAME_LENGTH * 1000);
   }
 
   /**

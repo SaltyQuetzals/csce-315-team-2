@@ -6,10 +6,15 @@ import {PLAYER_SPEED} from '../helper/game-constants';
 export class Gun {
   pGun!: Phaser.Weapon;
   ammo!: number;
+  damageBonus: number;
   clipSize!: number;
   damage!: number;
   name!: string;
   handle!: Phaser.Sprite;
+
+  constructor() {
+    this.damageBonus = 0;
+  }
 
   shoot() {
     if (this.pGun.fire()) {

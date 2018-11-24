@@ -1,10 +1,26 @@
 import {isUndefined} from 'util';
 
-import {GAME_LENGTH} from '../../shared/constants';
-
 import {CustomPlayer} from './classes/game-classes';
 import * as gameConstants from './helper/game-constants';
-import {room} from './main';
+import { room } from './main';
+import { GAME_LENGTH } from '../../shared/constants';
+
+export function togglePowerup(type: string, activate: boolean): void {
+    let sprite: Phaser.Sprite;
+    if (type === "Hammertime") {
+        sprite = room.game.HUD.powerups.hammertime;
+    }
+    else {
+        sprite = room.game.HUD.powerups.weirdFlex;
+    }
+
+    if (activate) {
+        sprite.revive();
+    }
+    else {
+        sprite.kill();
+    }
+}
 
 export function updateHUDText(): void {
   room.game.HUD.survivors.text.setText('' + room.game.numSurvivors);
@@ -65,6 +81,7 @@ export function createHUD(): void {
     const HUD = room.game.HUD;
 
     HUD.ammo = Object();
+    HUD.powerups = Object();
     HUD.survivors = Object();
     HUD.zombies = Object();
     HUD.radar = Object();
@@ -92,6 +109,15 @@ export function createHUD(): void {
             fill: '#ffffff',
             align: 'center'
         });
+    
+    HUD.powerups.hammertime = room.game.game.add.sprite(10, HUD.ammo.graphic.y + HUD.ammo.graphic.height + 10, 'p3');
+    HUD.powerups.hammertime.scale.setTo(.5);
+    HUD.powerups.hammertime.kill();
+        
+    HUD.powerups.weirdFlex = room.game.game.add.sprite(HUD.powerups.hammertime.x + HUD.powerups.hammertime.width + 10,
+        HUD.powerups.hammertime.y, 'p1');
+    HUD.powerups.weirdFlex.scale.setTo(.5);
+    HUD.powerups.weirdFlex.kill();
 
     HUD.survivors.graphic = room.game.game.add.sprite(
         gameConstants.GAME_VIEW_WIDTH - 200, 
@@ -149,6 +175,8 @@ export function createHUD(): void {
 
     HUD.ammo.text.fixedToCamera = true;
     HUD.ammo.graphic.fixedToCamera = true;
+    HUD.powerups.hammertime.fixedToCamera = true;
+    HUD.powerups.weirdFlex.fixedToCamera = true;
     HUD.survivors.text.fixedToCamera = true;
     HUD.survivors.graphic.fixedToCamera = true;
     HUD.zombies.text.fixedToCamera = true;
@@ -170,6 +198,8 @@ export function createHUD(): void {
     room.game.game.world.bringToTop(HUD.zombies.text);
     room.game.game.world.bringToTop(HUD.ammo.text);
     room.game.game.world.bringToTop(HUD.ammo.graphic);
+    room.game.game.world.bringToTop(HUD.powerups.hammertime);
+    room.game.game.world.bringToTop(HUD.powerups.weirdFlex);
     room.game.game.world.bringToTop(HUD.timer);
     HUD.score.bringToTop();
     room.game.game.world.bringToTop(HUD.radar.overlay);

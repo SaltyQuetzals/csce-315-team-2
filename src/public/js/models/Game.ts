@@ -25,7 +25,8 @@ export class GameController {
   obstacles!: Phaser.Group;
   dropSprites!: Phaser.Group;
   localPlayer!: gameClasses.CustomPlayer;
-  score!: number;
+  kills!: number;
+  deaths!: number;
   username!: string;
   numSurvivors!: number;
   numZombies!: number;
@@ -37,7 +38,8 @@ export class GameController {
     healthbar: Phaser.Graphics;
     powerups: { hammertime: Phaser.Sprite; weirdFlex: Phaser.Sprite; }
     timer: Phaser.Text;
-    score: Phaser.Text;
+    kills: { text: Phaser.Text; graphic: Phaser.Sprite; }
+    deaths: { text: Phaser.Text; graphic: Phaser.Sprite; }
     radar: {overlay: Phaser.Graphics; dots: {[id: string]: Phaser.Graphics}};
   };
   endGame!: Phaser.Text;
@@ -83,6 +85,7 @@ export class GameController {
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
         this.game.load.image('Revolver', '../assets/Revolver.png');
         this.game.load.image('Shotgun', '../assets/Shotgun.png');
+        this.game.load.image('crosshairs', '../assets/crosshairs.png');
         this.game.load.image('p1', '../assets/WeirdFlex.png');
         this.game.load.image('p2', '../assets/Grit.png');
         this.game.load.image('p3', '../assets/Hammertime.png');
@@ -162,18 +165,15 @@ export class GameController {
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
       this.timer = this.game.time.create(true);
-      this.timer.loop(5000, (): void => {
-          if (!this.localPlayer.isZombie) this.score += 25;
-          updateHUDText();
-      });
-      this.timer.loop(100, updateRadar);
+      this.timer.loop(5000, updateRadar);
       
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
 
         this.game.camera.follow(this.localPlayer.cameraSprite);
 
-        this.score = 0;
+        this.kills = 0;
+        this.deaths = 0;
         this.numSurvivors = 0;
         this.numZombies = 0;
 

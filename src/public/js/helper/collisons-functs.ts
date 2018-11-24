@@ -11,10 +11,14 @@ import {switchGun} from './weapon-functs';
 
 export function deactivateDrop(type: string) {
   const player = room.game.localPlayer;
+  if (player.isZombie) {
+    return;
+  }
   switch (type) {
     case 'WeirdFlex':
       player.gun.damage -= player.gun.damageBonus;
       player.gun.damageBonus = 0;
+      room.game.socket.sendChangeGunDamage(player.gun.damage);
       togglePowerup("WeirdFlex", false);
       break;
     case 'Hammertime':
@@ -52,6 +56,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
       }
       player.gun.damageBonus = bonus;
       player.gun.damage += bonus;
+      room.game.socket.sendChangeGunDamage(player.gun.damage);
       updateHUDText();
     } else {
       const type = drop.item.type;
@@ -61,6 +66,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
         case 'WeirdFlex':
           player.gun.damageBonus += 10;
           player.gun.damage += player.gun.damageBonus;
+          room.game.socket.sendChangeGunDamage(player.gun.damage);
           togglePowerup("WeirdFlex", true);
           break;
         case 'Grit':
@@ -80,6 +86,9 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           break;
       }
     }
+  }
+  else {
+    room.game.socket.sendActivateDrop(drop.id, drop.item.type);
   }
 }
 
@@ -123,13 +132,13 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
     killBullet(bullet, enemy);
     target.isDead = true;
     enemy.animations.play('die', 15, false);
-    room.game.score += 100;
+    room.game.kills += 1;
+    updateHUDText();
   } else {
     target.health -= room.game.localPlayer.gun.damage;
     // animate HIT
     target.character.animating = true;
     target.character.animations.play('hurt', 20, false);
-    room.game.score += 20;
   }
   updateHUDText();
 }
@@ -180,7 +189,7 @@ export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {
   if (meleeDamage >= target.health) {
     target.isDead = true;
     enemy.animations.play('die', 15, false);
-    room.game.score += 100;
+    room.game.kills += 1;
   } else {
     room.game.players[enemy.id].health -= meleeDamage;
   }

@@ -320,8 +320,8 @@ export class SocketController {
     }
     for (const playerKey of Object.keys(socketPlayers)) {
       const avatar = this.gameController.players[playerKey].character;
-      // avatar.x = socketPlayers[playerKey].player.avatar.location[0];
-      // avatar.y = socketPlayers[playerKey].player.avatar.location[1];
+      avatar.x = socketPlayers[playerKey].player.avatar.location[0];
+      avatar.y = socketPlayers[playerKey].player.avatar.location[1];
       if (playerKey === this.gameController.localPlayer.id) {
         this.gameController.localPlayer.character = avatar;
       }

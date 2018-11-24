@@ -166,7 +166,7 @@ export class GameController {
           if (!this.localPlayer.isZombie) this.score += 25;
           updateHUDText();
       });
-      this.timer.loop(100, updateRadar);
+      this.timer.loop(5000, updateRadar);
       
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);

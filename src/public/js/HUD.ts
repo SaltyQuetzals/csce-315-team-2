@@ -3,7 +3,7 @@ import {isUndefined} from 'util';
 import {CustomPlayer} from './classes/game-classes';
 import * as gameConstants from './helper/game-constants';
 import { room } from './main';
-import { GAME_LENGTH } from '../../shared/constants';
+import { GAME_LENGTH, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT } from '../../shared/constants';
 
 export function togglePowerup(type: string, activate: boolean): void {
     let sprite: Phaser.Sprite;
@@ -58,19 +58,19 @@ export function updateRadar(): void {
             currentDot = room.game.game.add.graphics();
 
             currentDot.beginFill(color, 1);
-            currentDot.drawCircle(currentPlayer.character.world.x / 20, currentPlayer.character.world.y / 20, 8);
+            currentDot.drawCircle(6, 6, 8);
             currentDot.endFill();
             currentDot.boundsPadding = 0;
-            currentDot.centerX = currentPlayer.character.world.x / 20 - 8;
-            currentDot.centerY = currentPlayer.character.world.y / 20;
+            currentDot.x = currentPlayer.character.x / 20;
+            currentDot.y = currentPlayer.character.y / 20;
             room.game.HUD.radar.dots[playerId] = currentDot;
             room.game.HUD.radar.overlay.addChild(currentDot);
             room.game.game.world.bringToTop(room.game.HUD.radar.overlay);
         }
         else {
             currentDot = room.game.HUD.radar.dots[playerId];
-            currentDot.centerX = currentPlayer.character.world.x / 20 - 8;
-            currentDot.centerY = currentPlayer.character.world.y / 20;
+            currentDot.x = currentPlayer.character.x / 20;
+            currentDot.y = currentPlayer.character.y / 20;
         }
 
     });
@@ -166,10 +166,10 @@ export function createHUD(): void {
     HUD.timer.anchor.setTo(.5);
 
     HUD.radar.overlay = room.game.game.add.graphics(
-        gameConstants.GAME_VIEW_WIDTH - 140, gameConstants.GAME_VIEW_HEIGHT - 110);
+        gameConstants.GAME_VIEW_WIDTH - GAME_BOARD_WIDTH/20 - 18, gameConstants.GAME_VIEW_HEIGHT - GAME_BOARD_HEIGHT/20 - 18);
     HUD.radar.overlay.lineStyle(2, 0x5b5b5b, 1);
     // HUD.radar.beginFill(0x5b5b5b, 1);
-    HUD.radar.overlay.drawRect(0, -8, 128, 98);
+    HUD.radar.overlay.drawRect(0, 0, GAME_BOARD_WIDTH/20 + 8, GAME_BOARD_HEIGHT/20 + 8);
     // HUD.radar.endFill();
     HUD.radar.overlay.boundsPadding = 0;
 

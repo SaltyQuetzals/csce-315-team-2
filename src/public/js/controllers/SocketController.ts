@@ -66,7 +66,7 @@ export class SocketController {
       });
 
       this.socket.on('player moved', (message: MovementParams) => {
-        // console.log(game.players);
+        console.log(JSON.stringify(this.gameController, null, 3));
         const player = this.gameController.players[message.id];
         player.facing = message.facing;
         shiftHitbox(player);

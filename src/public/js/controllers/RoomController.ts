@@ -99,20 +99,38 @@ export class RoomController {
     const templateBeginning =
         '<table><tbody id=\'player-list\'><tr><th>Player</th><th>Kills</th><th>Deaths</th></tr>';
     const templateEnding = '</tbody></table>';
-    const newPlayerList = Object.keys(playerNames).map((playerId) => {
-      const kills = leaderBoard.players[playerId] ?
-          leaderBoard.players[playerId].stats.kills :
-          0;
-      const deaths = leaderBoard.players[playerId] ?
-          leaderBoard.players[playerId].stats.deaths :
-          0;
-      return `<tr><td>${playerNames[playerId]}</td><td>${kills}</td><td>${
-          deaths}</td></tr>`;
-    });
-    if (playerList) {
-      playerList.innerHTML =
-        templateBeginning + newPlayerList.join('') + templateEnding;
+
+    const cmp = function(a: string | number, b: string | number){
+      if (a > b) return -1;
+      if (a < b) return 1;
+      return 0;
     }
+
+    let sortablePlayers = [];
+    for (let playerId of Object.keys(playerNames)){
+      const kills = leaderBoard.players[playerId] ? leaderBoard.players[playerId].stats.kills : 0;
+      const deaths = leaderBoard.players[playerId] ? leaderBoard.players[playerId].stats.deaths : 0;
+      sortablePlayers.push([playerId, kills, deaths]);
+    }
+
+    sortablePlayers.sort((a: (string | number)[], b: (string | number)[]) => {return cmp(a[1], b[1]) || cmp(a[2], b[2])});
+
+    playerList.innerHTML = templateBeginning;
+
+    if (playerList){
+      for (let playerData of sortablePlayers){
+        const playerId = playerData[0];
+        const kills = leaderBoard.players[playerId] ?
+            leaderBoard.players[playerId].stats.kills :
+            0;
+        const deaths = leaderBoard.players[playerId] ?
+            leaderBoard.players[playerId].stats.deaths :
+            0;
+        playerList.innerHTML += `<tr><td>${playerNames[playerId]}</td><td>${kills}</td><td>${deaths}</td></tr>`;
+      }
+    }
+
+    playerList.innerHTML += templateEnding;
   }
 
   getAccessCode(): string {

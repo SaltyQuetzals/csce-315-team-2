@@ -51,7 +51,7 @@ export class RoomController {
       playerNames: {[socketId: string]: string},
       leaderBoard: LeaderBoard): void {
     this.game.game.sound.stopAll();
-    this.game = new GameController(this.roomId, this.username, this.socket);
+    this.game.game.state.restart();
     this.showWaiting();
     this.updatePlayerList(playerNames, leaderBoard);
   }

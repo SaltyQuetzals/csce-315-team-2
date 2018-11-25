@@ -1,8 +1,10 @@
 import {InitialState, Leaderboard} from '../models/Leaderboard';
 import { delay } from '../shared/functions';
 import { GAME_LENGTH } from '../shared/constants';
+import uuid = require('uuid');
 
 export type GameRoom = {
+  roomId?: string,
   roomLeader: string,
   gameInProgress: boolean,
   names: {[socketid: string]: string},
@@ -105,8 +107,12 @@ class RoomController {
     return;
   }
 
-  async startTimer() {
+  async startTimer(roomId: string): Promise<string> {
+    const room = this.getRoom(roomId);
+    const roomUUID = uuid();
+    room.roomId = roomUUID;
     await delay(GAME_LENGTH * 1000);
+    return roomUUID;
   }
 
   /**

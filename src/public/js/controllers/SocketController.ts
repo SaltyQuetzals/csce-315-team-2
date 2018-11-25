@@ -208,16 +208,15 @@ export class SocketController {
           room.game.customSounds.win.play(undefined, undefined, undefined, true);
         }
         
-        this.gameOver().then(() => {
+        delay(8000).then(() => {
           const restart = room.restartGame.bind(room);
           setTimeout(restart(playerNames, leaderBoard), 5000);
+          if (this.roomHost === this.socket.id) {
+            document.getElementById('start')!.style.display = 'inherit';
+          }
         });
       });
     });
-  }
-
-  async gameOver() {
-    await delay(8000);
   }
 
   sendStartGame(): void {
@@ -338,13 +337,13 @@ export class SocketController {
     }
 
     this.gameController.GAME_STARTED = true;
-    const overlay: HTMLElement|null =
-        document.getElementById('waiting-room-overlay');
-    overlay!.style.display = 'none';
-    const background: HTMLElement|null = document!.getElementById('background');
-    background!.style.display = 'none';
     this.gameController.timer.start();
     this.gameController.customSounds.gameBg.play(undefined, undefined, undefined, true);
+    const overlay: HTMLElement | null =
+      document.getElementById('waiting-room-overlay');
+    overlay!.style.display = 'none';
+    const background: HTMLElement | null = document!.getElementById('background');
+    background!.style.display = 'none';
   }
 
   playerHit(victimId: string, killerId: string, damage: number): void {

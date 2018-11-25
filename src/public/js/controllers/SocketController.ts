@@ -211,6 +211,9 @@ export class SocketController {
         this.gameOver().then(() => {
           const restart = room.restartGame.bind(room);
           setTimeout(restart(playerNames, leaderBoard), 5000);
+          if (this.roomHost === this.socket.id) {
+            document.getElementById('start')!.style.display = 'inherit';
+          }
         });
       });
     });

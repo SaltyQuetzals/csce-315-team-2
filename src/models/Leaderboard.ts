@@ -27,10 +27,15 @@ export class Leaderboard {
    * @param socketId The unique socket identifier of the player.
    */
   addPlayer(socketId: SocketId, name: string) {
-    this.players[socketId] = {
-      stats: {kills: 0, deaths: 0, isHuman: true},
-      name
-    };
+    if(!(socketId in this.players)){
+      this.players[socketId] = {
+        stats: {kills: 0, deaths: 0, isHuman: true},
+        name
+      };
+    }
+    else{
+      this.players[socketId].stats.isHuman = true;
+    }
   }
 
   /**

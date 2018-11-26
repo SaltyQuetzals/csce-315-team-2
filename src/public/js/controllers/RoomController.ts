@@ -41,10 +41,10 @@ export class RoomController {
   }
 
   startGame(): void {
-    document.getElementById('waiting-room-overlay')!.style.display = 'none';
-    document.getElementById('background')!.style.display = 'none';
-    document.getElementById('start')!.style.display = 'none';
     this.game.socket.sendStartGame();
+    // document.getElementById('waiting-room-overlay')!.style.display = 'none';
+    // document.getElementById('background')!.style.display = 'none';
+    // document.getElementById('start')!.style.display = 'none';
   }
 
   restartGame(

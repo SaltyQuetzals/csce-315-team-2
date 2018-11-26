@@ -294,7 +294,7 @@ export class GameController {
         // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
         // game.localPlayer.gun.debug(20, 128);
         this.HUD.timer.setText(
-            '' + (GAME_LENGTH - Math.floor(this.timer.seconds) - 1));
+            '' + Math.max((GAME_LENGTH - Math.floor(this.timer.seconds) - 1), 0));
       }
 
   updateShadowTexture() {

@@ -8,6 +8,7 @@ import bodyParser = require('body-parser');
 import { RoomController } from './controllers/RoomController';
 
 import * as winston from 'winston';
+import { deflate } from 'zlib';
 
 const ROOM_CODE_LENGTH = 5;
 
@@ -106,7 +107,7 @@ io.on('connection', socket => {
     leaderBoard: roomController.getRoom(roomId).leaderboard
   });
 
-  socket.on('start game', data => {
+  socket.on('start game', async (data) => {
     const { roomId } = data;
 
     try {
@@ -115,6 +116,8 @@ io.on('connection', socket => {
         const players = roomController.getNames(roomId);
         const initialState = roomController.startGame(roomId);
         logger.info('Start game', { roomId, initialState });
+        io.in(roomId).emit('countdown');
+        await delay(5000);
         io.in(roomId).emit('start game', { initialState, playerNames: players });
         roomController.startTimer(roomId).then((roomUUID: string) => {
           if (room.roomId && room.roomId === roomUUID) {

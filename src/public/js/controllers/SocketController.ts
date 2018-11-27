@@ -46,6 +46,17 @@ export class SocketController {
         this.playerJoined(playerNames, leaderBoard);
       });
 
+      this.socket.on('countdown', async () => {
+        const countdownLabel = document.getElementById('countdown');
+        if (countdownLabel){
+          for( let i = 5; i >= 0; i--){
+            countdownLabel.innerHTML = `${i}`;
+            await delay(1000);
+          }
+          countdownLabel.innerHTML = ``;
+        }
+      });
+
       this.socket.on('start game', (message: StartGameParams) => {
         console.log('Received start game event');
         const {initialState, playerNames} = message;

@@ -14,7 +14,7 @@ import * as gameConstants from './game-constants';
 export function initHitbox(character: Phaser.Sprite): Phaser.Graphics {
   const hitbox = room.game.game.add.graphics(0, 0);
   // hitbox.lineStyle(2, 0x5ff0000, 1);
-  hitbox.drawRect(0, 0, character.width / 2, character.height / 2);
+  hitbox.drawRect(0, 0, character.width / 4, character.height / 4);
   hitbox.boundsPadding = 0;
 
   room.game.game.physics.arcade.enable(hitbox);

@@ -4,6 +4,7 @@ import {CustomPlayer} from './classes/game-classes';
 import * as gameConstants from './helper/game-constants';
 import { room } from './main';
 import { GAME_LENGTH, GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT } from '../../shared/constants';
+import { Graphics, GraphicsData } from 'phaser-ce';
 
 export function togglePowerup(type: string, activate: boolean): void {
     let sprite: Phaser.Sprite;
@@ -46,34 +47,28 @@ export function updateRadar(): void {
         if (playerId === room.game.localPlayer.id) {
             color = 0xffffff;
         }
-        else if (room.game.localPlayer.isZombie && !currentPlayer.isZombie) {
-                color = 0xaf0000;
+        else if (room.game.localPlayer.isZombie !== currentPlayer.isZombie) {
+            color = 0xaf0000;
         }
         else {
-            if (currentPlayer.isZombie) {
-                color = 0xaf0000;
-            }
+            color = 0x5b5b5b;
         }
         
-        if (isUndefined(room.game.HUD.radar.dots[playerId])) {
-            currentDot = room.game.game.add.graphics();
-
-            currentDot.beginFill(color, 1);
-            currentDot.drawCircle(6, 6, 8);
-            currentDot.endFill();
-            currentDot.boundsPadding = 0;
-            currentDot.x = currentPlayer.character.x / 20;
-            currentDot.y = currentPlayer.character.y / 20;
-            room.game.HUD.radar.dots[playerId] = currentDot;
-            room.game.HUD.radar.overlay.addChild(currentDot);
-            room.game.game.world.bringToTop(room.game.HUD.radar.overlay);
-        }
-        else {
+        if (!isUndefined(room.game.HUD.radar.dots[playerId])) {
             currentDot = room.game.HUD.radar.dots[playerId];
-            currentDot.x = currentPlayer.character.x / 20;
-            currentDot.y = currentPlayer.character.y / 20;
+            currentDot.destroy();
         }
+        currentDot = room.game.game.add.graphics();
 
+        currentDot.beginFill(color, 1);
+        currentDot.drawCircle(6, 6, 8);
+        currentDot.endFill();
+        currentDot.boundsPadding = 0;
+        currentDot.x = currentPlayer.character.x / 20;
+        currentDot.y = currentPlayer.character.y / 20;
+        room.game.HUD.radar.dots[playerId] = currentDot;
+        room.game.HUD.radar.overlay.addChild(currentDot);
+        room.game.game.world.bringToTop(room.game.HUD.radar.overlay);
     });
 }
 

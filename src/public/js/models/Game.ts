@@ -40,7 +40,12 @@ export class GameController {
     timer: Phaser.Text;
     kills: { text: Phaser.Text; graphic: Phaser.Sprite; }
     deaths: { text: Phaser.Text; graphic: Phaser.Sprite; }
-    radar: {overlay: Phaser.Graphics; dots: {[id: string]: Phaser.Graphics}};
+      radar: {
+          overlay: Phaser.Graphics;
+          dots: { [id: string]: Phaser.Graphics };
+          Sdots: { [id: string]: Phaser.Graphics };
+          Zdots: { [id: string]: Phaser.Graphics };
+      };
   };
   endGame!: Phaser.Text;
     customSounds!: {
@@ -294,7 +299,7 @@ export class GameController {
         // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
         // game.localPlayer.gun.debug(20, 128);
         this.HUD.timer.setText(
-            '' + Math.max((GAME_LENGTH - Math.floor(this.timer.seconds) - 1), 0));
+            '' + (GAME_LENGTH - Math.floor(this.timer.seconds) - 1));
       }
 
   updateShadowTexture() {

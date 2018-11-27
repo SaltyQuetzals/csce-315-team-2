@@ -10,7 +10,7 @@ import {room} from './main';
 // keys index changed, making this invalid
 
 export function shiftHitbox(player: CustomPlayer) {
-  if(player.hitbox){
+  if (player.hitbox) {
     if (player.facing.x !== 0) {
       if (player.facing.x === DIRECTIONS.EAST) {
         player.hitbox.centerX = player.character.width - 10;

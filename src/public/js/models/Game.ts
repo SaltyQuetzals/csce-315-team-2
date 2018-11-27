@@ -36,24 +36,21 @@ export class GameController {
     survivors: {text: Phaser.Text; graphic: Phaser.Sprite;}
     zombies: {text: Phaser.Text; graphic: Phaser.Sprite;}
     healthbar: Phaser.Graphics;
-    powerups: { hammertime: Phaser.Sprite; weirdFlex: Phaser.Sprite; }
+    powerups: {hammertime: Phaser.Sprite; weirdFlex: Phaser.Sprite;}
     timer: Phaser.Text;
     kills: { text: Phaser.Text; graphic: Phaser.Sprite; }
     deaths: { text: Phaser.Text; graphic: Phaser.Sprite; }
-      radar: {
-          overlay: Phaser.Graphics;
-          dots: { [id: string]: Phaser.Graphics };
-          Sdots: { [id: string]: Phaser.Graphics };
-          Zdots: { [id: string]: Phaser.Graphics };
-      };
+    radar: {
+        overlay: Phaser.Graphics;
+        dots: { [id: string]: Phaser.Graphics };
+        Sdots: { [id: string]: Phaser.Graphics };
+        Zdots: { [id: string]: Phaser.Graphics };
+    };
   };
   endGame!: Phaser.Text;
-    customSounds!: {
-        gameBg: Phaser.Sound;
-        loss: Phaser.Sound;
-        win: Phaser.Sound;
-    };
-  constructor(roomId: string, username: string, socketController: SocketController) {
+  customSounds!: {gameBg: Phaser.Sound; loss: Phaser.Sound; win: Phaser.Sound;};
+  constructor(
+      roomId: string, username: string, socketController: SocketController) {
     this.roomId = roomId;
     this.username = username;
     this.game = new Phaser.Game(
@@ -84,7 +81,7 @@ export class GameController {
         this.game.stage.disableVisibilityChange = true;
         this.game.load.image('tiles', '../assets/0x72_DungeonTilesetII_v1.png');
         this.game.load.tilemap(
-          'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
+            'map', '../assets/zombie.json', null, Phaser.Tilemap.TILED_JSON);
         this.game.load.image('brick', '../assets/brick.png');
         this.game.load.image('bullet', '../assets/bullet.png');
         this.game.load.image('Automatic Rifle', '../assets/AutomaticRifle.png');
@@ -117,7 +114,7 @@ export class GameController {
         // this.scale.pageAlignHorizontally = true;
         this.game.scale.pageAlignVertically = true;
 
-        //AUDIO
+        // AUDIO
         this.game.load.audio('main_bg', ['../assets/sounds/move_fast.wav']);
         this.game.load.audio('shoot', ['../assets/sounds/Shoot.wav']);
         this.game.load.audio('bite', ['../assets/sounds/Bite.wav']);
@@ -169,9 +166,9 @@ export class GameController {
         this.localPlayer.id = '0';
         //   this.bullets.remove(this.localPlayer.gun.pGun);
 
-      this.timer = this.game.time.create(true);
-      this.timer.loop(5000, updateRadar);
-      
+        this.timer = this.game.time.create(true);
+        this.timer.loop(5000, updateRadar);
+
         this.localPlayer.cameraSprite = this.game.add.sprite(
             this.localPlayer.character.x, this.localPlayer.character.y);
 
@@ -229,12 +226,12 @@ export class GameController {
 
         createHUD();
 
-      //AUDIO
-      this.customSounds = {
-        gameBg: this.game.add.audio('main_bg'),
-        win: this.game.add.audio('win'),
-        loss: this.game.add.audio('loss'),
-      };
+        // AUDIO
+        this.customSounds = {
+          gameBg: this.game.add.audio('main_bg'),
+          win: this.game.add.audio('win'),
+          loss: this.game.add.audio('loss'),
+        };
         // Creating line for the border around the game
         const graphics = this.game.add.graphics(0, 0);
         graphics.lineStyle(10, 0x000000, 1);
@@ -299,7 +296,8 @@ export class GameController {
         // game.debug.spriteInfo(game.localPlayer.character, 20, 32);
         // game.localPlayer.gun.debug(20, 128);
         this.HUD.timer.setText(
-            '' + (GAME_LENGTH - Math.floor(this.timer.seconds) - 1));
+            '' +
+            Math.max((GAME_LENGTH - Math.floor(this.timer.seconds) - 1), 0));
       }
 
   updateShadowTexture() {
@@ -333,13 +331,12 @@ export class GameController {
     this.shadowTexture.dirty = true;
   }
 
-  soundGauger(dx: number, dy: number): number{
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist < gameConstants.SOUND_TOLERANCE){
-        return 1 - (dist/gameConstants.SOUND_TOLERANCE);
-    }
-    else{
-        return 0;
+  soundGauger(dx: number, dy: number): number {
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < gameConstants.SOUND_TOLERANCE) {
+      return 1 - (dist / gameConstants.SOUND_TOLERANCE);
+    } else {
+      return 0;
     }
   }
 }

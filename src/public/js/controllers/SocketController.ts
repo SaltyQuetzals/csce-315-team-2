@@ -3,18 +3,18 @@ import * as socket from 'socket.io-client';
 import {Drop} from '../../../models/Drop';
 import {Obstacle} from '../../../models/Obstacle';
 import {Player} from '../../../models/Player';
+import {delay} from '../../../shared/functions';
 import {CustomPlayer, Gun, LeaderBoard} from '../classes/game-classes';
 import {MovementParams, NewPlayerParams, Players, Socket, StartGameParams} from '../classes/socket-classes';
-import {melee, meleeAnim, deactivateDrop} from '../helper/collisons-functs';
+import {deactivateDrop, melee, meleeAnim} from '../helper/collisons-functs';
 import {PLAYER_HEALTH} from '../helper/game-constants';
 import {initAvatar, initDrops, initObstacles, initPlayer} from '../helper/init-helpers';
 import {switchGun} from '../helper/weapon-functs';
-import {updateHUDText, togglePowerup} from '../HUD';
+import {togglePowerup, updateHUDText} from '../HUD';
 import {room} from '../main';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
-import { delay } from '../../../shared/functions';
 
 export class SocketController {
   socket: Socket;
@@ -48,8 +48,8 @@ export class SocketController {
 
       this.socket.on('countdown', async () => {
         const countdownLabel = document.getElementById('countdown');
-        if (countdownLabel){
-          for( let i = 5; i >= 0; i--){
+        if (countdownLabel) {
+          for (let i = 5; i >= 0; i--) {
             countdownLabel.innerHTML = `${i}`;
             await delay(1000);
           }
@@ -79,7 +79,8 @@ export class SocketController {
       this.socket.on('player moved', (message: MovementParams) => {
         const pairs: Array<[string, string]> = [];
         for (const socketId of Object.keys(this.gameController.players)) {
-          pairs.push([socketId, this.gameController.players[socketId].username]);
+          pairs.push(
+              [socketId, this.gameController.players[socketId].username]);
         }
         console.log(JSON.stringify(pairs, null, 3));
         const player = this.gameController.players[message.id];
@@ -101,9 +102,11 @@ export class SocketController {
             const shooter = this.gameController.players[id];
             const gun = shooter.gun;
             gun.pGun.fireAngle = fireAngle;
-            if(gun.shoot()){
-              const dx = shooter.character.x - this.gameController.localPlayer.character.x;
-              const dy = shooter.character.y - this.gameController.localPlayer.character.y;
+            if (gun.shoot()) {
+              const dx = shooter.character.x -
+                  this.gameController.localPlayer.character.x;
+              const dy = shooter.character.y -
+                  this.gameController.localPlayer.character.y;
               const volume = this.gameController.soundGauger(dx, dy);
               shooter.customSounds.shoot.play(undefined, undefined, volume);
             }
@@ -135,10 +138,9 @@ export class SocketController {
             player.health += change;
           });
 
-      this.socket.on(
-        'deactivate drop', (message: { type: string }) => {
-          const { type } = message;
-          deactivateDrop(type);
+      this.socket.on('deactivate drop', (message: {type: string}) => {
+        const {type} = message;
+        deactivateDrop(type);
       });
 
       this.socket.on('switch gun', (message: {id: string, gun: string}) => {
@@ -159,11 +161,12 @@ export class SocketController {
         }
       });
 
-      this.socket.on('change gun damage', (message: { id: string, damage: number }) => {
-        const { id, damage } = message;
-        const player = this.gameController.players[id];
-        player.gun.damage = damage;
-      });
+      this.socket.on(
+          'change gun damage', (message: {id: string, damage: number}) => {
+            const {id, damage} = message;
+            const player = this.gameController.players[id];
+            player.gun.damage = damage;
+          });
 
       this.socket.on('zombie attack', (message: {zombieId: string}) => {
         const {zombieId} = message;
@@ -214,15 +217,16 @@ export class SocketController {
           console.log('SURVIVORS WIN');
         }
 
-        //Only play winning music if localplayer is human
+        // Only play winning music if localplayer is human
         room.game.customSounds.gameBg.stop();
-        if (room.game.localPlayer.isZombie){
-          room.game.customSounds.loss.play(undefined, undefined, undefined, true);
+        if (room.game.localPlayer.isZombie) {
+          room.game.customSounds.loss.play(
+              undefined, undefined, undefined, true);
+        } else {
+          room.game.customSounds.win.play(
+              undefined, undefined, undefined, true);
         }
-        else{
-          room.game.customSounds.win.play(undefined, undefined, undefined, true);
-        }
-        
+
         delay(8000).then(() => {
           const restart = room.restartGame.bind(room);
           setTimeout(restart(playerNames, leaderBoard), 5000);
@@ -260,7 +264,7 @@ export class SocketController {
   }
 
   sendChangeGunDamage(damage: number): void {
-    this.socket.emit('change gun damage', { roomId: this.roomId, damage });
+    this.socket.emit('change gun damage', {roomId: this.roomId, damage});
   }
 
   sendZombieAttack(): void {
@@ -353,11 +357,12 @@ export class SocketController {
 
     this.gameController.GAME_STARTED = true;
     this.gameController.timer.start();
-    this.gameController.customSounds.gameBg.play(undefined, undefined, undefined, true);
-    const overlay: HTMLElement | null =
-      document.getElementById('waiting-room-overlay');
+    this.gameController.customSounds.gameBg.play(
+        undefined, undefined, undefined, true);
+    const overlay: HTMLElement|null =
+        document.getElementById('waiting-room-overlay');
     overlay!.style.display = 'none';
-    const background: HTMLElement | null = document!.getElementById('background');
+    const background: HTMLElement|null = document!.getElementById('background');
     background!.style.display = 'none';
   }
 
@@ -365,7 +370,7 @@ export class SocketController {
     console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
     const player = this.gameController.players[victimId];
     if (player.health <= damage) {
-      if(!player.isDead){
+      if (!player.isDead) {
         player.health = 0;
         if (victimId === this.gameController.localPlayer.id) {
           // Movement is disabled
@@ -416,12 +421,9 @@ export class SocketController {
         this.sendGameEnded();
       }
     }
-    player.character.animations.play('revive', 15, false).onComplete.add(
-      ()=>{
-        player.isDead = false;
-      },
-      this
-    );
+    player.character.animations.play('revive', 15, false).onComplete.add(() => {
+      player.isDead = false;
+    }, this);
     // player.isDead = false;
     if (player.id === this.gameController.localPlayer.id) {
       this.gameController.HUD.healthbar.width = 1.5 * player.health;

@@ -27,13 +27,12 @@ export class Leaderboard {
    * @param socketId The unique socket identifier of the player.
    */
   addPlayer(socketId: SocketId, name: string) {
-    if(!(socketId in this.players)){
+    if (!(socketId in this.players)) {
       this.players[socketId] = {
         stats: {kills: 0, deaths: 0, isHuman: true},
         name
       };
-    }
-    else{
+    } else {
       this.players[socketId].stats.isHuman = true;
     }
   }
@@ -73,10 +72,9 @@ export class Leaderboard {
 
   async dropCollected(type: string) {
     let delayMS: number;
-    if (type === "Hammertime") {
+    if (type === 'Hammertime') {
       delayMS = 10000;
-    }
-    else {
+    } else {
       delayMS = 20000;
     }
     await delay(delayMS);

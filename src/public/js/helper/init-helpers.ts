@@ -166,8 +166,8 @@ export function initPlayer(id: string, username: string) {
 export function initObstacles(obstacles: Obstacle[]) {
   for (let i = 0; i < obstacles.length; ++i) {
     const brickWall = room.game.game.add.tileSprite(
-      obstacles[i].location[0], obstacles[i].location[1],
-      obstacles[i].width, obstacles[i].height, 'brick');
+        obstacles[i].location[0], obstacles[i].location[1], obstacles[i].width,
+        obstacles[i].height, 'brick');
     room.game.game.physics.arcade.enable(brickWall);
     brickWall.body.immovable = true;
     room.game.obstacles.add(brickWall);

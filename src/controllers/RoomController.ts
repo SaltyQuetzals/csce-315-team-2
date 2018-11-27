@@ -1,14 +1,15 @@
 import {InitialState, Leaderboard} from '../models/Leaderboard';
-import { delay } from '../shared/functions';
-import { GAME_LENGTH } from '../shared/constants';
+import {GAME_LENGTH, MAX_PLAYERS} from '../shared/constants';
+import {delay} from '../shared/functions';
+
 import uuid = require('uuid');
 
 export type GameRoom = {
   roomId?: string,
-  roomLeader: string,
-  gameInProgress: boolean,
-  names: {[socketid: string]: string},
-  leaderboard: Leaderboard
+        roomLeader: string,
+        gameInProgress: boolean,
+        names: {[socketid: string]: string},
+        leaderboard: Leaderboard
 };
 
 class RoomController {
@@ -42,6 +43,14 @@ class RoomController {
   }
 
   /**
+   * Determines if a room is full or not.
+   * @param roomId The unique identifier of a room.
+   */
+  roomIsFull(roomId: string) {
+    return Object.keys(this.getRoom(roomId).names).length === MAX_PLAYERS;
+  }
+
+  /**
    * Adds a player to a room if it exists, isn't full, and doesn't have a game
    * in progress.
    * @param roomId The unique identifier of the room.
@@ -53,9 +62,6 @@ class RoomController {
       this.createRoom(roomId, socketId, name);
     }
     const room = this.rooms[roomId];
-    if (Object.keys(room.names).length === 10) {
-      throw Error(`Room "${roomId}" is full.`);
-    }
     if (room.gameInProgress) {
       // throw Error(`Room "${roomId}"'s game is in progress. Try again
       // later.`);

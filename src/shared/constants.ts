@@ -10,3 +10,5 @@ export const AVATAR_HEIGHT = 30;
 export const NUM_INITIAL_DROPS = 10;
 
 export const GAME_LENGTH = 60;
+
+export const MAX_PLAYERS = 10;

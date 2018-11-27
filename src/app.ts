@@ -42,6 +42,8 @@ app.get('/rooms/:roomCode', (req, res) => {
         res.sendFile(path.join(STATIC_DIR, '/html/room.html'));
       }
     }
+  } else if (roomController.roomIsFull(roomCode)) {
+    res.redirect('/');
   } else {
     if (!username || username === '') {
       res.redirect(`/username?roomcode=${roomCode}`);
@@ -94,6 +96,7 @@ io.on('connection', socket => {
   socket.join(roomId);
   logger.info(`Player joined room`, { socketId: socket.id, roomId, username });
   roomController.addPlayerToRoom(roomId, socket.id, username);
+
   const players = roomController.getNames(roomId);
   const roomHost = roomController.getRoomHost(roomId);
   io.in(roomId).emit('new player', {

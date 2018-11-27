@@ -1,18 +1,18 @@
-import {InitialState, Leaderboard} from '../models/Leaderboard';
+import { InitialState, Leaderboard } from '../models/Leaderboard';
 import { delay } from '../shared/functions';
-import { GAME_LENGTH } from '../shared/constants';
+import { GAME_LENGTH, MAX_PLAYERS } from '../shared/constants';
 import uuid = require('uuid');
 
 export type GameRoom = {
   roomId?: string,
   roomLeader: string,
   gameInProgress: boolean,
-  names: {[socketid: string]: string},
+  names: { [socketid: string]: string },
   leaderboard: Leaderboard
 };
 
 class RoomController {
-  private rooms: {[socketId: string]: GameRoom} = {};
+  private rooms: { [socketId: string]: GameRoom } = {};
 
   /**
    * Determines whether a room exists or not.
@@ -30,7 +30,7 @@ class RoomController {
    */
   createRoom(roomId: string, socketId: string, name: string): void {
     if (!this.roomExists(roomId)) {
-      const names: {[socketId: string]: string} = {};
+      const names: { [socketId: string]: string } = {};
       names[socketId] = name;
       this.rooms[roomId] = {
         roomLeader: socketId,
@@ -39,6 +39,14 @@ class RoomController {
         names
       };
     }
+  }
+
+  /**
+   * Determines if a room is full or not.
+   * @param roomId The unique identifier of a room.
+   */
+  roomIsFull(roomId: string) {
+    return Object.keys(this.getRoom(roomId).names).length === MAX_PLAYERS;
   }
 
   /**
@@ -53,9 +61,6 @@ class RoomController {
       this.createRoom(roomId, socketId, name);
     }
     const room = this.rooms[roomId];
-    if (Object.keys(room.names).length === 10) {
-      throw Error(`Room "${roomId}" is full.`);
-    }
     if (room.gameInProgress) {
       // throw Error(`Room "${roomId}"'s game is in progress. Try again
       // later.`);
@@ -92,12 +97,12 @@ class RoomController {
    * Starts the game of a given room.
    * @param roomId The unique identifier of the room.
    */
-  startGame(roomId: string): InitialState|undefined {
+  startGame(roomId: string): InitialState | undefined {
     const room = this.getRoom(roomId);
     if (!room.gameInProgress) {
-      const playerData: Array<{id: string}> = [];
+      const playerData: Array<{ id: string }> = [];
       for (const socketId of Object.keys(room.names)) {
-        playerData.push({id: room.names[socketId]});
+        playerData.push({ id: room.names[socketId] });
         room.leaderboard.addPlayer(socketId, socketId);
       }
       const initialState = room.leaderboard.initialize();
@@ -146,4 +151,4 @@ class RoomController {
   }
 }
 
-export {RoomController};
+export { RoomController };

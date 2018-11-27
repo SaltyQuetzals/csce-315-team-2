@@ -48,9 +48,7 @@ export class CustomPlayer {
   moving!: boolean;
   dbZombieAttack!: boolean;
   customSounds!: {
-    shoot: Phaser.Sound;
-    bite: Phaser.Sound;
-    death: Phaser.Sound;
+    shoot: Phaser.Sound; bite: Phaser.Sound; death: Phaser.Sound;
     hit: Phaser.Sound;
   };
 

@@ -2,11 +2,11 @@ import {Drop} from '../../../models/Drop';
 import {Player} from '../../../models/Player';
 import {delay} from '../../../shared/functions';
 import {CustomPlayer, CustomSprite} from '../classes/game-classes';
-import {updateHUDText, togglePowerup} from '../HUD';
+import {togglePowerup, updateHUDText} from '../HUD';
 import {room} from '../main';
 import {AutomaticRifle, Revolver, SawnOffShotgun} from '../models/Guns';
 
-import {ZOMBIE_ATTACK_DEBOUNCE, PLAYER_SPEED} from './game-constants';
+import {PLAYER_SPEED, ZOMBIE_ATTACK_DEBOUNCE} from './game-constants';
 import {switchGun} from './weapon-functs';
 
 export function deactivateDrop(type: string) {
@@ -19,11 +19,11 @@ export function deactivateDrop(type: string) {
       player.gun.damage -= player.gun.damageBonus;
       player.gun.damageBonus = 0;
       room.game.socket.sendChangeGunDamage(player.gun.damage);
-      togglePowerup("WeirdFlex", false);
+      togglePowerup('WeirdFlex', false);
       break;
     case 'Hammertime':
       player.speed = PLAYER_SPEED;
-      togglePowerup("Hammertime", false);
+      togglePowerup('Hammertime', false);
       break;
     default:
       break;
@@ -67,7 +67,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           player.gun.damageBonus += 10;
           player.gun.damage += player.gun.damageBonus;
           room.game.socket.sendChangeGunDamage(player.gun.damage);
-          togglePowerup("WeirdFlex", true);
+          togglePowerup('WeirdFlex', true);
           break;
         case 'Grit':
           player.health += 100;
@@ -75,8 +75,8 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           room.game.socket.sendChangeHealth(100);
           break;
         case 'Hammertime':
-          player.speed = 1.5*PLAYER_SPEED;
-          togglePowerup("Hammertime", true);
+          player.speed = 1.5 * PLAYER_SPEED;
+          togglePowerup('Hammertime', true);
           break;
         case 'Jackpot':
           player.gun.ammo += player.gun.clipSize;
@@ -86,8 +86,7 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           break;
       }
     }
-  }
-  else {
+  } else {
     room.game.socket.sendActivateDrop(drop.id, drop.item.type);
   }
 }
@@ -103,15 +102,15 @@ export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
   const x = bullet.x;
   const y = bullet.y;
   const lookVector = bullet.body.velocity;
-  let lookVectorX = Math.abs(lookVector.x)/ lookVector.x;
+  let lookVectorX = Math.abs(lookVector.x) / lookVector.x;
   lookVectorX = lookVectorX ? lookVectorX : 0;
-  let lookVectorY = Math.abs(lookVector.y)/ lookVector.y;
+  let lookVectorY = Math.abs(lookVector.y) / lookVector.y;
   lookVectorY = lookVectorY ? lookVectorY : 0;
 
   bullet.kill();
-  const impactX = x - bullet.width/2 + lookVectorX*bullet.width*0.75;
-  const impactY = y - bullet.height/2 + lookVectorY*bullet.height/2;
-  
+  const impactX = x - bullet.width / 2 + lookVectorX * bullet.width * 0.75;
+  const impactY = y - bullet.height / 2 + lookVectorY * bullet.height / 2;
+
   const impact = room.game.game.add.sprite(impactX, impactY, 'weapons');
   impact.animations.add('hit', [25, 26, 27, 28, 29], 20, false);
   impact.play('hit', 20, false, true);
@@ -124,7 +123,7 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
     return;
   }
   const target = room.game.players[enemy.id];
-  if (target.isDead){
+  if (target.isDead) {
     return;
   }
   room.game.socket.sendHit(enemy.id, room.game.localPlayer.gun.damage);
@@ -181,7 +180,7 @@ export function meleeHit(hitbox: Phaser.Graphics, enemy: CustomSprite) {
   if (enemy.id === room.game.localPlayer.id || enemy.id === '0') {
     return;
   }
-  if (target.isDead){
+  if (target.isDead) {
     return;
   }
   room.game.socket.sendHit(enemy.id, meleeDamage);

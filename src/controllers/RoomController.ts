@@ -1,14 +1,15 @@
 import {InitialState, Leaderboard} from '../models/Leaderboard';
-import { delay } from '../shared/functions';
-import { GAME_LENGTH } from '../shared/constants';
+import {GAME_LENGTH} from '../shared/constants';
+import {delay} from '../shared/functions';
+
 import uuid = require('uuid');
 
 export type GameRoom = {
   roomId?: string,
-  roomLeader: string,
-  gameInProgress: boolean,
-  names: {[socketid: string]: string},
-  leaderboard: Leaderboard
+        roomLeader: string,
+        gameInProgress: boolean,
+        names: {[socketid: string]: string},
+        leaderboard: Leaderboard
 };
 
 class RoomController {

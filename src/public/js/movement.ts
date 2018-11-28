@@ -33,7 +33,7 @@ export function shiftHitbox(player: CustomPlayer) {
   }
 }
 
-export function animateAvatar(
+export async function animateAvatar(
   avatar: CustomSprite, gun?: Gun) {
   const dx = avatar.body.velocity.x;
   const dy = avatar.body.velocity.y;

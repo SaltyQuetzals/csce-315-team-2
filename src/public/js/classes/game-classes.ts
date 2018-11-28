@@ -16,7 +16,7 @@ export class Gun {
     this.damageBonus = 0;
   }
 
-  shoot() {
+  async shoot() {
     if (this.pGun.fire()) {
       this.handle.animations.play(this.name);
       return true;

@@ -77,11 +77,11 @@ export class SocketController {
       });
 
       this.socket.on('player moved', (message: MovementParams) => {
-        const pairs: Array<[string, string]> = [];
-        for (const socketId of Object.keys(this.gameController.players)) {
-          pairs.push(
-              [socketId, this.gameController.players[socketId].username]);
-        }
+        // const pairs: Array<[string, string]> = [];
+        // for (const socketId of Object.keys(this.gameController.players)) {
+        //   pairs.push(
+        //       [socketId, this.gameController.players[socketId].username]);
+        // }
         // console.log(JSON.stringify(pairs, null, 3));
         const player = this.gameController.players[message.id];
         player.facing = message.facing;

@@ -366,7 +366,7 @@ export class SocketController {
   }
 
   playerHit(victimId: string, killerId: string, damage: number): void {
-    console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
+    // console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
     const player = this.gameController.players[victimId];
     if (player.health <= damage) {
       if (!player.isDead) {

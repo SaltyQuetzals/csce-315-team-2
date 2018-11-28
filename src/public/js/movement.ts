@@ -75,6 +75,8 @@ export function movementHandler(
   const avatar = player.character;
   let eventShouldBeEmitted = false;
   if (player.isDead) {
+    avatar.body.velocity.x = 0;
+    avatar.body.velocity.y = 0;
     return;
   }
   if (!avatar.animating) {

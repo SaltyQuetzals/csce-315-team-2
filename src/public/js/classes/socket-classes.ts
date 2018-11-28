@@ -15,7 +15,8 @@ export type StartGameParams = {
 
 export type MovementParams = {
   id: string,
-  location: {x: number, y: number},
+  location: { x: number, y: number },
+  velocity: { x: number, y: number },
   facing: {x: number, y: number}
 };
 

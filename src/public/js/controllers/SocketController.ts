@@ -82,17 +82,16 @@ export class SocketController {
           pairs.push(
               [socketId, this.gameController.players[socketId].username]);
         }
-        console.log(JSON.stringify(pairs, null, 3));
+        // console.log(JSON.stringify(pairs, null, 3));
         const player = this.gameController.players[message.id];
         player.facing = message.facing;
         shiftHitbox(player);
         const avatar = player.character;
-        const {x, y} = avatar;
         avatar.x = message.location.x;
         avatar.y = message.location.y;
-        const dx = avatar.x - x;
-        const dy = avatar.y - y;
-        animateAvatar(avatar, dx, dy, player.gun);
+        avatar.body.velocity.x = message.velocity.x;
+        avatar.body.velocity.y = message.velocity.y;
+        animateAvatar(avatar, player.gun);
         // console.log(avatar.id, dx, dy);
       });
 
@@ -242,9 +241,9 @@ export class SocketController {
     this.socket.emit('start game', {roomId: this.roomId});
   }
 
-  sendMove(location: {x: number, y: number}, facing: {x: number, y: number}):
+  sendMove(location: { x: number, y: number }, velocity: { x: number, y: number }, facing: {x: number, y: number}):
       void {
-    this.socket.emit('move', {roomId: this.roomId, location, facing});
+    this.socket.emit('move', {roomId: this.roomId, location, velocity, facing});
   }
 
   sendChangeHealth(change: number): void {

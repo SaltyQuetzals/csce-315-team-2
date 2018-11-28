@@ -162,11 +162,12 @@ io.on('connection', socket => {
   });
 
   socket.on('move', data => {
-    const { roomId, location, facing } = data;
+    const { roomId, location, velocity, facing } = data;
 
     const loggerMeta = {
       roomId,
       location,
+      velocity,
       facing,
       socketId: socket.id,
     };
@@ -175,7 +176,7 @@ io.on('connection', socket => {
       if (room.gameInProgress) {
         logger.info('move', loggerMeta);
         socket.to(roomId).emit(
-          'player moved', { id: socket.id, location, facing });
+          'player moved', { id: socket.id, location, velocity, facing });
       } else {
         console.log('Game not started');
       }

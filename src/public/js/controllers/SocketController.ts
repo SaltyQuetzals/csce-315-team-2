@@ -87,6 +87,7 @@ export class SocketController {
         player.facing = message.facing;
         shiftHitbox(player);
         const avatar = player.character;
+        console.log(message);
         avatar.x = message.location.x;
         avatar.y = message.location.y;
         avatar.body.velocity.x = message.velocity.x;

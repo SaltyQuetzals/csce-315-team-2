@@ -175,7 +175,7 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('move', loggerMeta);
-        console.log(data);
+        // console.log(data);
         socket.to(roomId).emit(
           'player moved', { id: socket.id, location, velocity, facing });
       } else {

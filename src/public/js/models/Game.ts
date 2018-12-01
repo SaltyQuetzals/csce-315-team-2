@@ -251,6 +251,7 @@ export class GameController {
               melee(this.localPlayer);
             }
           } else {
+            //   console.log(this.localPlayer.gun);
             fireGun();
           }
         }

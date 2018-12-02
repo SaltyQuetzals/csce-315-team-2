@@ -134,7 +134,7 @@ class RoomController {
       const room = this.getRoom(roomId);
       delete room.names[socketId];
       room.leaderboard.removePlayer(socketId);
-      console.log(room.names);
+      // console.log(room.names);
       if (socketId === room.roomLeader) {
         let newLeaderIndex: number;
         const socketIds = Object.keys(room.names);

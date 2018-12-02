@@ -60,7 +60,7 @@ export class SocketController {
 
       this.socket.on('start game', (message: StartGameParams) => {
         console.log('Received start game event');
-        console.log(message);
+        // console.log(message);
         const {initialState, playerNames} = message;
         // const { roomHost, id, username, players } = message;
 
@@ -378,11 +378,11 @@ export class SocketController {
     if (player.health <= damage) {
       if (!player.isDead) {
         player.health = 0;
+        player.character.body.velocity.x = 0;
+        player.character.body.velocity.y = 0;
         if (victimId === this.gameController.localPlayer.id) {
           // Movement is disabled
           player.isDead = true;
-          player.character.body.velocity.x = 0;
-          player.character.body.velocity.y = 0;
           this.sendPlayerDied(killerId);
           this.gameController.HUD.healthbar.width = 1.5 * player.health;
           this.gameController.deaths += 1;

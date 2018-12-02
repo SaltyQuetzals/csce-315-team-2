@@ -61,7 +61,6 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
     } else {
       const type = drop.item.type;
       // console.log(type);
-      room.game.socket.sendActivateDrop(drop.id, drop.item.type);
       switch (type) {
         case 'WeirdFlex':
           player.gun.damageBonus += 10;
@@ -86,9 +85,8 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           break;
       }
     }
-  } else {
-    room.game.socket.sendActivateDrop(drop.id, drop.item.type);
   }
+  room.game.socket.sendActivateDrop(drop.id, drop.item.type);
 }
 
 export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {

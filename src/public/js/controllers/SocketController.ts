@@ -119,7 +119,14 @@ export class SocketController {
           (message: {victimId: string, killerId: string, damage: number}) => {
             const {victimId, killerId, damage} = message;
             this.playerHit(victimId, killerId, damage);
-          });
+        });
+      
+      this.socket.on(
+        'died',
+        (message: { victimId: string }) => {
+          const { victimId } = message;
+          this.playerDied(victimId);
+        });
 
       this.socket.on('respawned', (message: {id: string}) => {
         const {id} = message;
@@ -378,8 +385,6 @@ export class SocketController {
     if (player.health <= damage) {
       if (!player.isDead) {
         player.health = 0;
-        player.character.body.velocity.x = 0;
-        player.character.body.velocity.y = 0;
         if (victimId === this.gameController.localPlayer.id) {
           // Movement is disabled
           player.isDead = true;
@@ -399,6 +404,17 @@ export class SocketController {
         this.gameController.HUD.healthbar.width = 1.5 * player.health;
       }
     }
+  }
+
+  playerDied(victimId: string): void{
+    const player = this.gameController.players[victimId];
+    console.log(victimId);
+    console.log(this.gameController.players);
+    player.isDead = true;
+    player.character.body.velocity.x = 0;
+    player.character.body.velocity.y = 0;
+    player.character.animating = true;
+    player.character.animations.play('die', 15, false);
   }
 
   respawnPlayer(playerId: string): void {
@@ -432,7 +448,6 @@ export class SocketController {
     player.character.animations.play('revive', 15, false).onComplete.add(() => {
       player.isDead = false;
     }, this);
-    // player.isDead = false;
     if (player.id === this.gameController.localPlayer.id) {
       this.gameController.HUD.healthbar.width = 1.5 * player.health;
       this.gameController.localPlayer = player;

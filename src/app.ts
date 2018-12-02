@@ -213,7 +213,7 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('died', loggerMeta);
-        socket.emit('died', { id: socket.id });
+        io.in(roomId).emit('died', { victimId: socket.id });
 
         room.leaderboard.playerKilled(killerId, socket.id).then(() => {
           logger.info('respawn', { respawnedId: socket.id });

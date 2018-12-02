@@ -38,9 +38,14 @@ export class GameController {
     healthbar: Phaser.Graphics;
     powerups: {hammertime: Phaser.Sprite; weirdFlex: Phaser.Sprite;}
     timer: Phaser.Text;
-    kills: {text: Phaser.Text; graphic: Phaser.Sprite;}
-    deaths: {text: Phaser.Text; graphic: Phaser.Sprite;}
-    radar: {overlay: Phaser.Graphics; dots: {[id: string]: Phaser.Graphics}};
+    kills: { text: Phaser.Text; graphic: Phaser.Sprite; }
+    deaths: { text: Phaser.Text; graphic: Phaser.Sprite; }
+    radar: {
+        overlay: Phaser.Graphics;
+        dots: { [id: string]: Phaser.Graphics };
+        Sdots: { [id: string]: Phaser.Graphics };
+        Zdots: { [id: string]: Phaser.Graphics };
+    };
   };
   endGame!: Phaser.Text;
   customSounds!: {gameBg: Phaser.Sound; loss: Phaser.Sound; win: Phaser.Sound;};

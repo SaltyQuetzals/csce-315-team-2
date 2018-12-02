@@ -162,9 +162,11 @@ export async function melee(player: CustomPlayer) {
 
 export function meleeAnim(player: CustomPlayer) {
   const biteAnim = room.game.game.add.sprite(0, 0, 'weapons', 20);
-  player.hitbox.addChild(biteAnim);
-  biteAnim.width = player.hitbox.width;
-  biteAnim.height = player.hitbox.height;
+  player.character.addChild(biteAnim);
+  biteAnim.centerX = player.hitbox.centerX;
+  biteAnim.centerY = player.hitbox.centerY;
+  // biteAnim.width = player.hitbox.width;
+  // biteAnim.height = player.hitbox.height;
   biteAnim.animations.add('Bite', [20, 21, 22, 23, 24], 30, false);
 
   biteAnim.animations.play('Bite', 30, false, true);

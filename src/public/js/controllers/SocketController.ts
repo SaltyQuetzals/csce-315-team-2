@@ -15,6 +15,7 @@ import {room} from '../main';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
+import { isUndefined } from 'util';
 
 export class SocketController {
   socket: Socket;
@@ -59,6 +60,7 @@ export class SocketController {
 
       this.socket.on('start game', (message: StartGameParams) => {
         console.log('Received start game event');
+        console.log(message);
         const {initialState, playerNames} = message;
         // const { roomHost, id, username, players } = message;
 
@@ -175,12 +177,16 @@ export class SocketController {
       });
 
       this.socket.on('player left', (message: {
+                                      leaverId: string,
                                       roomHost: string,
                                       playerNames: {[socketId: string]: string},
                                       leaderBoard: LeaderBoard
                                     }) => {
-        const {roomHost, playerNames, leaderBoard} = message;
+        const {leaverId, roomHost, playerNames, leaderBoard} = message;
         console.log(message);
+        if (!isUndefined(this.gameController.players[leaverId])) {
+          delete this.gameController.players[leaverId];
+        }
         this.roomHost = roomHost;
         room.updatePlayerList(playerNames, leaderBoard);
         if (this.roomHost === this.socket.id) {
@@ -366,7 +372,7 @@ export class SocketController {
     background!.style.display = 'none';
   }
 
-  playerHit(victimId: string, killerId: string, damage: number): void {
+  async playerHit(victimId: string, killerId: string, damage: number) {
     // console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
     const player = this.gameController.players[victimId];
     if (player.health <= damage) {
@@ -375,6 +381,8 @@ export class SocketController {
         if (victimId === this.gameController.localPlayer.id) {
           // Movement is disabled
           player.isDead = true;
+          player.character.body.velocity.x = 0;
+          player.character.body.velocity.y = 0;
           this.sendPlayerDied(killerId);
           this.gameController.HUD.healthbar.width = 1.5 * player.health;
           this.gameController.deaths += 1;

@@ -305,6 +305,7 @@ io.on('connection', socket => {
       const roomHost = roomController.getRoomHost(roomId);
       logger.info('disconnect', loggerMeta);
       socket.to(roomId).emit('player left', {
+        leaverId: socket.id,
         roomHost,
         playerNames,
         leaderBoard: roomController.getRoom(roomId).leaderboard

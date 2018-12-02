@@ -117,7 +117,7 @@ io.on('connection', socket => {
         const initialState = roomController.startGame(roomId);
         logger.info('Start game', { roomId, initialState });
         io.in(roomId).emit('countdown');
-        await delay(5000);
+        await delay(9000);
         io.in(roomId).emit('start game', { initialState, playerNames: players });
         roomController.startTimer(roomId).then((roomUUID: string) => {
           if (room.roomId && room.roomId === roomUUID) {

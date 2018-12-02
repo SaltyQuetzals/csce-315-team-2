@@ -50,7 +50,7 @@ export class SocketController {
       this.socket.on('countdown', async () => {
         const countdownLabel = document.getElementById('countdown');
         if (countdownLabel) {
-          for (let i = 5; i >= 0; i--) {
+          for (let i = 9; i >= 0; i--) {
             countdownLabel.innerHTML = `${i}`;
             await delay(1000);
           }

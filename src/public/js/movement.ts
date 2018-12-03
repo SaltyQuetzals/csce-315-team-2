@@ -33,8 +33,10 @@ export function shiftHitbox(player: CustomPlayer) {
   }
 }
 
-export function animateAvatar(
-    avatar: CustomSprite, dx: number, dy: number, gun?: Gun) {
+export async function animateAvatar(
+  avatar: CustomSprite, gun?: Gun) {
+  const dx = avatar.body.velocity.x;
+  const dy = avatar.body.velocity.y;
   if (!avatar.animating) {
     if (dy === 0 && dx === 0) {
       avatar.animations.stop();
@@ -73,6 +75,8 @@ export function movementHandler(
   const avatar = player.character;
   let eventShouldBeEmitted = false;
   if (player.isDead) {
+    avatar.body.velocity.x = 0;
+    avatar.body.velocity.y = 0;
     return;
   }
   if (!avatar.animating) {
@@ -142,8 +146,9 @@ export function movementHandler(
     } else if (!eventShouldBeEmitted) {
       player.moving = false;
     }
-    const location = {x: Number(avatar.body.x), y: Number(avatar.body.y)};
-    room.game.socket.sendMove(location, player.facing);
+    const location = { x: Number(avatar.body.x), y: Number(avatar.body.y) };
+    const velocity = { x: Number(avatar.body.velocity.x), y: Number(avatar.body.velocity.y) };
+    room.game.socket.sendMove(location, velocity, player.facing);
     if (player.isZombie) {
       shiftHitbox(player);
     }

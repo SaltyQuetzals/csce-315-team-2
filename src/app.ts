@@ -117,7 +117,7 @@ io.on('connection', socket => {
         const initialState = roomController.startGame(roomId);
         logger.info('Start game', { roomId, initialState });
         io.in(roomId).emit('countdown');
-        await delay(5000);
+        await delay(9000);
         io.in(roomId).emit('start game', { initialState, playerNames: players });
         roomController.startTimer(roomId).then((roomUUID: string) => {
           if (room.roomId && room.roomId === roomUUID) {
@@ -162,11 +162,12 @@ io.on('connection', socket => {
   });
 
   socket.on('move', data => {
-    const { roomId, location, facing } = data;
+    const { roomId, location, velocity, facing } = data;
 
     const loggerMeta = {
       roomId,
       location,
+      velocity,
       facing,
       socketId: socket.id,
     };
@@ -174,8 +175,9 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('move', loggerMeta);
+        // console.log(data);
         socket.to(roomId).emit(
-          'player moved', { id: socket.id, location, facing });
+          'player moved', { id: socket.id, location, velocity, facing });
       } else {
         console.log('Game not started');
       }
@@ -211,7 +213,7 @@ io.on('connection', socket => {
       const room = roomController.getRoom(roomId);
       if (room.gameInProgress) {
         logger.info('died', loggerMeta);
-        socket.emit('died', { id: socket.id });
+        io.in(roomId).emit('died', { victimId: socket.id });
 
         room.leaderboard.playerKilled(killerId, socket.id).then(() => {
           logger.info('respawn', { respawnedId: socket.id });
@@ -303,6 +305,7 @@ io.on('connection', socket => {
       const roomHost = roomController.getRoomHost(roomId);
       logger.info('disconnect', loggerMeta);
       socket.to(roomId).emit('player left', {
+        leaverId: socket.id,
         roomHost,
         playerNames,
         leaderBoard: roomController.getRoom(roomId).leaderboard

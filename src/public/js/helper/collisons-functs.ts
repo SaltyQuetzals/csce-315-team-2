@@ -61,7 +61,6 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
     } else {
       const type = drop.item.type;
       // console.log(type);
-      room.game.socket.sendActivateDrop(drop.id, drop.item.type);
       switch (type) {
         case 'WeirdFlex':
           player.gun.damageBonus += 10;
@@ -86,9 +85,8 @@ export function pickupDrop(character: CustomSprite, dropSprite: CustomSprite) {
           break;
       }
     }
-  } else {
-    room.game.socket.sendActivateDrop(drop.id, drop.item.type);
   }
+  room.game.socket.sendActivateDrop(drop.id, drop.item.type);
 }
 
 export function killBullet(bullet: Phaser.Sprite, obstacle: CustomSprite) {
@@ -128,9 +126,9 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
   }
   room.game.socket.sendHit(enemy.id, room.game.localPlayer.gun.damage);
   if (room.game.localPlayer.gun.damage >= target.health) {
-    killBullet(bullet, enemy);
+    // killBullet(bullet, enemy);
     target.isDead = true;
-    enemy.animations.play('die', 15, false);
+    // enemy.animations.play('die', 15, false);
     room.game.kills += 1;
     updateHUDText();
   } else {
@@ -139,6 +137,7 @@ export function bulletHitHandler(bullet: Phaser.Sprite, enemy: CustomSprite) {
     target.character.animating = true;
     target.character.animations.play('hurt', 20, false);
   }
+  killBullet(bullet, enemy);
   updateHUDText();
 }
 

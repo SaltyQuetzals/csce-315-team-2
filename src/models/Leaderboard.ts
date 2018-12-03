@@ -61,7 +61,7 @@ export class Leaderboard {
     this.players[victimId].stats.deaths++;
     this.players[victimId].stats.isHuman = false;
 
-    let respawnFactor = 1 << this.players[victimId].stats.deaths - 1;
+    let respawnFactor = 2 << this.players[victimId].stats.deaths - 1;
     if (respawnFactor > 5) {
       respawnFactor = 5;
     }

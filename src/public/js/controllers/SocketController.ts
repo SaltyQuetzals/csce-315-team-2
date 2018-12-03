@@ -15,6 +15,7 @@ import {room} from '../main';
 import {GameController} from '../models/Game';
 import {AutomaticRifle, Revolver, SawnOffShotgun, Weapon} from '../models/Guns';
 import {animateAvatar, shiftHitbox} from '../movement';
+import { isUndefined } from 'util';
 
 export class SocketController {
   socket: Socket;
@@ -49,7 +50,7 @@ export class SocketController {
       this.socket.on('countdown', async () => {
         const countdownLabel = document.getElementById('countdown');
         if (countdownLabel) {
-          for (let i = 5; i >= 0; i--) {
+          for (let i = 9; i >= 0; i--) {
             countdownLabel.innerHTML = `${i}`;
             await delay(1000);
           }
@@ -59,6 +60,7 @@ export class SocketController {
 
       this.socket.on('start game', (message: StartGameParams) => {
         console.log('Received start game event');
+        // console.log(message);
         const {initialState, playerNames} = message;
         // const { roomHost, id, username, players } = message;
 
@@ -77,22 +79,22 @@ export class SocketController {
       });
 
       this.socket.on('player moved', (message: MovementParams) => {
-        const pairs: Array<[string, string]> = [];
-        for (const socketId of Object.keys(this.gameController.players)) {
-          pairs.push(
-              [socketId, this.gameController.players[socketId].username]);
-        }
-        console.log(JSON.stringify(pairs, null, 3));
+        // const pairs: Array<[string, string]> = [];
+        // for (const socketId of Object.keys(this.gameController.players)) {
+        //   pairs.push(
+        //       [socketId, this.gameController.players[socketId].username]);
+        // }
+        // console.log(JSON.stringify(pairs, null, 3));
         const player = this.gameController.players[message.id];
         player.facing = message.facing;
         shiftHitbox(player);
         const avatar = player.character;
-        const {x, y} = avatar;
+        // console.log(message);
         avatar.x = message.location.x;
         avatar.y = message.location.y;
-        const dx = avatar.x - x;
-        const dy = avatar.y - y;
-        animateAvatar(avatar, dx, dy, player.gun);
+        avatar.body.velocity.x = message.velocity.x;
+        avatar.body.velocity.y = message.velocity.y;
+        animateAvatar(avatar, player.gun);
         // console.log(avatar.id, dx, dy);
       });
 
@@ -117,7 +119,14 @@ export class SocketController {
           (message: {victimId: string, killerId: string, damage: number}) => {
             const {victimId, killerId, damage} = message;
             this.playerHit(victimId, killerId, damage);
-          });
+        });
+      
+      this.socket.on(
+        'died',
+        (message: { victimId: string }) => {
+          const { victimId } = message;
+          this.playerDied(victimId);
+        });
 
       this.socket.on('respawned', (message: {id: string}) => {
         const {id} = message;
@@ -175,12 +184,16 @@ export class SocketController {
       });
 
       this.socket.on('player left', (message: {
+                                      leaverId: string,
                                       roomHost: string,
                                       playerNames: {[socketId: string]: string},
                                       leaderBoard: LeaderBoard
                                     }) => {
-        const {roomHost, playerNames, leaderBoard} = message;
+        const {leaverId, roomHost, playerNames, leaderBoard} = message;
         console.log(message);
+        if (!isUndefined(this.gameController.players[leaverId])) {
+          delete this.gameController.players[leaverId];
+        }
         this.roomHost = roomHost;
         room.updatePlayerList(playerNames, leaderBoard);
         if (this.roomHost === this.socket.id) {
@@ -242,9 +255,9 @@ export class SocketController {
     this.socket.emit('start game', {roomId: this.roomId});
   }
 
-  sendMove(location: {x: number, y: number}, facing: {x: number, y: number}):
+  sendMove(location: { x: number, y: number }, velocity: { x: number, y: number }, facing: {x: number, y: number}):
       void {
-    this.socket.emit('move', {roomId: this.roomId, location, facing});
+    this.socket.emit('move', {roomId: this.roomId, location, velocity, facing});
   }
 
   sendChangeHealth(change: number): void {
@@ -366,8 +379,8 @@ export class SocketController {
     background!.style.display = 'none';
   }
 
-  playerHit(victimId: string, killerId: string, damage: number): void {
-    console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
+  async playerHit(victimId: string, killerId: string, damage: number) {
+    // console.log(`victim: ${victimId}, killer: ${killerId}, dmg: ${damage}`);
     const player = this.gameController.players[victimId];
     if (player.health <= damage) {
       if (!player.isDead) {
@@ -391,6 +404,17 @@ export class SocketController {
         this.gameController.HUD.healthbar.width = 1.5 * player.health;
       }
     }
+  }
+
+  playerDied(victimId: string): void{
+    const player = this.gameController.players[victimId];
+    console.log(victimId);
+    console.log(this.gameController.players);
+    player.isDead = true;
+    player.character.body.velocity.x = 0;
+    player.character.body.velocity.y = 0;
+    player.character.animating = true;
+    player.character.animations.play('die', 15, false);
   }
 
   respawnPlayer(playerId: string): void {
@@ -424,7 +448,6 @@ export class SocketController {
     player.character.animations.play('revive', 15, false).onComplete.add(() => {
       player.isDead = false;
     }, this);
-    // player.isDead = false;
     if (player.id === this.gameController.localPlayer.id) {
       this.gameController.HUD.healthbar.width = 1.5 * player.health;
       this.gameController.localPlayer = player;

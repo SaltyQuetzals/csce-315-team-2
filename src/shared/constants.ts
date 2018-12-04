@@ -11,4 +11,4 @@ export const NUM_INITIAL_DROPS = 10;
 
 export const GAME_LENGTH = 60;
 
-export const MAX_PLAYERS = 10;
+export const MAX_PLAYERS = 15;

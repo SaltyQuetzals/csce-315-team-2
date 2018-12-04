@@ -191,7 +191,19 @@ export class SocketController {
                                     }) => {
         const {leaverId, roomHost, playerNames, leaderBoard} = message;
         console.log(message);
-        if (!isUndefined(this.gameController.players[leaverId])) {
+        const leaver = this.gameController.players[leaverId];
+        if (!isUndefined(leaver)) {
+          if (!isUndefined(leaver.character)) {
+            if (leaver.isZombie) {
+              this.gameController.numZombies--;
+            }
+            else {
+              this.gameController.numSurvivors--;
+            }
+            this.gameController.players[leaverId].character.destroy();
+            this.gameController.HUD.radar.dots[leaverId].destroy();
+            updateHUDText();
+          }
           delete this.gameController.players[leaverId];
         }
         this.roomHost = roomHost;
